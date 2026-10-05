@@ -109,7 +109,14 @@ func load_case(name: String) -> void:
 		return
 	boot.factory_menu.list.select(index)
 	boot.factory_menu.list.item_selected.emit(index)
-	boot.factory_menu.continue_button.pressed.emit()
+	# Preserve historical schema 2 fixtures; migration has its own menu path check.
+	var store := Store.new(run_root.path_join("factory"))
+	var candidate := store.prepare(manifest[name].id)
+	driver.expect(candidate.ok, "legacy discovery candidate remains readable")
+	if not candidate.ok:
+		world = null
+		return
+	boot.factory_menu.world_ready.emit(store, candidate.model, candidate)
 	world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal Boot loads " + name)

@@ -1,6 +1,8 @@
 extends "res://scripts/checks/factory_statistics_boot_check.gd"
 
 var preview_only := false
+var evidence_topic := "factory-device-interaction-v1"
+var screenshot_topic := "2026-10-05-factory-device-interaction-preview"
 
 ## Reuse the existing focus-aware walking/input and snapshot helpers, with this package's path.
 func run() -> void:
@@ -13,13 +15,13 @@ func run() -> void:
 		preview_only = preview_only or arg == "--preview-only"
 	assert(batch.is_valid_filename() and not ".." in batch)
 	var repo := SliceCheckPaths.repository_root()
-	run_root = repo.path_join("tools/runtime-intake/check-runs/factory-device-interaction-v1").path_join(batch)
+	run_root = repo.path_join("tools/runtime-intake/check-runs").path_join(evidence_topic).path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
 	driver = Driver.new()
 	driver.input_ready = wait_for_focus
 	started = Time.get_ticks_usec()
 	last_observed_usec = started
-	driver.shot_root = repo.path_join("assets/art-intake/2026-10-05-factory-device-interaction-preview").path_join(batch)
+	driver.shot_root = repo.path_join("assets/art-intake").path_join(screenshot_topic).path_join(batch)
 	DirAccess.make_dir_recursive_absolute(driver.shot_root)
 	root.add_child(driver)
 	boot = Boot.instantiate()
@@ -37,9 +39,19 @@ func run() -> void:
 		finish()
 		return
 	if read_mode:
-		boot.factory_menu.list.select(0)
-		boot.factory_menu.list.item_selected.emit(0)
+		var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("expected.json")))
+		var index: int = boot.factory_menu.worlds.find_custom(func(entry): return entry.id == saved.world_id)
+		driver.expect(index >= 0, "saved world selected by stable ID rather than list order")
+		if index < 0:
+			finish()
+			return
+		boot.factory_menu.list.select(index)
+		boot.factory_menu.list.item_selected.emit(index)
 		boot.factory_menu.continue_button.pressed.emit()
+		if boot.factory_world == null:
+			driver.expect(false, "read requires a current-version completed write batch")
+			finish()
+			return
 		boot.factory_world.ui.paused = true
 		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
@@ -48,10 +60,7 @@ func run() -> void:
 		else:
 			driver.expect(boot.factory_menu.world_type.selected == 0, "preview check starts with default foundation world")
 		boot.factory_menu.title_input.text = "设备面板与接口 · 正式复核"
-		if preview_only:
-			await press(boot.factory_menu.create_button)
-		else:
-			await driver.click(boot.factory_menu.create_button)
+		await press(boot.factory_menu.create_button)
 	world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal factory world initialized")
@@ -172,14 +181,10 @@ func _power_previews() -> void:
 	await driver.world_click(Vector2i(-17, -3))
 	ids.node = world.ui.selected
 	driver.expect(world.model.by_id(ids.node).get("type", "") == "power_junction" and world.view.power_range.visible, "placed selected node retains its range")
-	await driver.click(world.hud.buttons.power_connect)
-	await driver.motion(driver.cell_screen(Vector2i(-12, -1)))
-	await driver.settle(10)
-	driver.expect(world.ui.power_from == ids.node and world.view.power_range.visible, "explicit wiring keeps origin range visible")
-	await driver.shot("discovery-power-range-wiring")
+	driver.expect(world.model.automatic_power and not world.hud.buttons.power_connect.visible and world.model.by_id(ids.reactor).power_node_id != 0, "node placement automatically powers covered devices without wiring controls")
+	await driver.shot("discovery-power-range-connected")
 	await driver.key(KEY_ESCAPE)
-	await driver.key(KEY_ESCAPE)
-	driver.expect(not world.view.power_range.visible and world.model.power_links.is_empty() and world.model.by_id(ids.reactor).power_node_id == 0, "leaving selection clears range without silently connecting devices")
+	driver.expect(not world.view.power_range.visible and world.model.power_links.size() == 1, "leaving selection clears guidance while retaining automatic network")
 	check_failures()
 	if finished:
 		return
@@ -231,6 +236,7 @@ func _first_line() -> void:
 	# Camera orientation is test preparation; actor movement and production stay natural.
 	world.view.yaw = 0
 	world.view.sync_camera()
+	await driver.click(world.hud.buttons.pause)
 	await place("collector", -20, -1, "collector")
 	await place("power_source", -20, -6, "source")
 	await place("power_junction", -13, -5, "node")
@@ -250,14 +256,12 @@ func _first_line() -> void:
 	await driver.shot("02-drag-input-docks")
 	await driver.key(KEY_ESCAPE)
 	await select_device("reactor")
-	driver.expect("还需" in world.hud.device_summary.production.text and "未接线" in world.hud.device_summary.power.text, "live inspector explains both missing material and wire")
+	driver.expect("还需" in world.hud.device_summary.production.text and "待机" in world.hud.device_summary.power.text, "live inspector distinguishes missing material from automatic connected power")
 	await open_device()
 	driver.expect(world.discovery_panel.buttons.crystal_put_one.disabled, "remote operation cannot bypass proximity")
 	await native_shot("03-remote-device-actions")
 	await native_click(world.discovery_panel.get_ok_button())
-	await connect_devices("source", "node")
-	await connect_devices("source", "collector")
-	await connect_devices("node", "reactor")
+	await driver.click(world.hud.buttons.pause)
 	await wait_for(func(): return world.model.by_id(ids.reactor).processing, 25, "real first batch begins")
 	await driver.shot("04-live-production")
 	world.model.set_source_enabled(ids.source, false)

@@ -47,6 +47,8 @@ func _read(file_path: String, id: String) -> Dictionary:
 	if json.parse(content) != OK:
 		return _error("存档 JSON 损坏：" + json.get_error_message())
 	var result := Codec.decode(json.data, id)
+	if json.data is Dictionary and Codec.integer(json.data.get("save_schema_version")):
+		result.declared_schema = int(json.data.save_schema_version)
 	if result.ok:
 		result.source = file_path
 		result.hash = content.sha256_text()
@@ -64,7 +66,8 @@ func list_worlds() -> Array[Dictionary]:
 		var entry := {"id": id, "name": id, "ok": candidate.ok, "status": ""}
 		if candidate.ok:
 			entry.name = candidate.document.name
-			entry.name += " · 勘探工厂" if candidate.document.save_schema_version == 2 else " · 基础工厂"
+			entry.schema = int(candidate.document.save_schema_version)
+			entry.name += " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -79,8 +82,13 @@ func find_candidate(id: String) -> Dictionary:
 	if not Codec.valid_id(id):
 		return _error("世界 ID 无效。")
 	var errors: Array[String] = []
+	var automatic_seen := false
 	for name in ["autosave.json", "backups/autosave.bak.1.json", "backups/autosave.bak.2.json", "backups/autosave.bak.3.json"]:
 		var result := _read(root.path_join(id).path_join(name), id)
+		automatic_seen = automatic_seen or result.get("declared_schema", 0) == 3
+		if result.ok and automatic_seen and result.document.save_schema_version < 3:
+			errors.append("跳过升级前的手动接线副本，避免回退规则。")
+			continue
 		if result.ok or result.get("unsupported", false):
 			return result
 		errors.append(result.reason)
@@ -187,6 +195,15 @@ func prepare(id: String) -> Dictionary:
 	return candidate
 
 
+## Stage a validated legacy candidate in memory; publish only after scene reconstruction.
+func upgrade_automatic(candidate: Dictionary) -> Dictionary:
+	if not _owns_lock() or not candidate.get("ok", false) or candidate.document.save_schema_version != 2:
+		return _error("只有已锁定并校验的旧勘探世界可以升级。")
+	Codec.V3.enable_automatic(candidate.model)
+	candidate.upgrade_automatic = true
+	return candidate
+
+
 ## Called only after the candidate's model and view have been fully reconstructed.
 func accept(candidate: Dictionary) -> Dictionary:
 	if not _owns_lock() or _hash(candidate.source) != candidate.hash or _hash(path("autosave.json")) != expected_main_hash:
@@ -194,6 +211,17 @@ func accept(candidate: Dictionary) -> Dictionary:
 	if _fail("reconstruction"):
 		return _error("候选重建失败。")
 	loaded = true
+	if candidate.get("upgrade_automatic", false):
+		var retained := _retain_upgrade_source(candidate)
+		if not retained.ok:
+			loaded = false
+			return retained
+		var upgraded := save(candidate.model, candidate)
+		if not upgraded.ok:
+			loaded = false
+			return upgraded
+		upgraded.upgraded_automatic = true
+		return upgraded
 	if candidate.source != path("autosave.json"):
 		var result := save(candidate.model, candidate)
 		if not result.ok:
@@ -204,7 +232,23 @@ func accept(candidate: Dictionary) -> Dictionary:
 	return {"ok": true}
 
 
-func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY) -> Dictionary:
+func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
+	var name := "backups/pre-auto-power-v2-%d-%s.json" % [int(candidate.document.sequence), candidate.hash.left(12)]
+	if FileAccess.file_exists(path(name)):
+		return {"ok": true} if _hash(path(name)) == candidate.hash else _error("升级前副本内容不一致，未覆盖。")
+	if _fail("upgrade_backup") or DirAccess.make_dir_recursive_absolute(path("backups")) != OK:
+		return _error("无法保留升级前进度，原世界未升级。")
+	var result := _write(path(name + ".tmp"), FileAccess.get_file_as_string(candidate.source))
+	if not result.ok or _hash(path(name + ".tmp")) != candidate.hash:
+		return _error("升级前副本校验失败，原世界未升级。")
+	if DirAccess.rename_absolute(path(name + ".tmp"), path(name)) != OK:
+		return _error("升级前副本发布失败，原世界未升级。")
+	return {"ok": true}
+
+
+func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
+	if automatic_power and supply != Codec.V2.Config.SUPPLY_ID:
+		return _error("范围供电仅适用于勘探工厂。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
 	if DirAccess.make_dir_recursive_absolute(root) != OK:
@@ -218,7 +262,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY) -> Dictio
 	if not ownership.ok:
 		DirAccess.remove_absolute(root.path_join("creation.lock"))
 		return ownership
-	var result := _create_locked(title.strip_edges(), supply)
+	var result := _create_locked(title.strip_edges(), supply, automatic_power)
 	var current_owner = _read_owner(owner_path)
 	if current_owner is Dictionary and current_owner.get("token") == creation_token:
 		DirAccess.remove_absolute(owner_path)
@@ -226,7 +270,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY) -> Dictio
 	return result
 
 
-func _create_locked(title: String, supply: String) -> Dictionary:
+func _create_locked(title: String, supply: String, automatic_power: bool) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
 	if not Codec.Rules.SUPPLIES.has(supply) and supply != Codec.V2.Config.SUPPLY_ID:
@@ -241,7 +285,7 @@ func _create_locked(title: String, supply: String) -> Dictionary:
 	sequence = 0
 	expected_main_hash = ""
 	loaded = true
-	var model: RefCounted = Codec.V2.NewModel.new() if supply == Codec.V2.Config.SUPPLY_ID else Codec.Model.new(supply)
+	var model: RefCounted = Codec.V2.NewModel.new(automatic_power) if supply == Codec.V2.Config.SUPPLY_ID else Codec.Model.new(supply)
 	result = save(model)
 	if not result.ok:
 		release()

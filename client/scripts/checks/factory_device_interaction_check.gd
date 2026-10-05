@@ -104,6 +104,7 @@ func run() -> void:
 	panel.hide()
 	await _views(model)
 	await _power_preview()
+	await _ground_sample()
 	var saved := snapshot(model)
 	var restored := Codec.decode(JSON.parse_string(JSON.stringify(saved, "", false, true)), PowerCheck.ID)
 	expect(restored.ok and saved.save_schema_version == 2, "device operations remain inside existing schema 2 contract")
@@ -302,5 +303,46 @@ func _power_preview() -> void:
 	view.device_affordances = false
 	view.draw(model, model.actor, ui)
 	expect(not guide.visible, "independent demo can disable formal range guidance")
+	hud.queue_free()
+	await process_frame
+
+
+func _ground_sample() -> void:
+	var model := PowerCheck.Model.new(true)
+	var hud := Hud.new()
+	root.add_child(hud)
+	var view := View.new()
+	view.world_model = model
+	hud.subviewport.add_child(view)
+	var ui := {"build": true, "tool": "", "cell": Vector2i.ZERO, "dir": 0, "selected": -1,
+		"stroke": Array([], TYPE_VECTOR2I, "", null), "paused": true, "mission": false, "power_from": 0}
+	view.draw(model, model.actor, ui)
+	hud.sync_sample(view, model, ui)
+	expect(view.sample_icon.visible and not hud.sample_button.visible and view.barriers.find_children("*", "Label3D", true, false).is_empty(), "distant sample has shape and icon without name text")
+	expect(view.hit_sample(view.sample_screen()), "sample icon is directly hittable at its rendered screen position")
+	model.actor.x = 1
+	model.actor.z = 2.5
+	view.draw(model, model.actor, ui)
+	hud.sync_sample(view, model, ui)
+	await process_frame
+	expect(hud.sample_button.visible and "矿壳样本" in hud.sample_button.text and "F" in hud.sample_button.text, "approaching sample reveals its name and pickup key")
+	expect(hud.world_point(hud.sample_button.get_global_rect().get_center()) == null, "pickup button blocks click-through to world placement")
+	var icon_id: int = view.sample_icon.get_instance_id()
+	view.zoom = 0.6
+	view.draw(model, model.actor, ui)
+	expect(view.sample_icon.get_instance_id() == icon_id, "camera movement retains sample visual rather than rebuilding terrain")
+	ui.tool = "reactor"
+	hud.sync_sample(view, model, ui)
+	expect(not hud.sample_button.visible, "placement mode does not offer a conflicting pickup action")
+	ui.tool = ""
+	model.actor.x = 4.25
+	hud.sync_sample(view, model, ui)
+	expect(not hud.sample_button.visible, "closed shell prevents a nearby-looking pickup prompt")
+	model.actor.x = 1
+	model.survey_sample(true)
+	view.draw(model, model.actor, ui)
+	hud.sync_sample(view, model, ui)
+	await process_frame
+	expect(not hud.sample_button.visible and not view.hit_sample(view.sample_screen()) and not is_instance_valid(view.sample_icon), "pickup removes icon, name and ground hit target")
 	hud.queue_free()
 	await process_frame

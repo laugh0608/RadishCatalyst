@@ -63,6 +63,36 @@ static func reachability(a: Dictionary, b: Dictionary, passages: Dictionary) -> 
 	return {"ok": true, "distance": distance}
 
 
+## Called only after a topology command, or once when loading an automatic world.
+func reconnect_automatic(model: RefCounted) -> void:
+	var nodes: Array = model.entities.filter(is_node)
+	nodes.sort_custom(func(a, b): return a.id < b.id)
+	model.power_links.clear()
+	for i in nodes.size():
+		for j in range(i + 1, nodes.size()):
+			if reachability(nodes[i], nodes[j], model.discovery.passages).ok:
+				model.power_links.append([nodes[i].id, nodes[j].id])
+	revision = -1
+	rebuild(model)
+	for e in model.entities:
+		if not Rules.POWER.has(e.type):
+			continue
+		var best_id := 0
+		var best_powered := false
+		var best_distance := INF
+		for node in nodes:
+			if not reachability(node, e, model.discovery.passages).ok:
+				continue
+			var powered: bool = groups[membership[node.id]].capacity_kw > 0
+			var distance := center(node).distance_squared_to(center(e))
+			if best_id == 0 or (powered and not best_powered) or (powered == best_powered and distance < best_distance):
+				best_id = node.id
+				best_powered = powered
+				best_distance = distance
+		# Sorted node traversal makes exact distance ties deterministic by stable ID.
+		e.power_node_id = best_id
+
+
 func rebuild(model: RefCounted) -> void:
 	if revision == model.revision:
 		return

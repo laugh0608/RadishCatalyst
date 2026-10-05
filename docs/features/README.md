@@ -27,7 +27,7 @@
 
 10 月 5 日[正式设备面板与接口提示首包](factory-device-interaction-v1.md)已接入勘探工厂，沿现有命令、近身权限与保存合同通过定向状态、正式 Boot 窗口和独立恢复复核；用户体验仍待亲测，证据见 [W41](../devlogs/2026-W41.md)。
 
-首次亲测后新增[低投入交互样板](factory-refinement-demo-v1.md)：圆润机械 / 化工方向已初步认可，独立验证设备面板、接口、范围供电与逐步引导。正式首包仅接入设备面板与接口；范围供电、完整引导另行推进。
+首次亲测后新增[低投入交互样板](factory-refinement-demo-v1.md)，圆润机械 / 化工方向已初步认可。正式设备交互之后，萝卜SAMA确认[范围供电与拾取](factory-range-power-and-pickup-v1.md)：自动电网、远近样本提示与直接拾取已接入，旧勘探世界经明确升级进入 schema 3；完整引导仍后续推进。
 
 当前设计专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；联合范围已获继续推进授权，D1 资产复核与 D2-A / D2-B 状态、供电、多配方及开拓已接入，正式 Boot 隔离分项证据具备。配套 [Factory Production Statistics V1](factory-production-statistics-v1.md) 承接用户提供的产消简报参考，定义物料库存、实际 / 理论速率、趋势和设备定位；[Factory Power And Grid V1](factory-power-and-grid-v1.md) 已补齐有限供能、连接、负荷和停复电提案，三者按 D1–D4 接入同一个新世界版本，D3 统计页与发现 HUD 已接入，空世界完整自然工程路径与独立恢复已补验，D4 用户体验和性能仍待收口，不把自动路径当作用户亲测。
 

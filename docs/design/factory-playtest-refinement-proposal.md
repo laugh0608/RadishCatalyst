@@ -4,6 +4,8 @@
 
 状态：2026-09-29 萝卜SAMA已确认圆润、机械结构与化工质感方向，验证阶段控制投入，记录决策并制作小 demo。设备面板、接口、范围供电与逐步引导方向已接受；本轮执行范围见[交互样板 V1](../features/factory-refinement-demo-v1.md)。以下全量建议不等于全部进入本轮，正式存档版本与地图平衡仍待后续接入设计。
 
+接续：2026-10-05 萝卜SAMA明确确认正式范围自动供电，已按[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)与 [schema 3](../architecture/factory-discovery-save-v3.md)实施；下文保留最初提案与当时未决项，当前合同以接续专题为准。
+
 ## 玩家问题与本轮目标
 
 亲测世界为 `tools/runtime-intake/review-worlds/factory-discovery-v1/d4-playtest-20260929-a/`。萝卜SAMA报告：缺少可视化设备面板、放置时看不清传送带接口、期望电源节点显示范围并自动无线连接、任务需要逐步操作引导，以及 UI / 设备 / 人物希望更精细并讨论《异星探险家》参考。

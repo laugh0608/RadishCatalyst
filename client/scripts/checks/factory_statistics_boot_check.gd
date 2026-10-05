@@ -5,6 +5,7 @@ const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Query := preload("res://scripts/factory/statistics_query.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const Check := preload("res://scripts/checks/factory_discovery_check.gd")
+const LegacyStore := preload("res://scripts/factory/save/store.gd")
 var boot: Node
 var world: Control
 var driver: Node
@@ -64,14 +65,26 @@ func run() -> void:
 	if read_mode:
 		boot.factory_menu.list.select(0)
 		boot.factory_menu.list.item_selected.emit(0)
-		boot.factory_menu.continue_button.pressed.emit()
+		var store := LegacyStore.new(run_root.path_join("factory"))
+		var candidate := store.prepare(boot.factory_menu.worlds[0].id)
+		driver.expect(candidate.ok, "legacy statistics candidate remains readable")
+		if not candidate.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, candidate.model, candidate)
 		# Freeze the restored session before its first simulation frame; retain saved remainder.
 		boot.factory_world.ui.paused = true
 		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
-		boot.factory_menu.world_type.select(1)
-		boot.factory_menu.title_input.text = "D3 自然生产路径"
-		await driver.click(boot.factory_menu.create_button)
+		# Keep the historical D3 manual-power baseline reproducible. Automatic
+		# power menu creation and migration use factory_range_power_boot_check.gd.
+		var store := LegacyStore.new(run_root.path_join("factory"))
+		var created := store.create("D3 旧接线自然生产路径", Codec.V2.Config.SUPPLY_ID)
+		driver.expect(created.ok, "isolated legacy empty world prepared through Store")
+		if not created.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, created.model, {})
 	world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal Boot world initialized")

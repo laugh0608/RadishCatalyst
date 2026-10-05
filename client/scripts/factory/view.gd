@@ -33,6 +33,7 @@ var output_hint_mat := Parts.material("f0c16b")
 var barriers: Node3D
 var terrain_key := ""
 var sample: Node3D
+var sample_icon: Sprite3D
 var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
 var solvent_mat := Parts.material("91d970", 0.3, 0.3)
 var wiring := Node3D.new()
@@ -183,6 +184,19 @@ func ground(screen: Vector2) -> Variant:
 
 func project(point: Vector3) -> Vector2:
 	return camera.unproject_position(point)
+
+
+func sample_screen() -> Vector2:
+	return project(Vector3(Model.DiscoveryRules.SAMPLE.x, 0.85, Model.DiscoveryRules.SAMPLE.y))
+
+
+func hit_sample(screen: Vector2) -> bool:
+	if not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
+		return false
+	if screen.distance_to(sample_screen()) <= 18:
+		return true
+	var at = ground(screen)
+	return at != null and Vector2(at.x, at.z).distance_to(Model.DiscoveryRules.SAMPLE) <= 0.65
 
 
 ## Broad-phase bounds followed by triangles, so empty model corners do not steal clicks.
@@ -362,6 +376,8 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	_sync_device_affordances(model, ui)
 	if model.has_method("power_state") and terrain_key != str(model.discovery):
 		_build_mineral_barriers()
+	if is_instance_valid(sample_icon):
+		sample_icon.scale = Vector3.ONE / zoom
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
 	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, ui.stroke])
 	if next_ghost != ghost_key:
@@ -499,13 +515,14 @@ func _build_mineral_barriers() -> void:
 		barriers.add_child(sample)
 		sample.scale = Vector3.ONE * 0.3
 		sample.position = Vector3(2.5 + 7 * 0.3, 0.04, 2.5)
-		var label := Label3D.new()
-		label.text = "矿壳样本 · 调查 / 拾取"
-		label.font_size = 40
-		label.pixel_size = 0.014
-		label.position = Vector3(2.5, 1.0, 2.5)
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		barriers.add_child(label)
+		sample_icon = Sprite3D.new()
+		sample_icon.texture = preload("res://assets/icons/factory_crust_sample.svg")
+		sample_icon.pixel_size = 0.014
+		sample_icon.position = Vector3(Model.DiscoveryRules.SAMPLE.x, 0.85, Model.DiscoveryRules.SAMPLE.y)
+		sample_icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		sample_icon.shaded = false
+		sample_icon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		barriers.add_child(sample_icon)
 
 
 func _wire(a: Vector2, b: Vector2, material: Material) -> void:

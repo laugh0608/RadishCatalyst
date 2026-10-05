@@ -34,6 +34,7 @@ var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "select
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
+var pending_sample := false
 var focused := true
 var ui_elapsed := 0.0
 var initialized := false
@@ -74,6 +75,7 @@ func _ready() -> void:
 	hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
+	hud.sync_sample(view, model, ui)
 	_build_save_dialogs()
 	_build_power_dialog()
 	discovery_panel.theme = hud.theme
@@ -91,6 +93,8 @@ func _ready() -> void:
 			return
 		if accepted.has("recovered_from"):
 			hud.announce("已从备份恢复：" + accepted.recovered_from.get_file())
+		elif accepted.get("upgraded_automatic", false):
+			hud.announce("已启用范围自动供电；升级前进度已独立备份。")
 	if store != null and not store.last_warning.is_empty():
 		hud.announce(store.last_warning)
 	saved_revision = model.revision
@@ -133,6 +137,7 @@ func _process(delta: float) -> void:
 	if statistics_panel.visible:
 		statistics_panel.status.text = "  已暂停" if ui.paused else "  失焦暂停" if not focused else "  生产继续运行"
 	view.draw(model, actor, ui)
+	hud.sync_sample(view, model, ui)
 
 
 func _movement(dt: float) -> void:
@@ -150,8 +155,13 @@ func _movement(dt: float) -> void:
 			actor.target = null
 			direction = Vector2.ZERO
 	model.move_actor(actor, direction.x, direction.y, dt)
+	if pending_sample and model.near_sample():
+		_pick_sample()
 	if actor.target != null and not actor.moving:
 		actor.target = null
+		if pending_sample:
+			pending_sample = false
+			hud.announce("前方受阻；请走到样本旁按 F 拾取。", true)
 
 
 func _focus_lost() -> void:
@@ -194,6 +204,9 @@ func _refresh() -> void:
 
 func _stop_pointer() -> void:
 	pointer = false
+	if pending_sample:
+		actor.target = null
+	pending_sample = false
 	ui.stroke.clear()
 	ui.power_from = 0
 	ui.power_hover = 0
@@ -228,7 +241,11 @@ func _commit() -> void:
 
 
 func _cancel() -> void:
-	if ui.power_from != 0:
+	if pending_sample:
+		pending_sample = false
+		actor.target = null
+		hud.announce("已取消走近拾取。")
+	elif ui.power_from != 0:
 		_stop_pointer()
 		hud.announce("已取消接线。")
 	elif pointer:
@@ -257,6 +274,7 @@ func _action(name: String, value: Variant) -> void:
 		_choose(name)
 	else:
 		match name:
+			"sample": _pick_sample()
 			"power_connect":
 				_stop_pointer()
 				ui.tool = ""
@@ -319,6 +337,27 @@ func _action(name: String, value: Variant) -> void:
 			"zoom_in": view.zoom = minf(1.5, view.zoom + 0.1)
 	view.sync_camera()
 	_refresh()
+
+
+func _pick_sample() -> void:
+	if not model.has_method("near_sample") or not ui.tool.is_empty() or ui.power_from != 0:
+		return
+	pending_sample = false
+	actor.target = null
+	var result: Dictionary = model.survey_sample(true)
+	hud.announce("已拾取矿壳样本，可在反应器中选择矿壳试制。" if result.ok else result.reason, not result.ok)
+	_refresh()
+
+
+func _approach_sample() -> void:
+	if model.near_sample():
+		_pick_sample()
+	elif ui.paused:
+		hud.announce("当前已暂停；继续后可点击样本走近，或在两格内按 F 拾取。", true)
+	else:
+		pending_sample = true
+		actor.target = Model.DiscoveryRules.SAMPLE
+		hud.announce("正在走近样本，到达后拾取；WASD 或 Esc 可取消。")
 
 
 func _preview(cell: Vector2i) -> void:
@@ -402,6 +441,11 @@ func _input(event: InputEvent) -> void:
 					_commit()
 				else:
 					var id := view.hit(screen)
+					if id == -1 and view.hit_sample(screen):
+						ui.selected = -1
+						_approach_sample()
+						_refresh()
+						return
 					var e := model.entity_at(cell)
 					ui.selected = id if id != -1 else e.get("id", -1)
 					if ui.selected == -1:
@@ -418,11 +462,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_refresh()
 		return
 	if MOVE_KEYS.has(event.physical_keycode):
+		pending_sample = false
 		keys[event.physical_keycode] = true
 		return
 	if pointer:
 		return
 	match event.physical_keycode:
+		KEY_F: _action("sample", null)
 		KEY_1: _action("collector", null)
 		KEY_2: _action("reactor", null)
 		KEY_3: _action("storage", null)

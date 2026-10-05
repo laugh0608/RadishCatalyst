@@ -11,12 +11,14 @@ var grid := Grid.new()
 var power := {}
 var power_revision := -1
 var power_time := -1.0
+var automatic_power := false
 
 
 ## Schema 2 uses the same item maps in simulation and persistence.
 
 
-func _init() -> void:
+func _init(auto_power := false) -> void:
+	automatic_power = auto_power
 	supply_id = DiscoveryRules.SUPPLY_ID
 	kits = DiscoveryRules.SUPPLY.duplicate()
 	bag = {}
@@ -58,10 +60,13 @@ func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Di
 			result.entity.power_node_id = 0
 		if type == "power_source":
 			result.entity.enabled = true
+		_refresh_automatic_power()
 	return result
 
 
 func connect_power(node_id: int, target_id: int) -> Dictionary:
+	if automatic_power:
+		return failure("范围内自动接电，无需手动接线")
 	var valid := Grid.connection(self, node_id, target_id)
 	if not valid.ok:
 		return valid
@@ -81,6 +86,8 @@ func connect_power(node_id: int, target_id: int) -> Dictionary:
 
 
 func disconnect_power(a_id: int, b_id: int) -> Dictionary:
+	if automatic_power:
+		return failure("范围电网按布局连接；可关闭电源或调整节点位置")
 	var a := by_id(a_id)
 	var b := by_id(b_id)
 	if a.is_empty() or b.is_empty():
@@ -106,7 +113,14 @@ func set_source_enabled(id: int, enabled: bool) -> Dictionary:
 		return failure("电源已经处于所选状态")
 	e.enabled = enabled
 	revision += 1
+	_refresh_automatic_power()
 	return success()
+
+
+func _refresh_automatic_power() -> void:
+	if automatic_power:
+		grid.reconnect_automatic(self)
+		power_revision = -1
 
 
 func connections(id: int) -> Array:
@@ -140,6 +154,7 @@ func salvage(id: int, confirmed := false) -> Dictionary:
 	for device in entities:
 		if device.get("power_node_id", 0) == id:
 			device.power_node_id = 0
+	_refresh_automatic_power()
 	return success({"items": items, "type": e.type})
 
 
@@ -219,7 +234,8 @@ func feedback(e: Dictionary) -> Dictionary:
 	if not DiscoveryRules.POWER.has(e.type):
 		return production
 	var device: Dictionary = state.devices[e.id]
-	var label := "未接线" if e.power_node_id == 0 else "无启用电源" if grid.groups[device.network].capacity_kw == 0 else "待机" if device.request_kw == 0 else "供电不足 · %.1f%%" % (device.fraction * 100) if device.fraction < 1 else "充分供电"
+	var disconnected := "不在供电覆盖内" if automatic_power else "未接线"
+	var label := disconnected if e.power_node_id == 0 else "无启用电源" if grid.groups[device.network].capacity_kw == 0 else "待机" if device.request_kw == 0 else "供电不足 · %.1f%%" % (device.fraction * 100) if device.fraction < 1 else "充分供电"
 	var result: Dictionary = production.merged({"production": production.label, "power": label})
 	if device.request_kw > 0 and device.fraction < 1:
 		result.kind = "waiting"
@@ -342,9 +358,13 @@ func deposit(_id: int) -> Dictionary:
 	return failure("勘探工厂请按物品明确取放")
 
 
-func survey_sample(pickup := false) -> Dictionary:
+func near_sample() -> bool:
 	var point := Vector2(actor.x, actor.z)
-	if point.distance_to(DiscoveryRules.SAMPLE) > 2 or not Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages):
+	return point.distance_to(DiscoveryRules.SAMPLE) <= 2 and Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages)
+
+
+func survey_sample(pickup := false) -> Dictionary:
+	if not near_sample():
 		return failure("请走到外矿道样本两格内调查")
 	if pickup and discovery.sample_taken:
 		return failure("唯一样本已经拾取")
@@ -380,6 +400,7 @@ func open_passage(id: String) -> Dictionary:
 	statistics.event("consumed", "crust_solvent", rule.cost)
 	discovery.passages[id] = true
 	revision += 1
+	_refresh_automatic_power()
 	return success()
 
 

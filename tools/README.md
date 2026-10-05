@@ -40,6 +40,12 @@
 | `sh tools/check-factory-device-interaction.sh state [batch]` | 设备状态展示、近身操作、端口与物流、接线范围 / 遮挡 / 无状态变更、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
 | `sh tools/check-factory-device-interaction.sh preview <batch>` | Boot 默认基础工厂及勘探工厂的三类设备预览、放置 / 取消、选中 / 近景与铺带；勘探另验电源 / 节点接线范围、非法位置、最小窗口和矿壳遮挡，要求新 batch |
 | `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标放置 / 拖铺 / 选中 / 嵌入式面板操作、自然生产、窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
+| `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |
+| `sh tools/check-factory-range-power.sh write/read <batch>` | 新自动世界鼠标建线与自然生产、停复电、远近样本 / F 拾取；另用声明的旧布局夹具检查菜单升级和地面点击拾取。read 独立恢复新世界完整快照及半批；要求新 write 批次、同批 read 仅一次 |
+
+范围供电窗口走真实正式创建 / 升级菜单；创建使用聚焦 Enter，恢复时列表 / 按钮信号用于首帧冻结核对。模型、HUD、升级弹窗与地面图标走路由合成鼠标，人物 WASD 行走，近身 F 拾取。新世界不注入物料 / 位置或加速；旧布局夹具仅承担迁移验证，不冒充自然建线。截图 / 世界在 `factory-range-power-v1` 与对应 `factory-range-power-preview` 忽略目录。
+
+历史 `power` / `discovery` / `statistics` 窗口脚本保留 schema 2 回归语义：通过隔离 Store 准备旧世界，再由 Boot 的世界装配入口加载，不走会升级版本的继续按钮；这不是当前菜单验收。实际菜单、新世界 schema 3 与升级由范围供电窗口负责。历史世界的完整发现循环证据不自动扩展为 schema 3 已完整重跑。
 
 设备交互窗口复用统计路径的失焦等待与真实行走驱动。Boot 首屏使用聚焦后的合成 Enter；部分初始设备使用既有精确放置字段 / 按钮信号，接线与停复电使用权威命令，配方下拉选项由驱动选中；这些准备与控件 / 场地命中测试分别记录，不代替用户亲测。面板通过父视口路由合成鼠标事件，检查按钮在窗口内可见且仅激活一次；不将它称为系统鼠标或原生独立窗口证据。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
 

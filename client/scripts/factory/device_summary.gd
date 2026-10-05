@@ -110,7 +110,7 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	elif model.Grid.is_node(e):
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
 		_card("process", "当前电网", "容量 %.0f kW\n请求 %.1f / 获供 %.1f kW" % [network.capacity_kw, network.request_kw, network.supplied_kw])
-		production.text = "显式接线 · %d 条直接连接" % model.connections(e.id).size()
+		production.text = ("范围自动供电 · %d 条连接" if model.automatic_power else "显式接线 · %d 条直接连接") % model.connections(e.id).size()
 		if e.type == "power_source":
 			power.text = "本机实际输出 %.1f kW" % model.power_state().sources[e.id]
 	else:

@@ -2,6 +2,7 @@ extends RefCounted
 
 const Foundation := preload("res://data/factory/rules.gd")
 const RULESET_ID := "factory_discovery_v1"
+const AUTO_RULESET_ID := "factory_discovery_auto_power_v1"
 const MAP_ID := "factory_discovery_yard_64_v1"
 const SUPPLY_ID := "factory_discovery_starter_v1"
 const SUPPLY := {"collector": 8, "reactor": 16, "storage": 8, "belt": 256, "power_source": 2, "power_junction": 12}

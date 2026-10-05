@@ -3,6 +3,7 @@ extends SceneTree
 const Boot := preload("res://scenes/boot/Boot.tscn")
 const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
+const Store := preload("res://scripts/factory/save/store.gd")
 var boot: Node
 var world: Control
 var driver: Node
@@ -46,17 +47,28 @@ func run() -> void:
 	root.size = Vector2i(1440, 900)
 	await driver.settle(30)
 	await driver.click(boot.startup_menu.get_node("ContentRoot/MenuButtons/FactoryButton"))
+	# This historical workflow verifies schema 2 manual wiring. New menu creation
+	# and explicit migration are covered by factory_range_power_boot_check.gd.
+	var store := Store.new(run_root.path_join("factory"))
 	if read_mode:
 		boot.factory_menu.list.select(0)
 		boot.factory_menu.list.item_selected.emit(0)
-		boot.factory_menu.continue_button.pressed.emit()
+		var candidate := store.prepare(boot.factory_menu.worlds[0].id)
+		driver.expect(candidate.ok, "legacy saved candidate remains readable")
+		if not candidate.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, candidate.model, candidate)
 		world = boot.factory_world
 		if world != null:
 			world.ui.paused = true # Compare before the first process step.
 	else:
-		boot.factory_menu.world_type.select(1)
-		boot.factory_menu.title_input.text = "电力首线隔离复核"
-		await driver.click(boot.factory_menu.create_button)
+		var created := store.create("旧接线首线隔离复核", Codec.V2.Config.SUPPLY_ID)
+		driver.expect(created.ok, "isolated legacy empty world prepared through Store")
+		if not created.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, created.model, {})
 		world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal Boot new/load")

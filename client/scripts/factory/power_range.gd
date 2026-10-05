@@ -19,8 +19,9 @@ static func origin(model: RefCounted, ui: Dictionary) -> Dictionary:
 	return e if Grid.is_node(e) else {}
 
 
-static func legend() -> String:
-	return "青色实圈：设备 %d 格 · 金色虚圈：节点 %d 格 · 灰段：矿壳阻挡 · 放置后需接线" % [Grid.Rules.CONSUMER_RANGE, Grid.Rules.NODE_RANGE]
+static func legend(automatic := false) -> String:
+	return "青色实圈：设备 %d 格 · 金色虚圈：节点 %d 格 · 灰段：矿壳阻挡 · %s" % [Grid.Rules.CONSUMER_RANGE, Grid.Rules.NODE_RANGE,
+		"范围内自动接电，需连通启用电源" if automatic else "放置后需接线"]
 
 
 func _ready() -> void:

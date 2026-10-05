@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-05（正式设备面板与接口首包工程复核）
+更新时间：2026-10-05（范围自动供电与地面拾取整改）
 
 ## 当前阶段
 
@@ -8,15 +8,16 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
-本轮优先响应空世界亲测问题：圆润机械 / 化工方向及低投入[交互样板](../features/factory-refinement-demo-v1.md)获初步认可后，正式设备面板与接口提示首包已实现并取得窗口、读档工程证据，等待萝卜SAMA亲测。正式电力 / 存档未变更；后续先明确范围供电合同，再补完整引导，D4 完整体验仍未通过。
+本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。萝卜SAMA继续确认范围自动供电，现已接入 6 / 12 格自动电网、旧勘探世界显式升级及远近分层的地面样本拾取；具体合同与证据见下列专题。后续补完整引导，D4 完整体验仍未通过。
 
 ## 当前活跃专题
 
-- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：勘探实时摘要与取放 / 配方已接入；按同日亲测补齐默认基础工厂预览、移除端口悬浮文字，并补正式电源 / 节点的 6 / 12 格接线范围。最新状态 89、双世界窗口 166 项通过；前轮正式 Boot 写入 178、独立恢复 20 项证据保留，修正版观感待复核。
+- [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；新建勘探世界采用 schema 3，保留有限功率与矿壳阻挡。
+- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：实时摘要、近身取放 / 配方、双世界预览、无悬浮文字端口及 6 / 12 格范围；工程证据保留，修正版观感待复核。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
-- [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、显式接线、20Hz 比例分配、缺电降速与停复电已运行。
+- [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、20Hz 比例分配、缺电降速与停复电；旧显式图合同保留，现行连接方式由范围供电专题补充。
 - [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)：物料 / 电量事件记账和有限历史存读已实现；库存分解、实际 / 理论产消、趋势、定位与收藏页面已接入 D3。
-- [Factory Discovery Save V2](../architecture/factory-discovery-save-v2.md)：新世界身份、字段、版本保护、多物料守恒及统计桶的现行精确合同。
+- [Factory Discovery Save V3](../architecture/factory-discovery-save-v3.md)：自动图、版本保护及旧 schema 2 的显式升级与独立原档备份；字段沿用 [V2 联合合同](../architecture/factory-discovery-save-v2.md)。
 - [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：基础工厂 schema 1，以及两种工厂共用的锁、候选恢复、文件发布和活动时钟合同。
 - [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：已交付基础工厂的 P1–P3 证据、亲测反馈及 Windows 待验边界；旧 Demo / Web 继续作为参照。
 
@@ -24,10 +25,10 @@
 
 萝卜SAMA已要求按联合 D1–D4 范围继续实施。D1 的两个自有电力 GLB 和矿道场景已接入 D2 运行分支；D1 静态预览本身仍只算资产与空间证据，不代替玩法验证或美术定稿。
 
-- 默认“基础工厂”仍为 schema 1、原四类构件与预供电；另选“勘探工厂”才新建 schema 2。已有 schema 1、旧二维 schema 10 不迁移，D2-A 的普通 schema 2 状态继续可读。
+- 默认“基础工厂”仍为 schema 1、原四类构件与预供电；另选“勘探工厂”新建 schema 3。已有 schema 2 严格可读，从菜单明确升级并保留原副本后继续；schema 1 与旧二维 schema 10 不迁移。
 - 勘探工厂使用独立规则 / 地图 / 供给标识，支持基础催化剂、样本试制、常规解壳剂及富集催化剂四配方。唯一样本、两次 4 / 8 份制剂开路、近身按物品取放和多件出料均由权威模型处理。
-- 供电沿显式电图分配，开启矿道不自动接电；孤网富余不抵消其他网缺口，带与仓被动运行。产物完成、样本取得与开路成功同步记账，搬运与取消不虚增产消。
-- 工艺面板提供操作并暂停生产；HUD 由发现事实派生用途、缺口与下一步。D3 物料 / 电力统计页为只读且不自动暂停生产，定位只移动镜头。窗口与收藏沿已有 schema 2 偏好字段保存，不改存档形状。
+- 节点中心 12 格互连、设备中心 6 格接入，矿壳阻挡；建造、回收、源启停与开路后自动重算，只有实际可达才接通。孤网富余不抵消其他网缺口，带与仓被动运行；产物、样本与开路同步记账，搬运与取消不虚增产消。
+- 工艺面板提供操作并暂停生产；HUD 由发现事实派生用途、缺口与下一步。样本远处仅模型与小图标，近处显示名称，可按 F、点击提示或直接点击地面走近拾取。统计页只读且不自动暂停生产，窗口与收藏沿用原偏好字段。
 - 勘探设备详情持续展示库存、在制、供电与接口；“取放 / 配方”复用现有近身命令并暂停生产，关闭保留原暂停状态。基础与勘探共用放置模型预览和物流端口提示；schema 1 原操作、规则与存档不变，独立样板保持自己的提示。
 - 已认可的造型、50° 视角、配色、光照、接口箭头、拖铺与真实弯道保持；精细美术另包推进。
 - 普通供给与工程规模夹具明确区分；不将 100 台 / 1,000 带夹具放入普通新建选项。除本包设备外，经济解锁、液气、战斗、多人、随机地图、多星球、离线收益、量产美术、分发和发布未解冻。

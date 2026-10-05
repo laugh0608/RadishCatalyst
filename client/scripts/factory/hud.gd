@@ -31,6 +31,7 @@ var power_help := Label.new()
 var cell_x := SpinBox.new()
 var cell_z := SpinBox.new()
 var help_panel: PanelContainer
+var sample_button: Button
 
 
 func _ready() -> void:
@@ -189,6 +190,8 @@ func _build_world_panels() -> void:
 	help_panel.position = Vector2(265, 22)
 	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；失焦自动暂停")
 	help_panel.hide()
+	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
+	sample_button.hide()
 
 
 func _build_footer(parent: Node) -> void:
@@ -264,10 +267,22 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 func world_point(screen: Vector2) -> Variant:
 	if not world_image.get_global_rect().has_point(screen):
 		return null
-	for panel in [mission_panel, inspector, help_panel, world_slot.get_node("CameraPanel")]:
+	for panel in [mission_panel, inspector, help_panel, sample_button, world_slot.get_node("CameraPanel")]:
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
 	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
+
+
+func sync_sample(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
+	sample_button.visible = model.has_method("near_sample") and not model.discovery.sample_taken \
+		and model.near_sample() and ui.tool.is_empty() and ui.get("power_from", 0) == 0
+	if not sample_button.visible:
+		return
+	var at := viewport_to_screen(view.sample_screen()) - world_slot.global_position
+	var lower := Vector2(8, 8)
+	var upper := (world_slot.size - sample_button.size - Vector2(8, 8)).max(lower)
+	sample_button.position = (at + Vector2(20, -sample_button.size.y * 0.5)).clamp(lower, upper)
+	sample_button.tooltip_text = "背包已满，请先腾出空间" if Items.count(model.bag) >= 200 else "拾取并记录调查结果"
 
 
 func announce(message: String, error := false) -> void:
@@ -282,6 +297,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	tool_row.visible = ui.build
 	placement_row.visible = not ui.tool.is_empty()
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
+	if power_help.visible:
+		power_help.text = PowerRange.legend(model.automatic_power)
 	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
 		buttons[type].visible = model.kits.has(type)
 		if not model.kits.has(type):
@@ -325,9 +342,9 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 				"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 				"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		buttons.power_connect.visible = powered and e.type in ["power_source", "power_junction"]
+		buttons.power_connect.visible = powered and not model.automatic_power and e.type in ["power_source", "power_junction"]
 		buttons.power_toggle.visible = powered and e.type == "power_source"
-		buttons.power_disconnect.visible = powered and not model.connections(e.id).is_empty() if powered else false
+		buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty() if powered else false
 		buttons.rotate_selected.visible = e.type == "belt"
 		buttons.deposit.visible = not powered and e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
