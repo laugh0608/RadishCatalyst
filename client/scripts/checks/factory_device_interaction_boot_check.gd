@@ -97,10 +97,9 @@ func _previews() -> void:
 			check_failures()
 			if finished:
 				return
-			if type == "collector":
-				ids.collector = world.model.next_id
-				await driver.world_click(cells[type])
-				driver.expect(world.model.by_id(ids.collector).get("type", "") == "collector", kind + " mouse commits previewed collector")
+			ids[type] = world.model.next_id
+			await driver.world_click(cells[type])
+			driver.expect(world.model.by_id(ids[type]).get("type", "") == type, kind + " mouse commits previewed " + type)
 		await driver.click(world.hud.buttons.collector)
 		await driver.motion(driver.cell_screen(Vector2i(-11, 2) if discovery else Vector2i(-4, 2)))
 		await driver.settle()
@@ -108,6 +107,15 @@ func _previews() -> void:
 		await driver.shot(kind + "-invalid-collector")
 		await driver.key(KEY_ESCAPE)
 		driver.expect(not world.view.build_model.visible and world.view.port_hints.get_child_count() == 0, kind + " cancel clears transient preview")
+		await select_device("storage")
+		driver.expect(world.view.port_hints.find_children("*", "Label3D", true, false).is_empty(), kind + " selected device has no floating port text")
+		await driver.shot(kind + "-selected-storage")
+		await driver.click(world.hud.buttons.zoom_in)
+		await driver.click(world.hud.buttons.zoom_in)
+		await driver.shot(kind + "-selected-storage-close")
+		await driver.click(world.hud.buttons.zoom_out)
+		await driver.click(world.hud.buttons.zoom_out)
+		await driver.key(KEY_ESCAPE)
 		await select_device("collector")
 		driver.expect(world.view.port_hints.visible and world.view.port_hints.get_child_count() == 1, kind + " selected collector shows output")
 		await driver.click(world.hud.buttons.belt)

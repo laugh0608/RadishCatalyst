@@ -38,7 +38,7 @@
 | `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
 | `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
 | `sh tools/check-factory-device-interaction.sh state [batch]` | 设备状态展示、近身操作、端口位置与真实物流、旧工厂边界；已登记 Shell / PowerShell 默认 Godot 检查 |
-| `sh tools/check-factory-device-interaction.sh preview <batch>` | 从 Boot 默认基础工厂开始，再创建勘探工厂；分别检查采集器 / 反应器 / 仓库的放置前模型和端口、非法位置、取消与邻近铺带提示，要求新 batch |
+| `sh tools/check-factory-device-interaction.sh preview <batch>` | 从 Boot 默认基础工厂开始，再创建勘探工厂；分别检查三类设备的放置前模型和端口、鼠标放置、非法位置、取消、选中仓库 / 近景与邻近铺带提示，要求新 batch |
 | `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标放置 / 拖铺 / 选中 / 嵌入式面板操作、自然生产、窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
 
 设备交互窗口复用统计路径的失焦等待与真实行走驱动。Boot 首屏使用聚焦后的合成 Enter；部分初始设备使用既有精确放置字段 / 按钮信号，接线与停复电使用权威命令，配方下拉选项由驱动选中；这些准备与控件 / 场地命中测试分别记录，不代替用户亲测。面板通过父视口路由合成鼠标事件，检查按钮在窗口内可见且仅激活一次；不将它称为系统鼠标或原生独立窗口证据。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。

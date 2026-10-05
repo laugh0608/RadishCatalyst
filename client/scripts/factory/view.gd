@@ -25,7 +25,6 @@ var ghost := Node3D.new()
 var selection := Node3D.new()
 var port_hints := Node3D.new()
 var port_key := ""
-var port_labels: Array[Label3D] = []
 var build_model := Node3D.new()
 var build_model_type := ""
 var device_affordances := true
@@ -175,8 +174,6 @@ func sync_camera() -> void:
 	camera.position = target + Vector3(sin(angle) * cos(pitch), sin(pitch), cos(angle) * cos(pitch)) * 40
 	camera.look_at(target)
 	camera.size = maxf(21, 31 / (viewport_size.x / viewport_size.y)) / zoom
-	for label in port_labels:
-		label.pixel_size = 0.014 * camera.size / 21.0
 
 
 func ground(screen: Vector2) -> Variant:
@@ -251,7 +248,7 @@ static func footprint(parent: Node3D, cell: Vector2i, def: Dictionary, mat: Mate
 	_overlay_box(parent, Vector3(x + def.w, 0.075, z + def.d * 0.5), Vector3(0.04, 0.025, def.d), mat)
 
 
-static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> void:
+static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> Node3D:
 	var root := Node3D.new()
 	parent.add_child(root)
 	root.position = Vector3(cell.x + 0.5, 0.15, cell.y + 0.5)
@@ -260,6 +257,7 @@ static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> vo
 	for sign_value in [-1, 1]:
 		var branch := _overlay_box(root, Vector3(0.16, 0, sign_value * 0.07), Vector3(0.22, 0.035, 0.065), mat)
 		branch.rotation.y = sign_value * PI / 4
+	return root
 
 
 func clear_node(node: Node) -> void:
@@ -416,18 +414,17 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 	if key == port_key:
 		return
 	port_key = key
-	port_labels.clear()
 	clear_node(port_hints)
 	for e in model.entities:
 		var shape: Dictionary = Model.CATALOG[e.type]
 		var center := Vector2(e.x + shape.w * 0.5, e.z + shape.d * 0.5)
 		if e.id == ui.selected or (not ui.tool.is_empty() and center.distance_to(Vector2(ui.cell)) <= 9):
-			_port_hint(model, e)
+			_port_hint(model, e, not ui.tool.is_empty())
 	if not ui.tool.is_empty():
-		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y})
+		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y}, true)
 
 
-func _port_hint(model: RefCounted, e: Dictionary) -> void:
+func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
 	for role in ["input", "output"]:
 		var port := Model.port(e, role)
 		if port.is_empty():
@@ -439,23 +436,16 @@ func _port_hint(model: RefCounted, e: Dictionary) -> void:
 		hint.set_meta("role", role)
 		hint.set_meta("entity_id", e.get("id", -1))
 		port_hints.add_child(hint)
-		hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
 		var mat := input_hint_mat if role == "input" else output_hint_mat
-		footprint(hint, cell, {"w": 1, "d": 1}, mat)
-		arrow(hint, cell, 0, mat)
-		var label := Label3D.new()
-		label.text = "输入 →" if role == "input" else "输出 →"
-		label.font = preload("res://assets/fonts/NotoSansSC-wght.ttf")
-		label.font_size = 48
-		# Orthographic camera zoom otherwise shrinks short functional labels into unreadable dots.
-		label.pixel_size = 0.014 * camera.size / 21.0
-		label.outline_size = 5
-		label.modulate = mat.albedo_color
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		label.no_depth_test = true
-		hint.add_child(label)
-		port_labels.append(label)
-		label.position = Vector3(cell.x + 0.5, 0.85, cell.y + 0.5)
+		var marker := arrow(hint, cell, 0, mat)
+		if show_dock:
+			hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
+			footprint(hint, cell, {"w": 1, "d": 1}, mat)
+		else:
+			# Inspecting a placed device needs a flow cue at its connector, not a build grid.
+			marker.scale = Vector3(0.7, 1, 0.7)
+			marker.position.x -= port.dx * 0.27
+			marker.position.y = 0.6
 
 
 func _sync_production(model: RefCounted) -> void:

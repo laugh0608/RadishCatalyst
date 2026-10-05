@@ -149,7 +149,7 @@ func _views(model: RefCounted) -> void:
 	view.draw(model, model.actor, ui)
 	expect(view.build_model.visible and view.build_model.get_child_count() == 1, "formal placement preview uses imported device model")
 	var hints: Array = view.port_hints.get_children().filter(func(h): return h.get_meta("entity_id") == -1)
-	expect(hints.size() == 2, "preview shows both reactor ports")
+	expect(hints.size() == 2 and view.port_hints.find_children("*", "Label3D", true, false).is_empty(), "preview shows both reactor ports without floating text")
 	var displayed := {}
 	for hint in hints:
 		displayed[hint.get_meta("role")] = hint.get_meta("cell")
@@ -178,7 +178,7 @@ func _views(model: RefCounted) -> void:
 	expect(view.port_hints.get_child(0).get_instance_id() == node_id, "camera changes preserve actual world-space port cues")
 	model.advance(0.05)
 	view.draw(model, model.actor, ui)
-	expect(view.port_hints.get_child(0).get_instance_id() == node_id, "simulation ticks do not rebuild port labels")
+	expect(view.port_hints.get_child(0).get_instance_id() == node_id, "simulation ticks do not rebuild port cues")
 	expect(hud.device_summary.visible and hud.buttons.device.visible, "selected production device exposes summary and operations")
 	ui.selected = 3
 	hud.refresh(model, model.actor, ui, true)

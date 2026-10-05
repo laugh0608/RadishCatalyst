@@ -12,7 +12,7 @@
 
 ## 当前活跃专题
 
-- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：勘探实时摘要与取放 / 配方已接入；同日亲测指出默认基础工厂缺预览，已补齐两种三维工厂的共用模型 / 端口提示。最新状态 54、双世界预览 90 项通过；前轮正式 Boot 写入 178、独立恢复 20 项证据保留，修正版体验待复核。
+- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：勘探实时摘要与取放 / 配方已接入；按同日亲测补齐默认基础工厂预览，并移除端口悬浮文字与选中时的接带方框。最新状态 54、双世界窗口 124 项通过；前轮正式 Boot 写入 178、独立恢复 20 项证据保留，修正版观感待复核。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
 - [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、显式接线、20Hz 比例分配、缺电降速与停复电已运行。
 - [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)：物料 / 电量事件记账和有限历史存读已实现；库存分解、实际 / 理论产消、趋势、定位与收藏页面已接入 D3。
