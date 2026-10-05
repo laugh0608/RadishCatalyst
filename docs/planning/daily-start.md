@@ -1,14 +1,14 @@
 # Daily Start
 
-更新时间：2026-10-05（统一设备交互整改）
+更新时间：2026-10-05（日终交接，接续 2026-10-06）
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[设备交互](../features/factory-device-interaction-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
 
 ## 当前交接
 
-- 最新亲测要求统一中央与右侧设备详情、面板打开保持产线运行，并改为走近点击或视角中心高亮后 F 打开。设备专题已按此更新；本轮不改变存档字段、生产、电网、配方与供给规则。
+- 唯一设备主面板、面板内持续生产、近身点击 / 中心高亮后 F 已实现并提交。状态 108、时钟 36 项通过；最新窗口在传送带点击处失败，半批保存与独立恢复未完成。日终按要求停止测试，失败证据与待验边界保留；本轮不改变存档字段、生产、电网、配方与供给规则。
 
 - 正式首程目标、材料数量、下一步按钮和全流程回查已接入；状态 95 项、schema 3 空世界完整循环 249 项与独立恢复 22 项通过。原图、输入方式及失败重验见 W41；玩家是否能理解并独立完成仍待亲测。
 
@@ -24,16 +24,18 @@
 
 首次空世界亲测已收到五项明确问题，见[亲测整改讨论稿](../design/factory-playtest-refinement-proposal.md)。下列原验收顺序应以这些真实阻塞为先；已确认低投入、圆润机械化工方向，已产出[独立交互样板](../features/factory-refinement-demo-v1.md)，萝卜SAMA反馈“感觉还行”，记录为方向初步认可；不能将其扩展成正式首程全部通过。
 
-## 下一步
+<a id="next-day-tasks"></a>
 
-1. **先复核统一设备面板，再亲测正式首程引导**：确认近身点击 / 中心 F、面板内生产和动态信息，以及关闭后的输入恢复；按[首程专题](../features/factory-first-journey-guidance-v1.md)从空勘探世界确认短目标、实际操作入口与卡住后的恢复是否清楚；支持先拾样 / 先建线，不新增存档字段。
-2. **按已安排日程设计传送带附件**：首程反馈处理后进入分流 / 汇合共同调度设计，再明确准入口物品与数量控制语义；当前未开始附件实现。完整 schema 3 路径已有独立工程证据，不例行重跑。
-3. **保持已确认范围**：6 / 12 格、矿壳阻挡、多网选择、有限容量及原档备份保持；先沿用低投入资产，专用图标与精细美术另列。引导完成后再复核首次游玩体验与 D4 剩余项。
-4. **保留输入证据边界**：本包已修正嵌入式面板合成鼠标路由并通过真实控件命中断言；Boot 首屏使用合成 Enter，首屏鼠标驱动偶发未命中及独立样板自动点击不记为已修复。
+## 明日事项（2026-10-06）
+
+1. **先定位传送带点击失败**：从 `unified-window-c` 的实际鼠标坐标、投影高度、射线命中、近身条件和 UI 遮挡核对 `real model click selects belt`，先做短复现，再按证据修正产品或驱动；不预先认定归因，不放宽断言或权限。
+2. **补完统一面板窗口与恢复**：使用新 write 批次复核各设备点击 / 中心 F、面板内生产与库存、暂停 / 失焦、关闭后输入恢复及普通 / 最小窗口；成功保存半批后再运行独立 read，核对配方、在制、库存与自然续产。保留失败批次，未完成的 c 不用作 read 来源；入口见 [Tools](../../tools/README.md#正式工厂定向检查)。
+3. **再复核首程体验并接续附件设计**：按[首程专题](../features/factory-first-journey-guidance-v1.md)检查新面板下的目标、实际入口与阻塞恢复，处理玩家反馈后进入分流 / 汇合共同调度设计，再明确准入口配额 / 速率语义。完整 schema 3 循环已有历史独立证据，仅按后续修正影响补回归；当前未开始附件实现。
+4. **保持范围与证据边界**：6 / 12 格、矿壳阻挡、多网选择、有限容量、原档备份及低投入资产保持。合成输入不当作用户亲测；首屏鼠标偶发未命中和独立样板自动点击未宣称修复。专用图标、精细美术及 D4 剩余项单列。
 
 ## 后续顺序与保留待办
 
-1. **传送带附件已列入日程**：首程与当前版本完整循环复核后，按[附件路线](factory-conveyor-accessories-roadmap.md)推进分流器 / 汇合器，再做物品准入口，最后组合验收。先明确调度、堵塞、公平性、数量语义及存读边界，不在本轮引导中夹带设备实现。
+1. **传送带附件已列入日程**：先完成上述设备验证与首程反馈，再按[附件路线](factory-conveyor-accessories-roadmap.md)推进分流器 / 汇合器、物品准入口及组合验收。先明确调度、堵塞、公平性、数量语义及存读边界，不在本轮整改中夹带设备实现。
 2. **依据普通对照结果决定后续规模验证**：`d4-window-20260929-c` 的完整 600 桶、同状态关闭 / 物料 / 电力各 45 秒已通过，30 项、无失焦；帧 p95 8.757 / 9.004 / 8.850ms，采样内三次自动保存成功且尖峰保留。此项无需例行重跑。schema 2 的 100 台 / 1,000 带仍需先确认工程供给设计；不能将普通负载短测当作首档或持续验收。入口与亲测清单见[统计专题](../features/factory-production-statistics-v1.md#d4-普通供给对照与亲测准备)。
 3. **保留独立待办**：Windows / PowerShell、目标硬件验收及物料图标仍待完成。不复用历史四档成绩冒充最新联合版本通过，不自动解冻玩法。
 

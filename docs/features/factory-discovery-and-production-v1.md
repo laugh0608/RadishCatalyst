@@ -124,7 +124,7 @@
 
 ## 状态、存档与兼容提案
 
-建议只在新建“勘探工厂”使用工厂 schema 2；原“基础工厂”及已有 schema 1 世界继续原地图、规则和保存版本。列表显式标注世界类型；不自动给旧工厂插入矿壳，也不要求用户丢弃旧档。旧二维 schema 10 入口仍隔离。版本分派和普通晶体线字段已在 D2-A 落实，精确合同见[联合 schema 2](../architecture/factory-discovery-save-v2.md)。
+D2 原联合包使用工厂 schema 2，以下字段合同继续作为[联合 schema 2](../architecture/factory-discovery-save-v2.md)与[当前 schema 3](../architecture/factory-discovery-save-v3.md)的共同基础。现行新建勘探世界使用 schema 3，旧 schema 2 在菜单明确升级并保留原副本；原“基础工厂”及已有 schema 1 继续原地图、规则和保存版本。列表显式标注世界类型，不给基础工厂插入矿壳；旧二维 schema 10 入口仍隔离。
 
 | 权威数据 | 拟增量及约束 |
 | --- | --- |
