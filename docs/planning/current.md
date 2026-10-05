@@ -8,11 +8,11 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
-本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。萝卜SAMA继续确认范围自动供电，现已接入 6 / 12 格自动电网、旧勘探世界显式升级及远近分层的地面样本拾取；具体合同与证据见下列专题。后续补完整引导，D4 完整体验仍未通过。
+本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。范围自动供电、旧勘探世界显式升级及地面样本拾取完成后，萝卜SAMA反馈“没啥问题了”，记为本轮整改亲测通过。下一步按现行操作补完整引导并复核 schema 3 发现循环；D4 完整体验仍未通过。
 
 ## 当前活跃专题
 
-- [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；新建勘探世界采用 schema 3，保留有限功率与矿壳阻挡。
+- [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；定向工程验证与本轮玩家亲测通过，完整 schema 3 发现循环待补。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：实时摘要、近身取放 / 配方、双世界预览、无悬浮文字端口及 6 / 12 格范围；工程证据保留，修正版观感待复核。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
 - [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、20Hz 比例分配、缺电降速与停复电；旧显式图合同保留，现行连接方式由范围供电专题补充。
