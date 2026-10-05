@@ -197,5 +197,33 @@ func _views(model: RefCounted) -> void:
 	hud.refresh(legacy, legacy.actor, ui, true)
 	await process_frame
 	expect(hud.details.visible and not hud.device_summary.visible and not hud.buttons.device.visible, "foundation keeps original inspector and operations")
+	view.queue_free()
+	await process_frame
+	await _foundation_preview(hud, legacy, ui)
 	hud.queue_free()
 	await process_frame
+
+
+func _foundation_preview(hud: Control, model: RefCounted, ui: Dictionary) -> void:
+	var view := View.new()
+	view.world_model = model
+	hud.subviewport.add_child(view)
+	ui.selected = -1
+	var before := snapshot(model)
+	var expected := {"collector": [Vector2i(-6, 0)], "reactor": [Vector2i(-2, 0), Vector2i(2, 0)], "storage": [Vector2i(5, 0)]}
+	for type in expected:
+		ui.tool = type
+		ui.cell = model.REFERENCE[type]
+		view.draw(model, model.actor, ui)
+		expect(view.build_model.visible and view.build_model.get_child_count() == 1, "foundation previews imported " + type + " before placement")
+		var previews := view.port_hints.get_children().filter(func(h): return h.get_meta("entity_id") == -1)
+		var cells := previews.map(func(h): return h.get_meta("cell"))
+		expect(view.port_hints.visible and cells == expected[type], "foundation previews actual docking cells for " + type)
+		expect(snapshot(model) == before, "foundation " + type + " preview leaves inventory and save state unchanged")
+	ui.tool = "collector"
+	ui.cell = Vector2i(-6, 3)
+	view.draw(model, model.actor, ui)
+	expect(not model.placement(ui.tool, ui.cell).ok and view.build_model.visible, "invalid foundation position still shows device outline")
+	ui.tool = ""
+	view.draw(model, model.actor, ui)
+	expect(not view.build_model.visible and view.port_hints.get_child_count() == 0, "foundation cancel removes preview and port hints")

@@ -395,7 +395,8 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 
 
 func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
-	var enabled := device_affordances and model.has_method("power_state")
+	# Both formal 3D worlds share device geometry and logistics ports, independent of power rules.
+	var enabled := device_affordances
 	port_hints.visible = enabled
 	build_model.visible = enabled and not ui.tool.is_empty() and ui.tool != "belt"
 	if not enabled:

@@ -1,5 +1,7 @@
 extends "res://scripts/checks/factory_statistics_boot_check.gd"
 
+var preview_only := false
+
 ## Reuse the existing focus-aware walking/input and snapshot helpers, with this package's path.
 func run() -> void:
 	var batch := ""
@@ -8,6 +10,7 @@ func run() -> void:
 			batch = arg.trim_prefix("--batch=")
 		read_mode = read_mode or arg == "--read"
 		ui_only = ui_only or arg == "--ui-only"
+		preview_only = preview_only or arg == "--preview-only"
 	assert(batch.is_valid_filename() and not ".." in batch)
 	var repo := SliceCheckPaths.repository_root()
 	run_root = repo.path_join("tools/runtime-intake/check-runs/factory-device-interaction-v1").path_join(batch)
@@ -40,21 +43,84 @@ func run() -> void:
 		boot.factory_world.ui.paused = true
 		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
-		boot.factory_menu.world_type.select(1)
+		if not preview_only:
+			boot.factory_menu.world_type.select(1)
+		else:
+			driver.expect(boot.factory_menu.world_type.selected == 0, "preview check starts with default foundation world")
 		boot.factory_menu.title_input.text = "设备面板与接口 · 正式复核"
-		await driver.click(boot.factory_menu.create_button)
+		if preview_only:
+			await press(boot.factory_menu.create_button)
+		else:
+			await driver.click(boot.factory_menu.create_button)
 	world = boot.factory_world
 	driver.world = world
-	driver.expect(world != null and world.initialized, "formal discovery world initialized")
+	driver.expect(world != null and world.initialized, "formal factory world initialized")
 	if world == null or not world.initialized:
 		finish()
 		return
 	await driver.settle(20)
-	if read_mode:
+	if preview_only:
+		await _previews()
+	elif read_mode:
 		await _restore()
 	else:
 		await _first_line()
 	finish()
+
+
+func _previews() -> void:
+	for discovery in [false, true]:
+		var kind := "discovery" if discovery else "foundation"
+		if discovery:
+			boot.factory_menu.world_type.select(1)
+			boot.factory_menu.title_input.text = "勘探工厂 · 预览复核"
+			await press(boot.factory_menu.create_button)
+			world = boot.factory_world
+			driver.world = world
+			await driver.settle(20)
+			await walk(Vector2(-12, 4))
+		driver.expect(world.initialized and world.model.has_method("power_state") == discovery, kind + " uses its own authoritative rules")
+		await driver.click(world.hud.buttons.pause)
+		await driver.click(world.hud.buttons.mission)
+		var cells: Dictionary = {"collector": Vector2i(-20, -1), "reactor": Vector2i(-13, -2), "storage": Vector2i(-6, -1)} if discovery else world.model.REFERENCE
+		for type in ["collector", "reactor", "storage"]:
+			var before := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
+			await driver.click(world.hud.buttons[type])
+			await driver.motion(driver.cell_screen(cells[type]))
+			await driver.settle(10)
+			driver.expect(world.ui.cell == cells[type], kind + " mouse moves preview to chosen " + type + " cell")
+			driver.expect(world.view.build_model.visible and world.view.build_model.get_child_count() == 1, kind + " shows imported " + type + " before clicking")
+			var hints: Array = world.view.port_hints.get_children().filter(func(h): return h.get_meta("entity_id") == -1)
+			driver.expect(hints.size() == (2 if type == "reactor" else 1) and world.view.port_hints.visible, kind + " shows " + type + " ports before clicking")
+			driver.expect(Check.equivalent(before, Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)), kind + " preview leaves authoritative state unchanged")
+			await driver.shot(kind + "-before-" + type)
+			check_failures()
+			if finished:
+				return
+			if type == "collector":
+				ids.collector = world.model.next_id
+				await driver.world_click(cells[type])
+				driver.expect(world.model.by_id(ids.collector).get("type", "") == "collector", kind + " mouse commits previewed collector")
+		await driver.click(world.hud.buttons.collector)
+		await driver.motion(driver.cell_screen(Vector2i(-11, 2) if discovery else Vector2i(-4, 2)))
+		await driver.settle()
+		driver.expect(not world.model.placement("collector", world.ui.cell).ok and world.view.build_model.visible, kind + " invalid location still shows outline")
+		await driver.shot(kind + "-invalid-collector")
+		await driver.key(KEY_ESCAPE)
+		driver.expect(not world.view.build_model.visible and world.view.port_hints.get_child_count() == 0, kind + " cancel clears transient preview")
+		await select_device("collector")
+		driver.expect(world.view.port_hints.visible and world.view.port_hints.get_child_count() == 1, kind + " selected collector shows output")
+		await driver.click(world.hud.buttons.belt)
+		await driver.motion(driver.cell_screen(cells.collector + Vector2i(2, 1)))
+		await driver.settle()
+		driver.expect(world.view.port_hints.get_children().any(func(h): return h.get_meta("entity_id") == ids.collector), kind + " belt approach retains nearby output guidance")
+		await driver.shot(kind + "-belt-approach")
+		await driver.key(KEY_ESCAPE)
+		await driver.click(world.hud.buttons.return)
+		driver.expect(boot.factory_world == null, kind + " saves and returns cleanly")
+		check_failures()
+		if finished:
+			return
 
 
 func _first_line() -> void:
@@ -283,8 +349,8 @@ func finish() -> void:
 	if finished:
 		return
 	finished = true
-	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
+	write_json("preview-result.json" if preview_only else "read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
 		"foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Boot menu: focused synthetic Enter; HUD/model selection/drag/embedded operation buttons: synthetic mouse; setup devices: existing precision fields/button signal; legal explicit wiring; recipe dropdown index chosen; walking: synthetic WASD; no injected stock/unlocks/actor position or accelerated time"})
+		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: focused synthetic Enter; HUD/model selection/drag/embedded operation buttons: synthetic mouse; setup devices: existing precision fields/button signal; legal explicit wiring; recipe dropdown index chosen; walking: synthetic WASD; no injected stock/unlocks/actor position or accelerated time"})
 	print("Device interaction Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
