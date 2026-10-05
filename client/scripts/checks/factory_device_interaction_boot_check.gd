@@ -124,11 +124,91 @@ func _previews() -> void:
 		driver.expect(world.view.port_hints.get_children().any(func(h): return h.get_meta("entity_id") == ids.collector), kind + " belt approach retains nearby output guidance")
 		await driver.shot(kind + "-belt-approach")
 		await driver.key(KEY_ESCAPE)
+		if discovery:
+			await _power_previews()
+			if finished:
+				return
 		await driver.click(world.hud.buttons.return)
 		driver.expect(boot.factory_world == null, kind + " saves and returns cleanly")
 		check_failures()
 		if finished:
 			return
+
+
+func _power_previews() -> void:
+	await driver.click(world.hud.buttons.power_source)
+	await driver.motion(driver.cell_screen(Vector2i(-20, -6)))
+	await driver.settle(10)
+	driver.expect(world.view.power_range.visible, "source placement shows range circles")
+	await driver.shot("discovery-before-power-source")
+	ids.source = world.model.next_id
+	await driver.world_click(Vector2i(-20, -6))
+	driver.expect(world.model.by_id(ids.source).get("type", "") == "power_source", "mouse places source")
+	await driver.click(world.hud.buttons.power_junction)
+	var before := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
+	await driver.motion(driver.cell_screen(Vector2i(-17, -3)))
+	await driver.settle(10)
+	driver.expect(world.ui.cell == Vector2i(-17, -3) and world.view.power_range.visible and world.hud.power_help.visible, "node preview follows mouse with visible range and legend")
+	var eligible: Array = world.view.power_range.targets.get_children().map(func(h): return h.get_meta("entity_id"))
+	driver.expect(eligible.has(ids.collector) and eligible.has(ids.reactor) and eligible.has(ids.source) and not eligible.has(ids.storage), "live range highlights only reachable powered devices")
+	driver.expect(Check.equivalent(before, Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)), "live power preview does not change authoritative state")
+	await driver.shot("discovery-before-power-junction")
+	await driver.click(world.hud.buttons.zoom_out)
+	await driver.click(world.hud.buttons.zoom_out)
+	await driver.shot("discovery-power-range-wide")
+	root.size = Vector2i(1100, 720)
+	await driver.settle(25)
+	driver.expect(world.hud.footer.get_global_rect().encloses(world.hud.power_help.get_global_rect()), "range legend fits minimum window footer")
+	await driver.shot("discovery-power-range-minimum")
+	root.size = Vector2i(1440, 900)
+	await driver.settle(25)
+	await driver.motion(driver.cell_screen(Vector2i(-13, -2)))
+	await driver.settle(10)
+	driver.expect(not world.view.power_range.get_node("ConsumerRange").get_meta("valid") and world.view.power_range.targets.get_child_count() == 0, "occupied placement has red range and no target highlights")
+	await driver.shot("discovery-power-range-invalid")
+	await driver.key(KEY_ESCAPE)
+	driver.expect(not world.view.power_range.visible and not world.hud.power_help.visible, "cancel clears range and legend")
+	await driver.click(world.hud.buttons.power_junction)
+	await driver.world_click(Vector2i(-17, -3))
+	ids.node = world.ui.selected
+	driver.expect(world.model.by_id(ids.node).get("type", "") == "power_junction" and world.view.power_range.visible, "placed selected node retains its range")
+	await driver.click(world.hud.buttons.power_connect)
+	await driver.motion(driver.cell_screen(Vector2i(-12, -1)))
+	await driver.settle(10)
+	driver.expect(world.ui.power_from == ids.node and world.view.power_range.visible, "explicit wiring keeps origin range visible")
+	await driver.shot("discovery-power-range-wiring")
+	await driver.key(KEY_ESCAPE)
+	await driver.key(KEY_ESCAPE)
+	driver.expect(not world.view.power_range.visible and world.model.power_links.is_empty() and world.model.by_id(ids.reactor).power_node_id == 0, "leaving selection clears range without silently connecting devices")
+	check_failures()
+	if finished:
+		return
+	await driver.click(world.hud.buttons.pause)
+	driver.expect(not world.ui.paused, "resume before walking to shell")
+	check_failures()
+	if finished:
+		return
+	await walk(Vector2(-1, 4))
+	await driver.shot("discovery-power-range-after-walk")
+	await driver.click(world.hud.buttons.pause)
+	if not world.ui.paused:
+		await driver.shot("failed-pause-near-shell")
+		print("Power preview input diagnostic: ", {"hovered": str(root.gui_get_hovered_control()), "actor": world.actor,
+			"failure": world.failure_dialog.visible, "unsaved": world.unsaved_dialog.visible, "power": world.power_dialog.visible,
+			"discovery": world.discovery_panel.visible, "statistics": world.statistics_panel.visible})
+	driver.expect(world.ui.paused, "pause near shell before preview")
+	check_failures()
+	if finished:
+		return
+	await driver.click(world.hud.buttons.power_junction)
+	check_failures()
+	if finished:
+		return
+	await driver.motion(driver.cell_screen(Vector2i(2, -1)))
+	await driver.settle(10)
+	driver.expect(world.view.power_range.get_node("ConsumerRange").get_meta("blocked_segments") > 0, "near-shell range shows blocked segments")
+	await driver.shot("discovery-power-range-blocked")
+	await driver.key(KEY_ESCAPE)
 
 
 func _first_line() -> void:

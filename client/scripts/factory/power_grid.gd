@@ -47,13 +47,18 @@ static func connection(model: RefCounted, a_id: int, b_id: int) -> Dictionary:
 	var b: Dictionary = model.by_id(b_id)
 	if a.is_empty() or b.is_empty() or a_id == b_id or not is_node(a):
 		return {"ok": false, "reason": "先选择电源 / 配电节点，再选择另一节点或用电设备"}
+	return reachability(a, b, model.discovery.passages)
+
+
+## Placement previews share the exact geometry checks without creating a model entity.
+static func reachability(a: Dictionary, b: Dictionary, passages: Dictionary) -> Dictionary:
 	if not is_node(b) and not Rules.POWER.has(b.type):
 		return {"ok": false, "reason": "仓库与传送带为被动设施，无需接电"}
 	var distance := center(a).distance_to(center(b))
 	var limit := Rules.NODE_RANGE if is_node(b) else Rules.CONSUMER_RANGE
 	if distance > limit + 1e-9:
 		return {"ok": false, "reason": "距离 %.1f 格，超过 %.0f 格接线范围" % [distance, limit]}
-	if not line_open(center(a), center(b), model.discovery.passages):
+	if not line_open(center(a), center(b), passages):
 		return {"ok": false, "reason": "连接经过封闭矿区或矿壳"}
 	return {"ok": true, "distance": distance}
 

@@ -5,6 +5,7 @@ signal action(name: String, value: Variant)
 const Model := preload("res://scripts/factory/model.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const Items := preload("res://scripts/factory/items.gd")
+const PowerRange := preload("res://scripts/factory/power_range.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
@@ -26,6 +27,7 @@ var placement_reason := Label.new()
 var tool_row := HBoxContainer.new()
 var placement_row := HBoxContainer.new()
 var build_help := Label.new()
+var power_help := Label.new()
 var cell_x := SpinBox.new()
 var cell_z := SpinBox.new()
 var help_panel: PanelContainer
@@ -219,6 +221,11 @@ func _build_footer(parent: Node) -> void:
 	_button(placement_row, "place", "放置 Enter")
 	_button(placement_row, "cancel", "取消 Esc")
 	placement_row.add_child(placement_reason)
+	power_help.text = PowerRange.legend()
+	power_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	power_help.add_theme_color_override("font_color", Color("b1d5cb"))
+	rows.add_child(power_help)
+	power_help.hide()
 	var last := HBoxContainer.new()
 	rows.add_child(last)
 	build_help.text = "WASD 移动 · 拖动铺带 · Q / E 转角 · 滚轮缩放"
@@ -274,6 +281,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
 	placement_row.visible = not ui.tool.is_empty()
+	power_help.visible = not PowerRange.origin(model, ui).is_empty()
 	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
 		buttons[type].visible = model.kits.has(type)
 		if not model.kits.has(type):

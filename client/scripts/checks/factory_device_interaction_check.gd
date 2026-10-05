@@ -103,6 +103,7 @@ func run() -> void:
 	expect(snapshot(model) == before and "取空输入和输出" in panel.result_label.text, "blocked recipe change retains actual state and reason")
 	panel.hide()
 	await _views(model)
+	await _power_preview()
 	var saved := snapshot(model)
 	var restored := Codec.decode(JSON.parse_string(JSON.stringify(saved, "", false, true)), PowerCheck.ID)
 	expect(restored.ok and saved.save_schema_version == 2, "device operations remain inside existing schema 2 contract")
@@ -227,3 +228,79 @@ func _foundation_preview(hud: Control, model: RefCounted, ui: Dictionary) -> voi
 	ui.tool = ""
 	view.draw(model, model.actor, ui)
 	expect(not view.build_model.visible and view.port_hints.get_child_count() == 0, "foundation cancel removes preview and port hints")
+	expect(not view.power_range.visible, "foundation world has no explicit power range overlay")
+
+
+func _power_preview() -> void:
+	var model := PowerCheck.line()
+	var grid: GDScript = model.Grid
+	var from := {"type": "power_junction", "x": -13, "z": -5}
+	var consumer := {"type": "reactor", "x": -8.0, "z": -6}
+	expect(grid.reachability(from, consumer, model.discovery.passages).ok, "consumer at exactly six center-to-center cells is reachable")
+	consumer.x += 0.01
+	expect(not grid.reachability(from, consumer, model.discovery.passages).ok, "consumer beyond six cells is rejected")
+	var node := {"type": "power_junction", "x": -1.0, "z": -5}
+	expect(grid.reachability(from, node, model.discovery.passages).ok, "node at exactly twelve center-to-center cells is reachable")
+	node.x += 0.01
+	expect(not grid.reachability(from, node, model.discovery.passages).ok, "node beyond twelve cells is rejected")
+	var left := {"type": "power_junction", "x": -1, "z": 0}
+	var right := {"type": "power_junction", "x": 8, "z": 0}
+	expect(not grid.reachability(left, right, {"outer": false, "inner": false}).ok, "closed mineral shell blocks nearby nodes")
+	expect(grid.reachability(left, right, {"outer": true, "inner": false}).ok, "opened corridor permits same connection")
+	var hud := Hud.new()
+	root.add_child(hud)
+	var view := View.new()
+	view.world_model = model
+	hud.subviewport.add_child(view)
+	var ui := {"build": true, "tool": "power_junction", "cell": Vector2i(-17, -3), "dir": 0,
+		"selected": -1, "stroke": Array([], TYPE_VECTOR2I, "", null), "paused": true, "mission": false}
+	var before := snapshot(model)
+	view.draw(model, model.actor, ui)
+	hud.refresh(model, model.actor, ui, true)
+	var guide: Node3D = view.power_range
+	expect(guide.visible and hud.power_help.visible and "6 格" in hud.power_help.text and "12 格" in hud.power_help.text, "power placement exposes both ranges and their legend")
+	expect(guide.get_node("ConsumerRange").get_meta("radius") == 6.0 and guide.get_node("NodeRange").get_meta("radius") == 12.0, "rendered circles use authoritative radii")
+	expect(guide.get_node("ConsumerRange").position == Vector3(-16.5, 0.105, -2.5), "junction circles originate at footprint center")
+	var eligible: Array = guide.targets.get_children().map(func(h): return h.get_meta("entity_id"))
+	expect(eligible == [1, 2, 13, 14], "nearby consumers and nodes highlighted; passive facilities excluded")
+	expect(snapshot(model) == before, "power preview neither wires devices nor changes save state")
+	var ring_id: int = guide.get_node("ConsumerRange").get_instance_id()
+	model.advance(0.05)
+	view.yaw += 90
+	view.zoom = 0.6
+	view.draw(model, model.actor, ui)
+	expect(guide.get_node("ConsumerRange").get_instance_id() == ring_id, "production ticks and camera changes retain range geometry")
+	ui.cell = Vector2i(-28, 10)
+	view.draw(model, model.actor, ui)
+	expect(guide.targets.get_child_count() == 0, "moving outside both ranges removes target highlights")
+	ui.cell = Vector2i(-6, -1)
+	view.draw(model, model.actor, ui)
+	expect(not guide.get_node("ConsumerRange").get_meta("valid") and guide.targets.get_child_count() == 0, "invalid occupied placement has invalid rings and no targets")
+	ui.cell = Vector2i(2, -1)
+	view.draw(model, model.actor, ui)
+	expect(guide.get_node("ConsumerRange").get_meta("blocked_segments") > 0, "closed shell marks blocked circle segments")
+	ui.tool = "power_source"
+	ui.cell = Vector2i(-25, -8)
+	view.draw(model, model.actor, ui)
+	expect(guide.get_node("ConsumerRange").position == Vector3(-23.5, 0.105, -6.5), "three-cell source centers its circles correctly")
+	ui.tool = ""
+	ui.selected = 14
+	view.draw(model, model.actor, ui)
+	expect(guide.visible and guide.get_node("ConsumerRange").position == Vector3(-12.5, 0.105, -4.5), "selected existing node retains correct ranges")
+	eligible = guide.targets.get_children().map(func(h): return h.get_meta("entity_id"))
+	for candidate in model.entities:
+		expect(eligible.has(candidate.id) == grid.connection(model, 14, candidate.id).ok, "highlight matches actual connection command for entity %d" % candidate.id)
+	ui.selected = 1
+	ui.power_from = 13
+	view.draw(model, model.actor, ui)
+	expect(guide.visible and guide.get_node("ConsumerRange").position == Vector3(-18.5, 0.105, -4.5), "wiring mode uses origin node rather than selected consumer")
+	ui.tool = "belt"
+	view.draw(model, model.actor, ui)
+	hud.refresh(model, model.actor, ui, true)
+	expect(not guide.visible and not hud.power_help.visible and guide.targets.get_child_count() == 0, "switching to logistics tool clears power guidance")
+	ui.tool = "power_junction"
+	view.device_affordances = false
+	view.draw(model, model.actor, ui)
+	expect(not guide.visible, "independent demo can disable formal range guidance")
+	hud.queue_free()
+	await process_frame

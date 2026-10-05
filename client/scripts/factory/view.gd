@@ -37,6 +37,7 @@ var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
 var solvent_mat := Parts.material("91d970", 0.3, 0.3)
 var wiring := Node3D.new()
 var wiring_key := ""
+var power_range := preload("res://scripts/factory/power_range.gd").new()
 var last_revision := -1
 var visual_revision := -1
 var visual_time := -1.0
@@ -106,7 +107,7 @@ func _ready() -> void:
 	camera.far = 120
 	get_viewport().size_changed.connect(sync_camera)
 	sync_camera()
-	for node in [grid, ghost, selection, wiring, port_hints, build_model]:
+	for node in [grid, ghost, selection, wiring, port_hints, build_model, power_range]:
 		add_child(node)
 	var grid_mat := Parts.material("89958a", 0, 1)
 	for x in range(-32, 33):
@@ -357,6 +358,7 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
 	grid.visible = ui.build
 	_sync_wiring(model, ui)
+	power_range.sync(model, actor, ui, device_affordances)
 	_sync_device_affordances(model, ui)
 	if model.has_method("power_state") and terrain_key != str(model.discovery):
 		_build_mineral_barriers()
