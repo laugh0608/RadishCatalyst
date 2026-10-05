@@ -28,6 +28,6 @@ RadishCatalyst 希望建立尊重、准确、可复核，也允许充分设计�
 
 ## 报告
 
-行为问题可发送至 `laugh0608@foxmail.com`，邮件主题包含 `[RadishCatalyst Conduct]`。请提供发生位置、相关上下文、影响和希望采取的保护措施，不要在公开讨论中扩散个人信息。
+行为问题可发送至 `luobo@radishx.com`，邮件主题包含 `[RadishCatalyst Conduct]`。请提供发生位置、相关上下文、影响和希望采取的保护措施，不要在公开讨论中扩散个人信息。
 
 安全漏洞请遵循[安全策略](SECURITY.md)，不要将可利用细节混入公开行为投诉。
