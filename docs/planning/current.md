@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-05（日终交接）
+更新时间：2026-10-08
 
 ## 当前阶段
 
@@ -8,12 +8,12 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
-本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。范围自动供电、旧勘探世界显式升级及地面样本拾取完成后，萝卜SAMA反馈“没啥问题了”，记为本轮整改亲测通过。首程引导、schema 3 完整自然循环及独立恢复已取得工程证据；其后统一设备详情、面板内继续生产与近身点击 / 中心 F 已实现，最新窗口仍有传送带点击失败及独立恢复待验。按日终要求保留现状，明日先补齐这段验证与首程反馈，再进入[传送带附件日程](factory-conveyor-accessories-roadmap.md)，按分流 / 汇合、准入口、组合交付排序。D4 完整体验仍未通过。
+本轮优先响应空世界亲测问题：正式设备面板、预览与无文字端口提示已接入。范围自动供电、旧勘探世界显式升级及地面样本拾取完成后，萝卜SAMA反馈“没啥问题了”，记为本轮整改亲测通过。首程引导、schema 3 完整自然循环及独立恢复已取得工程证据；其后统一设备详情、面板内继续生产与近身点击 / 中心 F 已实现。10 月 8 日已定位测试点击高度错误，修正驱动后正式窗口 211 项、独立恢复 32 项通过，并覆盖新面板下首程入口、回压恢复及试制完成后的目标推进。当前等待新面板与首程亲测反馈，再进入[传送带附件日程](factory-conveyor-accessories-roadmap.md)，按分流 / 汇合、准入口、组合交付排序。D4 完整体验仍未通过。
 
 ## 当前活跃专题
 
-- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：当前优先；唯一设备主面板、实时生产、近身点击及中心 F 已实现，状态 108、时钟 36 项通过；传送带点击与新面板独立恢复待补验，双世界预览、端口与范围沿用。
-- [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前状态 95、完整 Boot 249、独立恢复 22 项通过，新面板下的首程体验待复核。
+- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：当前优先；唯一设备主面板、实时生产、近身点击及中心 F 已实现；10 月 8 日状态 108、窗口 211、独立恢复 32 项通过，时钟 36 项为 10 月 5 日证据。新面板亲测待反馈，双世界预览、端口与范围沿用。
+- [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
 - [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；定向工程验证与本轮玩家亲测通过；当前 schema 3 完整循环由首程专题补齐。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
 - [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、20Hz 比例分配、缺电降速与停复电；旧显式图合同保留，现行连接方式由范围供电专题补充。

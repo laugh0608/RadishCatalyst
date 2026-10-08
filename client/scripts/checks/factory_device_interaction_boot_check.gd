@@ -2,7 +2,7 @@ extends "res://scripts/checks/factory_statistics_boot_check.gd"
 
 var preview_only := false
 var evidence_topic := "factory-device-interaction-v1"
-var screenshot_topic := "2026-10-05-factory-device-interaction-preview"
+var screenshot_topic := "2026-10-08-factory-device-interaction-preview"
 
 ## Reuse the existing focus-aware walking/input and snapshot helpers, with this package's path.
 func run() -> void:
@@ -116,7 +116,8 @@ func _previews() -> void:
 		await driver.shot(kind + "-invalid-collector")
 		await driver.key(KEY_ESCAPE)
 		driver.expect(not world.view.build_model.visible and world.view.port_hints.get_child_count() == 0, kind + " cancel clears transient preview")
-		await select_device("storage")
+		if not await select_device("storage"):
+			return
 		driver.expect(world.view.port_hints.find_children("*", "Label3D", true, false).is_empty(), kind + " selected device has no floating port text")
 		await driver.shot(kind + "-selected-storage")
 		await driver.click(world.hud.buttons.zoom_in)
@@ -125,7 +126,8 @@ func _previews() -> void:
 		await driver.click(world.hud.buttons.zoom_out)
 		await driver.click(world.hud.buttons.zoom_out)
 		await driver.key(KEY_ESCAPE)
-		await select_device("collector")
+		if not await select_device("collector"):
+			return
 		driver.expect(world.view.port_hints.visible and world.view.port_hints.get_child_count() == 1, kind + " selected collector shows output")
 		await driver.click(world.hud.buttons.belt)
 		await driver.motion(driver.cell_screen(cells.collector + Vector2i(2, 1)))
@@ -218,10 +220,17 @@ func _power_previews() -> void:
 
 func _first_line() -> void:
 	driver.expect(world.model.entities.is_empty() and world.model.bag.is_empty(), "new world has no injected devices or material")
+	var initial_actor: Dictionary = world.actor.duplicate(true)
+	var initial_kits: Dictionary = world.model.kits.duplicate()
+	await native_click(world.hud.buttons.guide_action)
+	driver.expect(world.ui.tool == "collector" and world.model.entities.is_empty() and world.model.kits == initial_kits, "first goal selects collector without building or spending")
+	driver.expect(world.actor == initial_actor, "first goal leaves actor in place")
+	await driver.key(KEY_ESCAPE)
 	await walk(Vector2(2.5, 3.5))
 	await driver.key(KEY_F)
 	driver.expect(world.model.discovery.sample_taken, "F retains direct sample interaction when no device is targeted")
 	await native_click(world.hud.buttons.discovery)
+	driver.expect(world.discovery_panel.guide_overview.visible and "首条产线" in world.discovery_panel.guide_overview.text and "内矿道" in world.discovery_panel.guide_overview.text, "process review retains all journey steps beside the new device panel")
 	var frozen: float = world.model.time
 	await create_timer(0.4).timeout
 	driver.expect(world.model.time == frozen and not world._producing(), "general process review retains pause contract")
@@ -241,13 +250,15 @@ func _first_line() -> void:
 	await native_click(world.hud.buttons.belt)
 	await driver.drag([Vector2i(-18, 0), Vector2i(-17, 0), Vector2i(-16, 0), Vector2i(-15, 0), Vector2i(-14, 0)])
 	await driver.key(KEY_ESCAPE)
-	await select_device("reactor")
+	if not await select_device("reactor"):
+		return
 	driver.expect(not world.discovery_panel.visible and not world.hud.inspector.visible, "far click does not open operations or a duplicate inspector")
 	driver.expect("走近" in world.hud.notice.text, "far selection explains proximity")
 	await driver.shot("01-distant-selection")
 	await native_click(world.hud.buttons.pause)
 	await walk(Vector2(-12, 2.5))
-	await select_device("reactor")
+	if not await select_device("reactor"):
+		return
 	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_only, "near model click directly opens unified panel")
 	driver.expect(not world.hud.inspector.visible, "unified panel has no right-side duplicate")
 	await wait_for(func(): return world.model.by_id(ids.reactor).processing, 25, "first batch starts with panel open")
@@ -283,6 +294,12 @@ func _first_line() -> void:
 	await driver.settle(20)
 	driver.expect("输出尚未清空" in world.discovery_panel.device_summary.production.text, "live panel explains real output backpressure")
 	await native_shot("04-output-blocked")
+	await native_click(world.discovery_panel.buttons.close)
+	await native_click(world.hud.buttons.mission)
+	driver.expect("出料被占用" in world.hud.mission.text, "goal explains the same natural output blockage")
+	await driver.shot("04-blocked-goal")
+	await native_click(world.hud.buttons.guide_action)
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == ids.reactor and world._producing(), "blocked goal opens nearby live reactor operations")
 	await native_click(world.discovery_panel.buttons.catalyst_take_all)
 	driver.expect(world.model.bag.get("catalyst", 0) == 1, "live withdrawal takes actual completed product")
 	await native_click(world.discovery_panel.buttons.close)
@@ -291,7 +308,8 @@ func _first_line() -> void:
 	await driver.key(KEY_ESCAPE)
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) >= 1, 25, "repaired output delivers naturally")
 	await walk(Vector2(-5, 2.5))
-	await select_device("warehouse")
+	if not await select_device("warehouse"):
+		return
 	await native_shot("05-storage")
 	var stored: int = world.model.by_id(ids.warehouse).items.get("catalyst", 0)
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) > stored, 20, "warehouse inventory rises while its panel is open")
@@ -304,7 +322,8 @@ func _first_line() -> void:
 	if finished:
 		return
 	await walk(Vector2(-12, 2.5))
-	await select_device("reactor")
+	if not await select_device("reactor"):
+		return
 	await native_click(world.discovery_panel.buttons.pause)
 	# Manual pause is an explicit player action, used here to prepare a deterministic recipe change.
 	if world.model.by_id(ids.reactor).processing:
@@ -337,14 +356,16 @@ func _other_devices() -> void:
 	await walk(Vector2(-16, 3))
 	await walk(Vector2(-21, 3))
 	await walk(Vector2(-21, 2))
-	await select_device("collector")
+	if not await select_device("collector"):
+		return
 	driver.expect(world.discovery_panel.visible and world.discovery_panel.device_summary.cards.output.visible, "near collector shows live extraction buffer")
 	await native_shot("06-collector")
 	await native_click(world.discovery_panel.buttons.close)
 	await walk(Vector2(-21, -3))
 	await walk(Vector2(-21, -2))
 	await walk(Vector2(-19, -2))
-	await select_device("source")
+	if not await select_device("source"):
+		return
 	driver.expect(world.discovery_panel.buttons.power_toggle.visible, "source action is inside unified panel")
 	await native_click(world.discovery_panel.buttons.power_toggle)
 	await active(0.5, "source disabled through live panel")
@@ -355,30 +376,44 @@ func _other_devices() -> void:
 	await native_click(world.discovery_panel.buttons.close)
 	await walk(Vector2(-15, -2.5))
 	await walk(Vector2(-14, -4))
-	await select_device("node")
+	if not await select_device("node"):
+		return
 	driver.expect(world.discovery_panel.visible and not world.discovery_panel.buttons.power_connect.visible, "automatic node uses unified network details without manual wiring")
 	await native_shot("08-node")
 	await native_click(world.discovery_panel.buttons.close)
 	await walk(Vector2(-14, -2.5))
 	await walk(Vector2(-14, 2))
 	ids.belt = world.model.entity_at(Vector2i(-14, 0)).id
-	await select_device("belt")
+	if not await select_device("belt"):
+		return
 	driver.expect(world.discovery_panel.buttons.rotate_selected.visible, "belt provides its action in unified panel")
 	await native_shot("09-belt")
 	await native_click(world.discovery_panel.buttons.close)
 
 
-func select_device(name: String) -> void:
+func select_device(name: String) -> bool:
+	await wait_for_focus()
 	var e: Dictionary = world.model.by_id(ids[name])
 	var shape: Dictionary = world.model.CATALOG[e.type]
-	var point: Vector2 = world.hud.viewport_to_screen(world.view.project(Vector3(e.x + shape.w * 0.5, 1.1, e.z + shape.d * 0.5)))
+	# The thin belt bed sits below the machinery click height; a ray at 1.1 misses it.
+	var height := 0.2 if e.type == "belt" else 1.1
+	var projected: Vector2 = world.view.project(Vector3(e.x + shape.w * 0.5, height, e.z + shape.d * 0.5))
+	var point: Vector2 = world.hud.viewport_to_screen(projected)
 	driver.expect(world.hud.world_point(point) != null, "selected model is not under HUD")
+	driver.expect(world.view.hit(projected) == ids[name], "click ray intersects intended model: " + name)
+	if not driver.failures.is_empty():
+		await driver.shot("failed-model-ray-" + name)
+		check_failures()
+		return false
 	await driver.motion(point)
 	await driver.mouse(point, true)
 	await driver.mouse(point, false)
 	await driver.settle()
 	driver.expect(world.ui.selected == ids[name], "real model click selects " + name)
+	if not driver.failures.is_empty():
+		await driver.shot("failed-model-click-" + name)
 	check_failures()
+	return not finished
 
 
 func open_device() -> void:
@@ -389,6 +424,7 @@ func open_device() -> void:
 
 
 func native_click(button: Button) -> void:
+	var label := button.text
 	var window: Window = button.get_window()
 	await wait_for_focus(window)
 	if world.discovery_panel.scroll.is_ancestor_of(button):
@@ -422,8 +458,10 @@ func native_click(button: Button) -> void:
 		event.pressed = down
 		input_viewport.push_input(event, true)
 	await driver.settle()
-	button.pressed.disconnect(observed)
-	driver.expect(presses[0] == 1, "one native mouse activation: " + button.text)
+	# Save-and-return frees the whole world and its button after activation.
+	if is_instance_valid(button):
+		button.pressed.disconnect(observed)
+	driver.expect(presses[0] == 1, "one native mouse activation: " + label)
 	if presses[0] != 1:
 		await native_shot("failed-native-click")
 	check_failures()
@@ -447,15 +485,23 @@ func _restore() -> void:
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
 	driver.expect(world.store.sequence >= expected.sequence, "restored file sequence retains monotonic save order")
 	driver.expect(Check.equivalent(actual, expected), "independent Boot restores full unchanged schema 3 snapshot")
-	await select_device("reactor")
+	if not await select_device("reactor"):
+		return
 	await driver.shot("13-restored-partial-trial")
 	await open_device()
 	driver.expect(world.discovery_panel.device_summary.progress.value > 0 and "矿壳试制" in world.discovery_panel.device_summary.values.process.text, "restored panel shows saved recipe and partial progress")
 	await native_shot("14-restored-device-actions")
 	await native_click(world.discovery_panel.buttons.close)
+	driver.expect("试制" in world.hud.mission.text, "restored goal derives partial trial from saved facts")
+	await native_click(world.hud.buttons.guide_action)
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == ids.reactor and world.ui.paused, "restored goal opens same nearby device and preserves explicit pause")
+	await native_click(world.discovery_panel.buttons.close)
 	await driver.click(world.hud.buttons.pause)
 	await wait_for(func(): return world.model.discovery.trial_completed, 15, "restored partial trial completes naturally")
 	driver.expect(world.model.statistics.totals.consumed.crust_sample == 1, "restored trial consumes unique sample once")
+	await driver.settle(20)
+	driver.expect("外矿道" in world.hud.mission.text and "/ 4" in world.hud.mission.text, "completed trial advances goal to four opening materials")
+	await driver.shot("15-restored-next-goal")
 	stage("read-complete", "independent Boot restore and natural completion of saved partial batch")
 	await driver.click(world.hud.buttons.return)
 
