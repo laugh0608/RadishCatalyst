@@ -4,10 +4,11 @@
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[分流 / 汇合设计](../features/factory-conveyor-routing-v1.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)、[范围供电与拾取](../features/factory-range-power-and-pickup-v1.md)及 [W41 周志](../devlogs/2026-W41.md)。按任务补读[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)及[生产统计](../features/factory-production-statistics-v1.md)。版本与升级读 [schema 3](../architecture/factory-discovery-save-v3.md)，字段读 [schema 2](../architecture/factory-discovery-save-v2.md)，文件协议读[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
 
 ## 当前交接
 
+- 已按萝卜SAMA“开始吧，继续推进”进入附件 A 设计；[专题](../features/factory-conveyor-routing-v1.md)已提出端口、共同调度、单槽吞吐、普通供给及 schema 4 显式升级方案。当前是设计交付，确认运行 / 存档影响后实施；既有亲测和 D4 缺口保留。
 - 10 月 8 日亲测反馈已收到，当前整改为样本到达后手动拾取、角色近身 F / Tab 和物品格面板；I 可独立查看背包，设备 / 背包内持续生产。最新状态 122、窗口 write 245 / read 45 项通过；后台功能 write 241 / read 42 与时钟 49 项进一步通过；最新反应器 / 背包原图已审阅，后台渲染“不取焦点”目标失败，不能作可靠入口。证据与亲测入口见[设备专题](../features/factory-device-interaction-v1.md)。
 
 - 正式首程目标、材料数量、下一步按钮和全流程回查已接入；状态 95 项、schema 3 空世界完整循环 249 项与独立恢复 22 项通过。原图、输入方式及失败重验见 W41；玩家是否能理解并独立完成仍待亲测。
@@ -28,13 +29,13 @@
 
 ## 接续事项（2026-10-08）
 
-1. **使用后台功能回归，接续亲测反馈**：已按确认取消失焦自动暂停，失焦清理输入、手动暂停、失败暂停和退出后不补产保持。设备 `background-write` / `background-read` 已通过且不占前台；新界面与首程仍需用户体验反馈。macOS 后台渲染探针仍取得焦点，不能默认重用；剩余截图 / 原生切窗 / 性能按需单独安排，不再例行跑前台完整自然生产。
-2. **按反馈修正后接续附件设计**：先分流 / 汇合共同调度，再明确准入口配额 / 速率语义。完整 schema 3 循环已有历史独立证据，按修正影响补回归；当前未开始附件实现。
+1. **确认 A 设计后进入实现**：审阅[分流 / 汇合专题](../features/factory-conveyor-routing-v1.md)，确认 8+8 附件供给、统一请求仲裁及 schema 3→4 显式升级；随后依次推进模型 / 版本、资产 / 操作和普通产线 / 独立恢复。准入口不进入 A，当前没有附件实现或运行时通过证据。
+2. **使用后台功能回归，接续亲测反馈**：已按确认取消失焦自动暂停，失焦清理输入、手动暂停、失败暂停和退出后不补产保持。设备 `background-write` / `background-read` 已通过且不占前台；新界面与首程仍需用户体验反馈。macOS 后台渲染探针仍取得焦点，不能默认重用；剩余截图 / 原生切窗 / 性能按需单独安排，不再例行跑前台完整自然生产。
 3. **保留批次与范围边界**：10 月 5 日 `unified-window-c` 及 10 月 8 日返回控件已释放错误的 a 批均保留。最终 `unified-window-20261008-b` 已完成 write / read，read 已续产并保存，不重复消费；入口见 [Tools](../../tools/README.md#正式工厂定向检查)。6 / 12 格、矿壳、多网、容量、原档备份与低投入资产不变；首屏鼠标偶发未命中和独立样板点击未宣称修复。
 
 ## 后续顺序与保留待办
 
-1. **传送带附件已列入日程**：先完成上述新面板与首程亲测反馈，再按[附件路线](factory-conveyor-accessories-roadmap.md)推进分流器 / 汇合器、物品准入口及组合验收。先明确调度、堵塞、公平性、数量语义及存读边界，不在本轮整改中夹带设备实现。
+1. **传送带附件已列入日程**：已按确认进入[附件路线](factory-conveyor-accessories-roadmap.md) A 的共同设计；先分流 / 汇合，再明确 B 物品准入口的数量语义，最后做 C 组合验收。剩余亲测反馈按影响处理，不把设计推进写成 D4 退出。
 2. **依据普通对照结果决定后续规模验证**：`d4-window-20260929-c` 的完整 600 桶、同状态关闭 / 物料 / 电力各 45 秒已通过，30 项、无失焦；帧 p95 8.757 / 9.004 / 8.850ms，采样内三次自动保存成功且尖峰保留。此项无需例行重跑。schema 2 的 100 台 / 1,000 带仍需先确认工程供给设计；不能将普通负载短测当作首档或持续验收。入口与亲测清单见[统计专题](../features/factory-production-statistics-v1.md#d4-普通供给对照与亲测准备)。
 3. **保留独立待办**：Windows / PowerShell、目标硬件验收及其余物料图标 / 精细美术仍待完成。不复用历史四档成绩冒充最新联合版本通过，不自动解冻玩法。
 

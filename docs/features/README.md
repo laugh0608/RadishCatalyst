@@ -25,11 +25,13 @@
 
 ## 当前状态
 
-[正式设备面板与接口提示](factory-device-interaction-v1.md)当前接续 10 月 8 日三项亲测反馈：样本改为到达后主动确认，近身 F / Tab 替代中心焦点，背包 / 设备以图标格、真实数量及模型预览呈现。新批次验证和待验边界见专题与 [W41](../devlogs/2026-W41.md)；先复核本轮整改，再接附件设计。
+[分流 / 汇合共同设计](factory-conveyor-routing-v1.md)为当前新增设计重点，已获继续设计授权，端口、调度、供给与 schema 4 提案待确认后实施；B 准入口未开工。原交互 / 首程亲测与 D4 待验项保留。
 
-首次亲测后新增[低投入交互样板](factory-refinement-demo-v1.md)，圆润机械 / 化工方向已初步认可。[范围供电与拾取](factory-range-power-and-pickup-v1.md)已有工程和历史亲测证据，最新手动拾样合同由设备专题接续；旧勘探世界经明确升级进入 schema 3；[首程引导](factory-first-journey-guidance-v1.md)的目标、短步骤、操作入口与回查已接入，完整 schema 3 循环及独立恢复已有工程证据。先完成新面板与首程亲测反馈，再按[传送带附件日程](../planning/factory-conveyor-accessories-roadmap.md)推进分流器、汇合器和物品准入口。
+[正式设备面板与接口提示](factory-device-interaction-v1.md)当前接续 10 月 8 日三项亲测反馈：样本改为到达后主动确认，近身 F / Tab 替代中心焦点，背包 / 设备以图标格、真实数量及模型预览呈现。新批次验证和待验边界见专题与 [W41](../devlogs/2026-W41.md)；本轮工程回归已交付，剩余体验反馈继续保留。
 
-当前设计专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；联合范围已获继续推进授权，D1 资产复核与 D2-A / D2-B 状态、供电、多配方及开拓已接入，正式 Boot 隔离分项证据具备。配套 [Factory Production Statistics V1](factory-production-statistics-v1.md) 承接用户提供的产消简报参考，定义物料库存、实际 / 理论速率、趋势和设备定位；[Factory Power And Grid V1](factory-power-and-grid-v1.md) 已补齐有限供能、连接、负荷和停复电提案，三者按 D1–D4 接入同一个新世界版本，D3 统计页与发现 HUD 已接入，空世界完整自然工程路径与独立恢复已补验，D4 用户体验和性能仍待收口，不把自动路径当作用户亲测。
+[低投入交互样板](factory-refinement-demo-v1.md)的圆润机械 / 化工方向已初步认可。[范围供电与拾取](factory-range-power-and-pickup-v1.md)及[首程引导](factory-first-journey-guidance-v1.md)已有工程证据；最新手动拾样以设备专题为准。后续顺序见[附件日程](../planning/factory-conveyor-accessories-roadmap.md)。
+
+联合生产专题为 [Factory Discovery And Production V1](factory-discovery-and-production-v1.md)：固定矿区的样本试制、制剂量产、开路与富集生产回流；联合范围已获继续推进授权，D1 资产复核与 D2-A / D2-B 状态、供电、多配方及开拓已接入，正式 Boot 隔离分项证据具备。配套 [Factory Production Statistics V1](factory-production-statistics-v1.md) 承接用户提供的产消简报参考，定义物料库存、实际 / 理论速率、趋势和设备定位；[Factory Power And Grid V1](factory-power-and-grid-v1.md) 已补齐有限供能、连接、负荷和停复电提案，三者按 D1–D4 接入同一个新世界版本，D3 统计页与发现 HUD 已接入，空世界完整自然工程路径与独立恢复已补验，D4 用户体验和性能仍待收口，不把自动路径当作用户亲测。
 
 [Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 的 P1–P3 开发机交付已收口：四档长测与剩余界面证据齐备，萝卜SAMA亲测反馈无明显问题；Windows / 目标硬件仍待验。现行实现边界见该专题及[工厂状态与存档合同](../architecture/factory-world-state-and-save-v1.md)。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
 

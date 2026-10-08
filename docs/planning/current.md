@@ -8,11 +8,12 @@
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 
-10 月 8 日亲测明确指出样本走近即拾取、中心焦点脱离角色和背包 / 面板结构不符参考。当前优先按[设备交互专题](../features/factory-device-interaction-v1.md)整改：样本走近停下等待确认，角色附近目标以 F 交互、Tab 切换，背包与设备采用图标格及模型预览。首程及 schema 3 完整循环的历史工程证据保留；本轮新交互须重新验证并取得体验反馈，再进入[传送带附件日程](factory-conveyor-accessories-roadmap.md)。D4 完整体验仍未通过。
+10 月 8 日亲测明确指出样本走近即拾取、中心焦点脱离角色和背包 / 面板结构不符参考。已按[设备交互专题](../features/factory-device-interaction-v1.md)整改：样本走近停下等待确认，角色附近目标以 F 交互、Tab 切换，背包与设备采用图标格及模型预览。首程及 schema 3 完整循环的历史工程证据保留；本轮工程回归已补齐，体验反馈继续保留待验。萝卜SAMA随后明确要求继续推进，当前进入[分流 / 汇合共同设计](../features/factory-conveyor-routing-v1.md)，按[附件日程](factory-conveyor-accessories-roadmap.md) A 批提出端口、调度、供给与 schema 4 方案，确认后实施。D4 完整体验仍未通过。
 
 ## 当前活跃专题
 
-- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：当前优先；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
+- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：当前设计重点；分流 / 汇合 A 批提案已形成，单格被动附件、共同仲裁、普通供给及显式升级边界待确认，尚未实现；准入口留 B。
+- [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
 - [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
 - [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；既往亲测通过记录保留，10 月 8 日样本改为到达后手动确认，当前证据由设备专题接续。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
