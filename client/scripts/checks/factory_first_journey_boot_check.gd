@@ -122,6 +122,6 @@ func finish() -> void:
 	finished = true
 	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
 		"foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Formal Boot/create: focused synthetic Enter; restore selection/continue signals for first-frame snapshot. New guide buttons: routed synthetic mouse. Layout: HUD precision fields/actions; operations: focused Enter; walking: WASD; statistics: synthetic mouse and declared focus events. Natural production without material, unlock, position injection or time acceleration. This is engineering evidence, not player onboarding timing."})
+		"input": "Formal Boot/create: focused synthetic Enter; restore selection/continue signals for first-frame snapshot. New guide buttons: routed synthetic mouse. Layout: HUD precision fields/actions; operations: focused Enter; walking: WASD; statistics: synthetic mouse and declared focus events. Natural production without material, unlock, position injection or time acceleration. This is engineering evidence, not player onboarding timing."}.merged(execution_evidence()))
 	print("First journey Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)

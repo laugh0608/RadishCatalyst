@@ -152,7 +152,7 @@ func refresh() -> void:
 	var seconds: int = model.statistics_ui.window_seconds
 	var result := Query.materials(model, seconds) if page.selected == 0 else Query.electricity(model, seconds)
 	var window: Dictionary = result.window
-	coverage.text = "暂无样本：等待第一个完整模拟秒。" if not window.has_samples else "最近 %d 分钟 · 已采样 %d 秒 · 截止模拟 %.0f 秒；暂停、失焦和离线时间不计入。" % [seconds / 60, window.seconds, window.through_tick * 0.05]
+	coverage.text = "暂无样本：等待第一个完整模拟秒。" if not window.has_samples else "最近 %d 分钟 · 已采样 %d 秒 · 截止模拟 %.0f 秒；后台运行计入；暂停和离线时间不计入。" % [seconds / 60, window.seconds, window.through_tick * 0.05]
 	material_legend.visible = page.selected == 0
 	empty_label.hide()
 	material_rows.visible = page.selected == 0

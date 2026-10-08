@@ -138,7 +138,7 @@ func _process(delta: float) -> void:
 		_refresh()
 		ui_elapsed = 0
 	if statistics_panel.visible:
-		statistics_panel.status.text = "  已暂停" if ui.paused else "  失焦暂停" if not focused else "  生产继续运行"
+		statistics_panel.status.text = "  已暂停" if ui.paused else "  后台生产中" if not focused else "  生产继续运行"
 	view.draw(model, actor, ui)
 	hud.sync_sample(view, model, ui)
 
@@ -177,6 +177,7 @@ func _focus_lost() -> void:
 	_stop_pointer()
 	keys.clear()
 	actor.target = null
+	actor.moving = false
 
 
 func _focus_gained() -> void:
@@ -185,7 +186,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.pauses_production()
+	return initialized and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.pauses_production()
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -596,10 +597,10 @@ func _tick_save(delta: float) -> void:
 	if dirty:
 		dirty_elapsed += delta
 	if not save_failed and (dirty_elapsed >= 2.0 or periodic_elapsed >= 30.0):
-		_save_now()
+		_save_now(false)
 
 
-func _save_now() -> bool:
+func _save_now(notify_success := true) -> bool:
 	if store == null:
 		return false
 	_capture_active_time()
@@ -620,7 +621,8 @@ func _save_now() -> bool:
 	dirty_elapsed = 0
 	saved_active_usec = production_clock.active_usec
 	saved_revision = model.revision
-	hud.announce("已保存 · " + store.world_name if result.warning.is_empty() else result.warning)
+	if notify_success or not result.warning.is_empty():
+		hud.announce("已保存 · " + store.world_name if result.warning.is_empty() else result.warning)
 	return true
 
 

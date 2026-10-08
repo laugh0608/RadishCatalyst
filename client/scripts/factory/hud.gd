@@ -184,7 +184,7 @@ func _build_world_panels() -> void:
 	camera_panel.name = "CameraPanel"
 	help_panel = _panel(world_slot)
 	help_panel.position = Vector2(265, 22)
-	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；失焦自动暂停")
+	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；后台继续生产")
 	help_panel.hide()
 	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
 	sample_button.hide()
@@ -295,9 +295,9 @@ func announce(message: String, error := false) -> void:
 	notice.add_theme_color_override("font_color", Color("efab86" if error else "d4dfc7"))
 
 
-func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool) -> void:
+func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: bool) -> void:
 	totals.text = "催化剂入仓  %d    %02d:%02d" % [model.delivered, int(model.time) / 60, int(model.time) % 60]
-	buttons.pause.text = "继续" if ui.paused else ("失焦暂停" if not focused else "暂停")
+	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
 	placement_row.visible = not ui.tool.is_empty()

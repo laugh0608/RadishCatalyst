@@ -270,8 +270,8 @@ func sync_session(paused: bool, focused: bool) -> void:
 		return
 	buttons.pause.visible = device_only or inventory_only
 	buttons.pause.text = "继续" if paused else "暂停"
-	runtime.text = "失焦暂停" if not focused else "已手动暂停" if paused else "生产继续运行" if device_only or inventory_only else "工艺回查 · 暂停"
-	runtime.add_theme_color_override("font_color", Color("77d8c6" if (device_only or inventory_only) and focused and not paused else "e2b365"))
+	runtime.text = "已手动暂停" if paused else ("生产继续运行" if focused else "后台生产中") if device_only or inventory_only else "工艺回查 · 暂停"
+	runtime.add_theme_color_override("font_color", Color("77d8c6" if (device_only or inventory_only) and not paused else "e2b365"))
 
 
 func apply(result: Dictionary) -> void:

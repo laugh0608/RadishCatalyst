@@ -21,9 +21,18 @@ var focus_pause := {}
 var foreground_seconds := 0.0
 var last_observed_usec := 0
 var ui_only := false
+var background_mode := false
+var functional_seconds := 0.0
 
 
 func _init() -> void:
+	background_mode = "--background" in OS.get_cmdline_user_args()
+	if background_mode:
+		if DisplayServer.get_name() != "headless":
+			push_error("Background functional checks require --headless; they do not capture screenshots.")
+			quit(1)
+			return
+		Engine.max_fps = 60
 	call_deferred("run")
 
 
@@ -39,6 +48,7 @@ func run() -> void:
 	run_root = repo.path_join("tools/runtime-intake/check-runs/factory-statistics-v1").path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
 	driver = Driver.new()
+	driver.capture_screenshots = not background_mode
 	driver.input_ready = wait_for_focus
 	started = Time.get_ticks_usec()
 	last_observed_usec = started
@@ -307,7 +317,7 @@ func walk(to: Vector2) -> void:
 	var owner := root.gui_get_focus_owner()
 	if owner:
 		owner.release_focus()
-	var until: float = world.production_clock.active_usec + 20000000
+	var until := functional_seconds + 20.0
 	while Vector2(world.actor.x, world.actor.z).distance_to(to) > 0.22:
 		await wait_for_focus()
 		var delta := to - Vector2(world.actor.x, world.actor.z)
@@ -326,7 +336,7 @@ func walk(to: Vector2) -> void:
 				push_key(code, true)
 		held_keys = desired
 		await process_frame
-		if world.production_clock.active_usec > until:
+		if functional_seconds > until:
 			driver.expect(false, "walking blocked at %s toward %s" % [Vector2(world.actor.x, world.actor.z), to])
 			finish()
 			return
@@ -362,7 +372,7 @@ func press(control: Button) -> void:
 			return
 		await driver.click(slot)
 	await wait_for_focus(control.get_window())
-	driver.expect(control.is_visible_in_tree() and not control.disabled and control.get_window().has_focus(), "native command available " + control.text)
+	driver.expect(control.is_visible_in_tree() and not control.disabled and (background_mode or control.get_window().has_focus()), "routed command available " + control.text)
 	check_failures()
 	control.grab_focus()
 	for held in [true, false]:
@@ -387,11 +397,11 @@ func recipe(id: String) -> void:
 
 
 func wait_for(condition: Callable, timeout: float, reason: String) -> void:
-	var start: int = world.production_clock.active_usec
+	var start := functional_seconds
 	while not condition.call():
 		await wait_for_focus()
 		await process_frame
-		if (world.production_clock.active_usec - start) / 1000000.0 > timeout:
+		if functional_seconds - start > timeout:
 			driver.expect(false, "waiting timed out: " + reason)
 			finish()
 			return
@@ -404,6 +414,8 @@ func active(seconds: float, reason: String) -> void:
 
 
 func wait_for_focus(window: Window = null) -> void:
+	if background_mode:
+		return
 	var target: Window = root if window == null else window
 	while not target.has_focus() and not finished:
 		await process_frame
@@ -413,9 +425,17 @@ func _process(_delta: float) -> bool:
 	if driver == null or finished or last_observed_usec == 0:
 		return false
 	var now := Time.get_ticks_usec()
+	if background_mode:
+		functional_seconds += (now - last_observed_usec) / 1000000.0
+		last_observed_usec = now
+		if functional_seconds > 1200:
+			driver.expect(false, "background functional budget exceeded")
+			finish()
+		return false
 	var window: Window = world.discovery_panel.get_window() if is_instance_valid(world) and world.discovery_panel.visible else root
 	if window.has_focus():
 		foreground_seconds += (now - last_observed_usec) / 1000000.0
+		functional_seconds += (now - last_observed_usec) / 1000000.0
 		if not focus_pause.is_empty():
 			focus_pause.end_elapsed_seconds = (now - started) / 1000000.0
 			focus_pause.duration_seconds = focus_pause.end_elapsed_seconds - focus_pause.start_elapsed_seconds
@@ -452,7 +472,7 @@ func stage(name: String, reason: String) -> void:
 func native_shot(name: String) -> void:
 	await wait_for_focus(world.discovery_panel.get_window())
 	await driver.settle()
-	world.discovery_panel.get_viewport().get_texture().get_image().save_png(driver.shot_root.path_join(name + ".png"))
+	driver.save_shot(name, world.discovery_panel.get_viewport())
 
 
 func statistics_checks() -> void:
@@ -481,7 +501,7 @@ func statistics_checks() -> void:
 	world._focus_lost() # Inject focus transition without switching the user's foreground app.
 	before = world.model.time
 	await create_timer(0.2).timeout
-	driver.expect(world.model.time == before, "statistics obeys focus pause without zero buckets")
+	driver.expect(world.model.time > before, "statistics continues production and sampling without focus")
 	world._focus_gained()
 	await driver.shot("04-material-statistics")
 	await driver.click(panel.buttons.pause)
@@ -572,11 +592,17 @@ func write_json(name: String, value: Variant) -> void:
 	file.store_string(JSON.stringify(value, "\t", false, true))
 
 
+func execution_evidence() -> Dictionary:
+	return {"execution_mode": "headless-functional" if background_mode else "window-functional",
+		"functional_seconds": functional_seconds, "screenshots_captured": driver.capture_screenshots,
+		"skipped_screenshots": driver.skipped_screenshots}
+
+
 func finish() -> void:
 	if finished:
 		return
 	finished = true
 	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages, "foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Boot synthetic mouse; build HUD precision fields/button signal; legal wiring commands; stable-ID selection; native buttons synthetic Enter; walking synthetic WASD; no inventory/unlock/actor-position injection or accelerated time"})
+		"input": "Boot synthetic mouse; build HUD precision fields/button signal; legal wiring commands; stable-ID selection; native buttons synthetic Enter; walking synthetic WASD; no inventory/unlock/actor-position injection or accelerated time"}.merged(execution_evidence()))
 	print("D3 Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)

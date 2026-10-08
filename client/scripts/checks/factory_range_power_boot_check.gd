@@ -201,7 +201,7 @@ func finish() -> void:
 	finished = true
 	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures,
 		"stages": stages, "foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Boot/create/upgrade entry: focused synthetic Enter; restore selection/continue: list/button signals for first-frame snapshot. Models, HUD, upgrade dialog and ground icon: routed synthetic mouse; walking: WASD; near pickup: F. New world uses natural production without wiring, stock/actor injection or time acceleration. Legacy upgrade separately uses a declared prepared disconnected layout."})
+		"input": "Boot/create/upgrade entry: focused synthetic Enter; restore selection/continue: list/button signals for first-frame snapshot. Models, HUD, upgrade dialog and ground icon: routed synthetic mouse; walking: WASD; near pickup: F. New world uses natural production without wiring, stock/actor injection or time acceleration. Legacy upgrade separately uses a declared prepared disconnected layout."}.merged(execution_evidence()))
 	print("Range power Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
 

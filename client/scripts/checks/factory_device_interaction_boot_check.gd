@@ -18,6 +18,7 @@ func run() -> void:
 	run_root = repo.path_join("tools/runtime-intake/check-runs").path_join(evidence_topic).path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
 	driver = Driver.new()
+	driver.capture_screenshots = not background_mode
 	driver.input_ready = wait_for_focus
 	started = Time.get_ticks_usec()
 	last_observed_usec = started
@@ -261,7 +262,7 @@ func _first_line() -> void:
 	if not await select_device("reactor"):
 		return
 	driver.expect(not world.discovery_panel.visible and not world.hud.inspector.visible, "far click does not open operations or a duplicate inspector")
-	driver.expect("两格内" in world.hud.notice.text and "Tab" in world.hud.notice.text, "far selection explains proximity and nearby target cycling")
+	driver.expect("两格内" in world.hud.notice.text and "Tab" in world.hud.notice.text, "far selection explains proximity and nearby target cycling; actual: " + world.hud.notice.text)
 	await driver.shot("01-distant-selection")
 	await native_click(world.hud.buttons.pause)
 	await walk(Vector2(-12, 2.5))
@@ -558,6 +559,6 @@ func finish() -> void:
 	finished = true
 	write_json("preview-result.json" if preview_only else "read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
 		"foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: focused synthetic Enter; HUD/model selection/drag/live panel buttons: synthetic mouse; setup devices: precision fields/button signal; automatic wiring; recipe dropdown selected; walking: synthetic WASD; F/Escape: real input route; no injected stock/unlocks/actor position or accelerated time"})
+		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: Control-focused synthetic Enter; HUD/model selection/drag/live panel buttons: synthetic mouse; setup devices: precision fields/button signal; automatic wiring; recipe dropdown selected; walking: synthetic WASD; F/Tab/I/Escape: routed synthetic input; no injected stock/unlocks/actor position or accelerated time"}.merged(execution_evidence()))
 	print("Device interaction Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)

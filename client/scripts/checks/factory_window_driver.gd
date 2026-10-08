@@ -4,6 +4,8 @@ var world: Control
 var failures: Array[String] = []
 var assertions := 0
 var shot_root := ""
+var capture_screenshots := true
+var skipped_screenshots: Array[String] = []
 # Optional gate for resumable functional checks; continuous performance checks leave it unset.
 var input_ready: Callable
 
@@ -18,7 +20,8 @@ func expect(condition: bool, label: String) -> void:
 func settle(frames := 5) -> void:
 	for i in frames:
 		await get_tree().process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
 
 
 func click(button: Button) -> void:
@@ -116,6 +119,13 @@ func shot(name: String) -> void:
 	if input_ready.is_valid():
 		await input_ready.call()
 	await settle()
-	var picture := get_viewport().get_texture().get_image()
+	save_shot(name, get_viewport())
+
+
+func save_shot(name: String, viewport: Viewport) -> void:
+	if not capture_screenshots:
+		skipped_screenshots.append(name)
+		return
+	var picture := viewport.get_texture().get_image()
 	expect(picture.save_png(shot_root.path_join(name + ".png")) == OK, "screenshot " + name)
 	print("Factory screenshot: " + name)
