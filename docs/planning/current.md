@@ -12,7 +12,7 @@
 
 ## 当前活跃专题
 
-- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 批已实现；普通供给各八件、共同仲裁、半程 / 游标保存及显式升级已接入。状态 488、跨进程 3、菜单 9、自然 Boot write 119 / read 28 项通过；亲测待验，准入口留 B。
+- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 批已实现；普通供给各八件、共同仲裁、半程 / 游标保存及显式升级已接入。状态 488、跨进程 3、菜单 9、自然 Boot write 119 / read 28 项通过；日终核对发现建造预览的连接原因仍待补（现仅有箭头与落位结果），亲测待验，准入口留 B。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
 - [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
 - [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；既往亲测通过记录保留，10 月 8 日样本改为到达后手动确认，当前证据由设备专题接续。
