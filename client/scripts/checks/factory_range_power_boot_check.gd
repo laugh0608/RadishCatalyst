@@ -107,12 +107,12 @@ func _upgrade_and_click_pickup() -> void:
 	var index: int = boot.factory_menu.worlds.find_custom(func(entry): return entry.id == id)
 	boot.factory_menu.list.select(index)
 	boot.factory_menu.list.item_selected.emit(index)
-	await press(boot.factory_menu.continue_button)
+	await press(boot.factory_menu.upgrade_button)
 	driver.expect(boot.factory_menu.upgrade_dialog.visible, "legacy menu explicitly announces rule upgrade")
 	await driver.shot("09-upgrade-confirmation")
 	await _upgrade_click(boot.factory_menu.upgrade_dialog.get_cancel_button())
 	driver.expect(FileAccess.get_sha256(file) == hash and not DirAccess.dir_exists_absolute(legacy.path("session.lock")), "cancelling upgrade leaves original file and locks untouched")
-	await press(boot.factory_menu.continue_button)
+	await press(boot.factory_menu.upgrade_button)
 	await _upgrade_click(boot.factory_menu.upgrade_dialog.get_ok_button())
 	world = boot.factory_world
 	driver.world = world

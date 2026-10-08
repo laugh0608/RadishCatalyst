@@ -174,3 +174,9 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - 同日 `menu-review-20260925-a` 已补备份 / 坏档 / 未来版本、独立持锁进程阻断与显式恢复、旧二维载入界面：55 项通过、11 张原图已审阅，合成输入与原生 / 用户亲测分列。独立亲测入口及路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，本机证据齐备不替代体验确认或 Windows 验收。
 
 - D2-A / D2-B 已增加 `tools/check-factory-power.sh` 和 `tools/check-factory-discovery.sh`，模式、固定夹具目录和跨进程顺序见 [Tools](../../tools/README.md#正式工厂定向检查)。发现窗口使用加速生产的分段夹具与合成输入，不能拼成自然玩家全路径；完整统计页、自然发现循环和窗口尺寸全覆盖仍属 D3。上述 74 入口全套与四档长测发生于 D1–D2 代码变更前，适用于当时的基础工厂，不代表最新 schema 2 全量或性能通过。
+
+## 分流 / 汇合定向入口
+
+A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从新 schema 4 普通零库存世界自然建线，真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。
+
+批次根为 `tools/runtime-intake/check-runs/factory-conveyor-routing-v1/`，原图根为 `assets/art-intake/2026-10-08-factory-conveyor-routing-preview/`；亲测根另用 `tools/runtime-intake/review-worlds/factory-conveyor-routing-v1/`。旧 schema 2 / 3 可以原规则继续，升级为独立显式操作。恢复会继续生产并保存，只消费一次；需重试时保留失败报告，用可追溯、哈希一致的未消费起点建立新批。

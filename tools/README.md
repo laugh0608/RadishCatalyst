@@ -42,15 +42,19 @@
 | `sh tools/check-factory-device-interaction.sh background-write/background-read <batch>` | 日常功能回归优先；正式 Boot、自然生产、合成输入与独立半批恢复，不创建窗口、不等待原生焦点、不捕获截图；新 write 批次，同批 read 仅一次；结果明确模式与省略截图 |
 | `sh tools/check-factory-device-interaction.sh write/read <batch>` | 新双根隔离空世界，合成鼠标拖铺 / 近身点击、近身 F / Tab、统一面板内自然生产与实时库存、暂停 / 输入隔离、各类设备与窗口布局及半批独立 Boot 恢复；write 拒绝已有 batch，read 会继续生产并保存，只运行一次 |
 | `sh tools/check-factory-first-journey.sh state [batch]` | 首程引导由事实派生、先拾样 / 先建线、材料位置、供电 / 回压、替代路线、目标拆除、独立解码与只读不变；已登记 Shell / PowerShell 默认 Godot 检查 |
-| `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新 schema 3 空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
+| `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新勘探空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
+| `sh tools/check-factory-routing.sh state/process-read <batch>` | schema 4 端口 / 公平轮转 / 守恒 / 严格解码 / 显式升级与 IO 失败、独立进程完整恢复；state 用新批次，process-read 同批一次 |
+| `sh tools/check-factory-routing.sh menu <batch>` | 正式菜单：旧 schema 3 原规则继续、升级取消 / 确认与来源副本、不得重复领取 |
+| `sh tools/check-factory-routing.sh background-write/background-read <batch>` | 正式 Boot 新 schema 4 零库存自然两路生产、合流、堵塞修复、半程保存与独立恢复；无窗口不截图 |
+| `sh tools/check-factory-routing.sh review <batch>` | 使用哈希核对过的未消费 write 副本短窗口检查面板、旋转预览和全线；原图另存 art-intake，不代替亲测 |
 | `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |
 | `sh tools/check-factory-range-power.sh write/read <batch>` | 新自动世界鼠标建线与自然生产、停复电、远近样本 / F 拾取；另用声明的旧布局夹具检查菜单升级和地面点击拾取。read 独立恢复新世界完整快照及半批；要求新 write 批次、同批 read 仅一次 |
 
 范围供电窗口走真实正式创建 / 升级菜单；创建使用聚焦 Enter，恢复时列表 / 按钮信号用于首帧冻结核对。模型、HUD、升级弹窗与地面图标走路由合成鼠标，人物 WASD 行走，近身 F 拾取。新世界不注入物料 / 位置或加速；旧布局夹具仅承担迁移验证，不冒充自然建线。截图 / 世界在 `factory-range-power-v1` 与对应 `factory-range-power-preview` 忽略目录。
 
-历史 `power` / `discovery` / `statistics` 窗口脚本保留 schema 2 回归语义：通过隔离 Store 准备旧世界，再由 Boot 的世界装配入口加载，不走会升级版本的继续按钮；这不是当前菜单验收。实际菜单、新世界 schema 3 与升级由范围供电窗口负责。历史世界的完整发现循环证据不自动扩展为 schema 3 已完整重跑；当前完整路径由 `first-journey` 专项承担。
+历史 `power` / `discovery` / `statistics` 窗口脚本保留 schema 2 回归语义：通过隔离 Store 准备旧世界，再由 Boot 的世界装配入口加载，不以旧夹具冒充当前菜单验收。继续按钮现保留旧规则；范围供电检查显式选择 2→3，routing 菜单检查显式选择 3→4，新勘探世界使用 schema 4。历史世界的完整发现循环证据不自动扩展为 schema 3 已完整重跑；当前完整路径由 `first-journey` 专项承担。
 
-设备交互复用统计路径的真实行走与输入驱动；窗口模式等待原生焦点，无窗口 `background-*` 模式直接向引擎 Viewport 投递合成输入，使用相同模型、主循环与活动时钟，不注入活动焦点。窗口模式等待期间工厂仍继续生产，计时单列；无窗口模式限 60 FPS，不加速生产，省略截图列表进入结果。Boot 首屏使用聚焦后的合成 Enter；初始建造使用既有精确放置字段 / 按钮信号，当前 schema 3 只核对自动电图，不发送手动接线命令。拖带、近身模型点击和面板按钮走合成鼠标，附近目标用 F / Tab、背包用 I、行走用 WASD；源启停经统一面板按钮，配方下拉候选由驱动选中后点击切换。场景内 `Control` 面板按所在窗口路由完整鼠标手势，检查按钮可见且仅激活一次；测试准备、合成控件输入与用户亲测分列。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
+设备交互复用统计路径的真实行走与输入驱动；窗口模式等待原生焦点，无窗口 `background-*` 模式直接向引擎 Viewport 投递合成输入，使用相同模型、主循环与活动时钟，不注入活动焦点。窗口模式等待期间工厂仍继续生产，计时单列；无窗口模式限 60 FPS，不加速生产，省略截图列表进入结果。Boot 首屏使用聚焦后的合成 Enter；初始建造使用既有精确放置字段 / 按钮信号，当前 schema 3 / 4 只核对自动电图，不发送手动接线命令。拖带、近身模型点击和面板按钮走合成鼠标，附近目标用 F / Tab、背包用 I、行走用 WASD；源启停经统一面板按钮，配方下拉候选由驱动选中后点击切换。场景内 `Control` 面板按所在窗口路由完整鼠标手势，检查按钮可见且仅激活一次；测试准备、合成控件输入与用户亲测分列。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
 
 10 月 8 日确认薄传送带须使用带面采样，修正检查驱动并保留失败退出；返回菜单释放按钮后仍核对激活次数，但不再访问已释放控件。`unified-window-20261008-b` 的 write 211 / read 32 项通过，包含新面板下首程目标与回压恢复；read 已续产保存，不重复消费。10 月 5 日 c 与 10 月 8 日 a 的失败证据保留，不能当作通过批次；详见 [W41 周志](../docs/devlogs/2026-W41.md)。旧电力 / 发现 / 统计脚本的面板入口已适配并编译通过，本轮未重跑其全部窗口路径。
 
@@ -103,3 +107,5 @@ python3 -m venv .venv-art
 ```bash
 .venv-art/bin/python tools/prepare_art_asset.py --input assets/art-intake/.../tile.png --output client/assets/tiles/.../tile.png --mode tile --tile-size 512 --write-godot-import
 ```
+
+发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。

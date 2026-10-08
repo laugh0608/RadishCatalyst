@@ -3,6 +3,7 @@ extends "res://scripts/factory/save/codec_v1.gd"
 const V1 := preload("res://scripts/factory/save/codec_v1.gd")
 const NewModel := preload("res://scripts/factory/discovery_model.gd")
 const Config := preload("res://data/factory/discovery_rules.gd")
+const RoutingValidator := preload("res://scripts/factory/save/routing_validator.gd")
 const Validator := preload("res://scripts/factory/save/statistics_validator.gd")
 
 
@@ -52,22 +53,27 @@ static func normalize_items(items: Dictionary) -> Dictionary:
 
 
 static func decode(value: Variant, expected_id: String) -> Dictionary:
+	return decode_world(value, expected_id, 2, Config.RULESET_ID, NewModel.new())
+
+
+## Shared strict discovery state validation; callers select a versioned model.
+static func decode_world(value: Variant, expected_id: String, schema: int, ruleset: String, model: RefCounted) -> Dictionary:
 	if not value is Dictionary:
 		return failure("存档必须是对象。")
 	# Unsupported versions are fatal even when an older backup exists.
-	if value.has("save_schema_version") and integer(value.save_schema_version) and value.save_schema_version > 2:
+	if value.has("save_schema_version") and integer(value.save_schema_version) and value.save_schema_version > schema:
 		return failure("此工厂来自更新版本，当前版本不能读取。", true)
-	for pair in [["ruleset_id", Config.RULESET_ID], ["map_id", Config.MAP_ID]]:
+	for pair in [["ruleset_id", ruleset], ["map_id", Config.MAP_ID]]:
 		if value.has(pair[0]) and value[pair[0]] != pair[1]:
 			return failure("不支持的工厂规则或地图版本。", true)
-	if not fields(value, TOP_FIELDS) or value.world_kind != "factory_3d" or value.save_schema_version != 2:
+	if not fields(value, TOP_FIELDS) or value.world_kind != "factory_3d" or value.save_schema_version != schema:
 		return failure("不是受支持的工厂存档，或字段不完整。")
 	if not valid_id(value.world_id) or value.world_id != expected_id:
 		return failure("存档身份与世界目录不一致。")
 	if not value.name is String or value.name.strip_edges().is_empty() or value.name.length() > 48 or "\n" in value.name:
 		return failure("世界名称无效。")
-	if not integer(value.sequence, 1) or not value.supply_id is String or value.supply_id != Config.SUPPLY_ID:
-		return failure("存档序号或构件供给版本无效。", value.supply_id != Config.SUPPLY_ID)
+	if not integer(value.sequence, 1) or not value.supply_id is String or value.supply_id != model.supply_id:
+		return failure("存档序号或构件供给版本无效。", value.supply_id != model.supply_id)
 	var decoded := unpack_state(value.state)
 	if not decoded.ok:
 		return decoded
@@ -84,16 +90,15 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 			return failure("生产统计必须是非负整数。")
 	if s.completed >= s.next_batch or s.delivered_batch >= s.next_batch:
 		return failure("生产统计与批次序列不一致。")
-	if not fields(s.kits, Config.CATALOG.keys()):
+	if not fields(s.kits, model.kits.keys()):
 		return failure("构件或回收箱字段无效。")
 	for key in s.kits:
-		if not integer(s.kits[key], 0, Config.SUPPLY[key]):
+		if not integer(s.kits[key], 0, model.kits[key]):
 			return failure("剩余构件数量无效。")
 	if not fields(s.actor, ["x", "z", "angle"]) or not number(s.actor.x, -31.7, 31.7) or not number(s.actor.z, -31.7, 31.7) or not number(s.actor.angle, -PI, PI):
 		return failure("人物位置或朝向无效。")
-	if not s.entities is Array or s.entities.size() > 302:
+	if not s.entities is Array or s.entities.size() > NewModel.Items.count(model.kits):
 		return failure("设备列表无效或超出本包供给。")
-	var model := NewModel.new()
 	var seen := {}
 	var active_batches := {}
 	var output_batches := {}
@@ -105,15 +110,15 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 		if seen.has(source.id):
 			return failure("实例 ID 重复。")
 		seen[source.id] = true
-		var placed := model.place(source.type, Vector2i(source.x, source.z), int(source.dir))
+		var placed: Dictionary = model.place(source.type, Vector2i(source.x, source.z), int(source.dir))
 		if not placed.ok:
 			return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
-		for key in ["id", "x", "z", "dir", "cursor", "batch", "active_batch", "output_batch", "power_node_id"]:
+		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id"]:
 			if e.has(key):
 				e[key] = int(e[key])
-		if e.type == "belt":
+		if e.type in ["belt", "splitter", "merger"]:
 			e.entry = Vector2i(source.entry[0], source.entry[1])
 		for key in ["buffer", "input", "output", "invested", "items"]:
 			if e.has(key):
@@ -122,7 +127,7 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 			if active_batches.has(e.active_batch):
 				return failure("在制批次重复。")
 			active_batches[e.active_batch] = true
-		var batch := int(e.output_batch) if e.type == "reactor" and not e.output.is_empty() else int(e.batch) if e.type == "belt" else 0
+		var batch := int(e.output_batch) if e.type == "reactor" and not e.output.is_empty() else int(e.batch) if e.type in ["belt", "splitter", "merger"] else 0
 		if batch > 0:
 			var item: String = e.output.keys()[0] if e.type == "reactor" else e.cargo
 			var amount: int = NewModel.Items.count(e.output) if e.type == "reactor" else 1
@@ -178,7 +183,9 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 static func validate_power_entity(e: Variant, next_id: int, next_batch: int, model: RefCounted) -> Dictionary:
 	if not e is Dictionary or not e.has("type") or not e.type is String:
 		return failure("设备对象无效。")
-	if not Config.CATALOG.has(e.type):
+	if model.supply_id == Config.ROUTING_SUPPLY_ID and Config.ROUTING_CATALOG.has(e.type):
+		return RoutingValidator.validate(e, next_id, next_batch)
+	if not Config.SUPPLY.has(e.type):
 		return failure("未知设备类型。", true)
 	var extra: Array = {
 		"collector": ["mineral", "buffer", "progress", "power_node_id"],

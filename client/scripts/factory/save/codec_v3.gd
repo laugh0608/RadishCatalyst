@@ -23,6 +23,10 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	var result := V2.decode(legacy, expected_id)
 	if not result.ok:
 		return result
+	return verify_automatic(result, value)
+
+
+static func verify_automatic(result: Dictionary, value: Dictionary) -> Dictionary:
 	var model: RefCounted = result.model
 	var links: Array = model.power_links.duplicate(true)
 	var attachments := {}

@@ -10,7 +10,7 @@ func run() -> void:
 
 
 func _first_line() -> void:
-	driver.expect(world.model.automatic_power and world.model.entities.is_empty(), "new schema 3 starts empty")
+	driver.expect(world.model.automatic_power and world.model.entities.is_empty(), "new schema 4 starts empty")
 	var actor_before: Dictionary = world.actor.duplicate(true)
 	var stock_before: Dictionary = world.model.kits.duplicate()
 	await native_click(world.hud.buttons.guide_action)
@@ -96,7 +96,7 @@ func _restore() -> void:
 	ids = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("ids.json")))
 	var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("expected.json")))
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
-	driver.expect(Check.equivalent(actual, expected) and actual.save_schema_version == 3, "independent Boot restores full schema 3 snapshot")
+	driver.expect(Check.equivalent(actual, expected) and actual.save_schema_version == 4, "independent Boot restores full schema 4 snapshot")
 	driver.expect(world.model.discovery.passages.outer and world.model.discovery.passages.inner and Guidance.current(world.model).id == "complete", "both permanent passages and guidance restore")
 	driver.expect(world.model.statistics.totals.acquired.crust_sample == 1, "unique sample is not reissued")
 	await native_click(world.hud.buttons.guide_action)

@@ -80,6 +80,12 @@ func _ready() -> void:
 			if not assets[type] is PackedScene:
 				resource_error = "缺少电力模型：" + type
 				return
+		if world_model.supply_id == Model.DiscoveryRules.ROUTING_SUPPLY_ID:
+			for kind in ["splitter", "merger"]:
+				assets[kind] = load(ASSET_ROOT + "routing/" + kind + ".glb")
+				if not assets[kind] is PackedScene:
+					resource_error = "缺少物流附件模型：" + kind
+					return
 		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()
@@ -314,8 +320,15 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 		result.cargo = cargo
 		result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 	else:
-		root.add_child(assets[e.type].instantiate())
-		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
+		var asset: Node3D = assets[e.type].instantiate()
+		root.add_child(asset)
+		if e.type in ["splitter", "merger"]:
+			asset.rotation.y = -e.dir * PI / 2
+			var cargo: Node3D = assets.cargo.instantiate()
+			root.add_child(cargo)
+			result.cargo = cargo
+			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
+		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger"] else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
 		result.lamp.scale = Vector3.ONE * 0.21
 		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -431,8 +444,9 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 				mesh.transparency = 0.45
 				mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var shape: Dictionary = Model.CATALOG[ui.tool]
+		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ["splitter", "merger"] else 0.0
 		build_model.position = Vector3(ui.cell.x + shape.w * 0.5, 0.06, ui.cell.y + shape.d * 0.5)
-	var key := str([model.revision, ui.tool, ui.cell, ui.selected])
+	var key := str([model.revision, ui.tool, ui.cell, ui.dir, ui.selected])
 	if key == port_key:
 		return
 	port_key = key
@@ -443,31 +457,38 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 		if e.id == ui.selected or (not ui.tool.is_empty() and center.distance_to(Vector2(ui.cell)) <= 9):
 			_port_hint(model, e, not ui.tool.is_empty())
 	if not ui.tool.is_empty():
-		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y}, true)
+		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}, true)
 
 
 func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
+	if e.type == "belt":
+		return
 	for role in ["input", "output"]:
-		var port := Model.port(e, role)
-		if port.is_empty():
-			continue
-		var cell := Vector2i(port.x + port.dx, port.z + port.dz)
-		var hint := Node3D.new()
-		# Metadata permits checking displayed cells against the actual logistics contract.
-		hint.set_meta("cell", cell)
-		hint.set_meta("role", role)
-		hint.set_meta("entity_id", e.get("id", -1))
-		port_hints.add_child(hint)
-		var mat := input_hint_mat if role == "input" else output_hint_mat
-		var marker := arrow(hint, cell, 0, mat)
-		if show_dock:
-			hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
-			footprint(hint, cell, {"w": 1, "d": 1}, mat)
+		var ports: Array = []
+		if model.supply_id == Model.DiscoveryRules.ROUTING_SUPPLY_ID:
+			ports = model.Logistics.ports(model, e, role)
 		else:
-			# Inspecting a placed device needs a flow cue at its connector, not a build grid.
-			marker.scale = Vector3(0.7, 1, 0.7)
-			marker.position.x -= port.dx * 0.27
-			marker.position.y = 0.6
+			var p := Model.port(e, role)
+			if not p.is_empty(): ports.append(p)
+		for port in ports:
+			var cell := Vector2i(port.x + port.dx, port.z + port.dz)
+			var hint := Node3D.new()
+			hint.set_meta("cell", cell)
+			hint.set_meta("role", role)
+			hint.set_meta("entity_id", e.get("id", -1))
+			port_hints.add_child(hint)
+			var mat := input_hint_mat if role == "input" else output_hint_mat
+			var outward := Vector2i(port.dx, port.dz)
+			var direction: int = Model.DIRS.find(-outward if role == "input" else outward)
+			var marker := arrow(hint, cell, direction, mat)
+			if show_dock:
+				hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
+				footprint(hint, cell, {"w": 1, "d": 1}, mat)
+			else:
+				marker.scale = Vector3(0.7, 1, 0.7)
+				marker.position.x -= port.dx * 0.27
+				marker.position.z -= port.dz * 0.27
+				marker.position.y = 0.6
 
 
 func _sync_production(model: RefCounted) -> void:
@@ -483,6 +504,13 @@ func _sync_production(model: RefCounted) -> void:
 				v.cargo.rotation.y = model.time * 0.4
 				v.cargo.scale = Vector3.ONE * (0.9 if e.cargo == "catalyst" else 1.0)
 		else:
+			if e.type in ["splitter", "merger"]:
+				v.cargo.visible = not e.cargo.is_empty() and e.progress < 0.28
+				if v.cargo.visible:
+					var p: Vector2 = Vector2(e.entry) * (0.5 - e.progress)
+					v.cargo.position = Vector3(p.x, 0.28, p.y)
+					v.cargo.scale = Vector3.ONE * 0.45
+					v.cargo_mesh.material_override = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}[e.cargo]
 			var f: Dictionary = model.feedback(e)
 			v.lamp_mat = status_materials[f.kind]
 			v.lamp.material_override = v.lamp_mat
@@ -490,6 +518,7 @@ func _sync_production(model: RefCounted) -> void:
 			if model.has_method("power_state"):
 				match e.type:
 					"reactor": progress = e.progress / model.DiscoveryRules.RECIPES[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
+					"splitter", "merger": progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
 			else:

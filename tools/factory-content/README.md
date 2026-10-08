@@ -35,3 +35,7 @@
 预置采集器、电源、仓库，物料从零生产；依次放反应器、节点、铺两段带并观察首件入仓。点击设备看库存 / 进度 / 供电；右键或 Esc 取消建造，R 改带方向，WASD 移动，滚轮缩放，重置按钮重新开始。关闭后不保存。半径 6 格仅为样板参数，人物沿用现有资产；这不是完整正式新手任务、存档规则接入或美术定稿。范围及失败判据见[样板专题](../../docs/features/factory-refinement-demo-v1.md)。
 
 定向无窗口检查（同样先告知启动 Godot）：`/Applications/Godot.app/Contents/MacOS/Godot --headless --path client --script ../tools/factory-content/check-refinement.gd --no-header --log-file ../tools/runtime-intake/refinement-check.log`。覆盖自动电网边界、真实产线与关键 UI 构造 / 布局；不能代替窗口交互和用户亲测。
+
+## 分流 / 汇合资产
+
+`node tools/factory-content/export-routing-assets.mjs` 复用已有 Three.js 与自有几何帮助函数，生成 `client/assets/factory/routing/{splitter,merger}.glb`。均严格位于 1×1 足印内，分流为竖直圆顶壳体，汇合为横向滚筒，配不同方向的入口 / 出口箭头；不下载素材或依赖。manifest 记录源 / 产物 SHA-256、包围盒与网格 / 三角形数。正式世界按 schema 4 规则加载导入场景；玩法与原图由 `check-factory-routing.sh` 验证，导出成功不代表用户体验或美术定稿。

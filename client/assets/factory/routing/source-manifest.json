@@ -1,0 +1,55 @@
+{
+  "source": "Repository-authored splitter and merger; offline existing Three.js export",
+  "files": {
+    "splitter.glb": {
+      "bytes": 215696,
+      "sha256": "6fd63b11b595e0525b87ca60c8705d9e083569cbbd07a97059ca1a6a6d24a250",
+      "footprint": [
+        1,
+        1
+      ],
+      "bounds": {
+        "min": [
+          -0.5,
+          2.98023217215615e-10,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          0.862500011920929,
+          0.5
+        ]
+      },
+      "meshes": 8,
+      "triangles": 2172
+    },
+    "merger.glb": {
+      "bytes": 165464,
+      "sha256": "83a1a0531f84b1788b87ff88a9a8cec2578053a133e97961160cd12e4e765dac",
+      "footprint": [
+        1,
+        1
+      ],
+      "bounds": {
+        "min": [
+          -0.5,
+          2.98023217215615e-10,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          0.8255000114440918,
+          0.5
+        ]
+      },
+      "meshes": 9,
+      "triangles": 1640
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-routing-assets.mjs": "2b961410cefd57cd6a46fe8c5f97039a5502bb4fae7d86a3ac77610c12373295",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}

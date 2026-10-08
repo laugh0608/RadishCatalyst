@@ -22,7 +22,7 @@ var coordinates := Label.new()
 var details := Label.new()
 var inspector_scroll := ScrollContainer.new()
 var placement_reason := Label.new()
-var tool_row := HBoxContainer.new()
+var tool_row := HFlowContainer.new()
 var placement_row := HBoxContainer.new()
 var build_help := Label.new()
 var power_help := Label.new()
@@ -213,8 +213,12 @@ func _build_footer(parent: Node) -> void:
 	_button(first, "return", "保存并返回")
 	tool_row.add_theme_constant_override("separation", 10)
 	rows.add_child(tool_row)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
-		_button(tool_row, type, Model.CATALOG[type].name)
+	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger"]:
+		var button := _button(tool_row, type, Model.CATALOG[type].name)
+		if type in ["splitter", "merger"]:
+			button.icon = load("res://assets/icons/factory_" + type + ".svg")
+			button.add_theme_constant_override("icon_max_width", 22)
+			button.tooltip_text = "一入三出，跳过堵塞出口；单件行程 1 秒" if type == "splitter" else "三入一出，轮流接收；单件行程 1 秒"
 
 	rows.add_child(placement_row)
 	placement_row.add_theme_constant_override("separation", 10)
@@ -304,7 +308,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
+	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger"]:
 		buttons[type].visible = model.kits.has(type)
 		if not model.kits.has(type):
 			continue
@@ -313,7 +317,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if not ui.tool.is_empty():
 		cell_x.set_value_no_signal(ui.cell.x)
 		cell_z.set_value_no_signal(ui.cell.y)
-		buttons.rotate.visible = ui.tool == "belt"
+		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger"]
 		buttons.rotate.text = "方向：" + DIRECTIONS[ui.dir]
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
@@ -338,7 +342,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		buttons.rotate_selected.visible = e.type == "belt"
+		buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger"]
 		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))

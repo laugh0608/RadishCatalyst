@@ -166,11 +166,15 @@ func power_state() -> Dictionary:
 	return power
 
 
+func _production_entities() -> Array[Dictionary]:
+	return entities
+
+
 func _step(dt: float) -> void:
 	var allocation := grid.allocate(self, dt)
 	statistics.begin_step(allocation, dt)
 	time = statistics.ticks * STEP
-	for e in entities:
+	for e in _production_entities():
 		var work: float = allocation.work.get(e.id, 0.0)
 		if work <= 0:
 			continue

@@ -154,7 +154,7 @@ func _ready() -> void:
 			buttons[item + "_" + suffix].set_meta("bag_side", false)
 	device_content.add_child(actions)
 	actions.add_theme_constant_override("separation", 8)
-	for option in [["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转传送带"], ["salvage", "回收设备与物料"]]:
+	for option in [["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转物流构件"], ["salvage", "回收设备与物料"]]:
 		button(actions, option[0], option[1], func(): device_action.emit(option[0], selected))
 	for label in [summary, inventory, result_label, guide_overview]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -231,6 +231,8 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
 	result_label.text = "点选物品，再取出或放入。产线持续运行；在制材料需取消本批后返还。" if device_only else "背包按物料汇总；容量按件数计算。走近设备后可取放物品。" if inventory_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
+	if device_only and model.by_id(selected).type in ["splitter", "merger"]:
+		result_label.text = "物料自动通过附件；空载时可旋转，回收时整件返还内部物料。"
 	result_label.remove_theme_color_override("font_color")
 	scroll.scroll_vertical = 0
 	scroll.visible = not inventory_only
@@ -336,7 +338,7 @@ func refresh() -> void:
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
 	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
-	buttons.rotate_selected.visible = e.type == "belt"
+	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger"]
 	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
 
 
