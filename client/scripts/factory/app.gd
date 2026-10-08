@@ -38,6 +38,7 @@ var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
 var pending_sample := false
+var interaction_choice := -1
 var focused := true
 var ui_elapsed := 0.0
 var initialized := false
@@ -158,7 +159,11 @@ func _movement(dt: float) -> void:
 			direction = Vector2.ZERO
 	model.move_actor(actor, direction.x, direction.y, dt)
 	if pending_sample and model.near_sample():
-		_pick_sample()
+		pending_sample = false
+		interaction_choice = 0
+		actor.target = null
+		actor.moving = false
+		hud.announce("已走近矿壳样本；按 F 或点击提示拾取。")
 	if actor.target != null and not actor.moving:
 		actor.target = null
 		if pending_sample:
@@ -180,7 +185,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not (discovery_panel.visible and not discovery_panel.device_only)
+	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.pauses_production()
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -206,6 +211,8 @@ func _refresh() -> void:
 	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
 	ui.focus_ready = target.get("ready", false)
 	ui.interaction_kind = target.get("kind", "")
+	ui.interaction_count = target.get("count", 0)
+	ui.interaction_index = target.get("index", -1)
 	discovery_panel.sync_session(ui.paused, focused)
 	hud.refresh(model, actor, ui, focused)
 
@@ -283,6 +290,13 @@ func _action(name: String, value: Variant) -> void:
 	else:
 		match name:
 			"guide_action": _guide_action()
+			"inventory":
+				if model.has_method("power_state"):
+					_stop_pointer()
+					keys.clear()
+					actor.target = null
+					discovery_panel.show_inventory(model)
+					_capture_active_time()
 			"sample": _pick_sample()
 			"interact": _interact()
 			"power_connect":
@@ -350,7 +364,19 @@ func _action(name: String, value: Variant) -> void:
 func _interaction_target() -> Dictionary:
 	if not initialized or not model.has_method("power_state") or ui.blocked or not ui.tool.is_empty() or ui.power_from != 0:
 		return {}
-	return InteractionTarget.resolve(model, view.hit(Vector2(hud.subviewport.size) * 0.5))
+	var target := InteractionTarget.resolve(model, interaction_choice)
+	if interaction_choice != -1 and target.id != interaction_choice:
+		interaction_choice = -1
+	return target
+
+
+func _cycle_interaction() -> void:
+	var target := _interaction_target()
+	if target.get("count", 0) < 2:
+		return
+	var nearby := InteractionTarget.candidates(model)
+	interaction_choice = nearby[(target.index + 1) % nearby.size()].id
+	_refresh()
 
 
 func _interact() -> void:
@@ -368,7 +394,7 @@ func _open_device(id: int) -> void:
 		return
 	ui.selected = id
 	if not model.near_entity(e):
-		hud.announce("%s #%d：请走近设备后点击，或对准视角中心按 F。" % [Model.CATALOG[e.type].name, id])
+		hud.announce("%s #%d：请走到两格内点击，或按 F 操作附近高亮对象；Tab 切换目标。" % [Model.CATALOG[e.type].name, id])
 		return
 	_stop_pointer()
 	ui.tool = ""
@@ -414,7 +440,7 @@ func _approach_sample() -> void:
 	else:
 		pending_sample = true
 		actor.target = Model.DiscoveryRules.SAMPLE
-		hud.announce("正在走近样本，到达后拾取；WASD 或 Esc 可取消。")
+		hud.announce("正在走近样本；到达后按 F 或再次点击拾取。WASD / Esc 可取消走近。")
 
 
 func _preview(cell: Vector2i) -> void:
@@ -429,6 +455,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if not event.pressed:
 			keys.erase(event.physical_keycode)
+		elif not event.echo and event.physical_keycode == KEY_TAB and model.has_method("power_state") and ui.tool.is_empty() and ui.power_from == 0 and not pointer:
+			_cycle_interaction()
+			get_viewport().set_input_as_handled()
 		return
 	if not event is InputEventMouse:
 		return
@@ -528,6 +557,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	match event.physical_keycode:
 		KEY_F: _interact()
+		KEY_I: _action("inventory", null)
 		KEY_1: _action("collector", null)
 		KEY_2: _action("reactor", null)
 		KEY_3: _action("storage", null)

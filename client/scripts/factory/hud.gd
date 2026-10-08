@@ -31,7 +31,6 @@ var cell_z := SpinBox.new()
 var help_panel: PanelContainer
 var sample_button: Button
 var interaction_button: Button
-var center_mark := Label.new()
 
 
 func _ready() -> void:
@@ -133,6 +132,7 @@ func _build_header(parent: Node) -> void:
 	subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	subtitle.add_theme_color_override("font_color", Color("a8bdb0"))
 	row.add_child(totals)
+	_button(row, "inventory", "背包 I")
 	_button(row, "statistics", "生产统计")
 	_button(row, "pause", "暂停")
 
@@ -184,7 +184,7 @@ func _build_world_panels() -> void:
 	camera_panel.name = "CameraPanel"
 	help_panel = _panel(world_slot)
 	help_panel.position = Vector2(265, 22)
-	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；失焦自动暂停")
+	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；失焦自动暂停")
 	help_panel.hide()
 	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
 	sample_button.hide()
@@ -193,13 +193,7 @@ func _build_world_panels() -> void:
 	interaction_button.offset_top = -64
 	interaction_button.offset_bottom = -18
 	interaction_button.hide()
-	center_mark.text = "＋"
-	center_mark.add_theme_font_size_override("font_size", 22)
-	center_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	world_slot.add_child(center_mark)
-	center_mark.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	center_mark.position -= Vector2(11, 15)
-	center_mark.hide()
+
 
 
 func _build_footer(parent: Node) -> void:
@@ -290,6 +284,9 @@ func sync_sample(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
 	var lower := Vector2(8, 8)
 	var upper := (world_slot.size - sample_button.size - Vector2(8, 8)).max(lower)
 	sample_button.position = (at + Vector2(20, -sample_button.size.y * 0.5)).clamp(lower, upper)
+	sample_button.text = "矿壳样本 · F 拾取"
+	if ui.get("interaction_count", 0) > 1:
+		sample_button.text += " · Tab 切换"
 	sample_button.tooltip_text = "背包已满，请先腾出空间" if Items.count(model.bag) >= 200 else "拾取并记录调查结果"
 
 
@@ -323,6 +320,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 		buttons.place.disabled = not valid.ok
 	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
 	buttons.discovery.visible = model.has_method("power_state")
+	buttons.inventory.visible = model.has_method("power_state")
 	buttons.statistics.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
 	var e: Dictionary = model.by_id(ui.selected)
@@ -345,12 +343,12 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, focused: bool
 		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))
 	interaction_button.visible = powered and not ui.get("blocked", false) and not target.is_empty()
-	center_mark.visible = powered and not ui.get("blocked", false) and ui.tool.is_empty()
 	if interaction_button.visible:
-		interaction_button.text = ("F  查看 %s" if ui.focus_ready else "靠近后交互 · %s") % Model.CATALOG[target.type].name
+		interaction_button.text = "F  查看 %s #%d" % [Model.CATALOG[target.type].name, target.id]
+		if ui.get("interaction_count", 0) > 1:
+			interaction_button.text += "  ·  Tab 切换 %d/%d" % [ui.interaction_index + 1, ui.interaction_count]
 		interaction_button.position.x = (world_slot.size.x - interaction_button.size.x) * 0.5
 		interaction_button.disabled = not ui.focus_ready
-	center_mark.add_theme_color_override("font_color", Color("77d8c6" if ui.get("focus_ready", false) else "91a39a"))
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered

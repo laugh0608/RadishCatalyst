@@ -137,7 +137,9 @@ func _upgrade_and_click_pickup() -> void:
 	await driver.motion(at)
 	await driver.mouse(at, true)
 	await driver.mouse(at, false)
-	await wait_for(func(): return world.model.discovery.sample_taken, 8, "ground icon click approaches and picks up")
+	await wait_for(func(): return world.model.near_sample() and not world.pending_sample, 8, "ground icon click approaches and waits for confirmation")
+	driver.expect(not world.model.discovery.sample_taken, "approach does not acquire sample")
+	await driver.click(world.hud.sample_button)
 	if finished:
 		return
 	driver.expect(world.model.bag.get("crust_sample", 0) == 1 and world.model.statistics.totals.acquired.crust_sample == 1, "ground interaction acquires exactly one real sample")

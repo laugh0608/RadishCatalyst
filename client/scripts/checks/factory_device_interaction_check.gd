@@ -66,7 +66,7 @@ func run() -> void:
 	model.actor.x = 0
 	model.actor.z = 5
 	expect(not panel.show_device(model, reactor.id) and not panel.visible, "remote selection cannot open device operations")
-	expect(not Target.resolve(model, reactor.id).ready, "distant center target requires approach")
+	expect(not Target.resolve(model, reactor.id).ready, "distant preferred target requires approach")
 	before = snapshot(model)
 	var rejected: Dictionary = model.transfer(reactor.id, "catalyst", false, true)
 	expect(not rejected.ok and snapshot(model) == before, "authority still rejects remote transfer without mutation")
@@ -74,7 +74,7 @@ func run() -> void:
 	model.actor.z = -1
 	expect(panel.show_device(model, reactor.id), "nearby device opens unified operations")
 	expect(panel.device_only and not panel.discovery_content.visible, "device entry excludes general process actions")
-	expect(Target.resolve(model, reactor.id).kind == "device" and Target.resolve(model, reactor.id).ready, "near center target enables F")
+	expect(Target.resolve(model, reactor.id).kind == "device" and Target.resolve(model, reactor.id).ready, "nearby target enables F")
 	panel.refresh()
 	expect(not panel.buttons.catalyst_take_all.disabled, "nearby transfer enabled")
 	panel.buttons.catalyst_take_all.pressed.emit()
@@ -100,6 +100,7 @@ func run() -> void:
 	expect(panel.recipe_ids[panel.recipe.selected] == "solvent_trial", "live refresh preserves uncommitted recipe choice")
 	panel.buttons.recipe.pressed.emit()
 	expect(reactor.recipe_id == "solvent_trial" and panel.device_summary.values.process.text.begins_with("矿壳试制"), "recipe command and visible recipe update together")
+	expect(panel.device_item != "crystal" and panel.rows[panel.device_item].visible, "recipe change replaces an unavailable selection with a visible material action")
 	panel.buttons.crust_sample_put_one.pressed.emit()
 	expect(reactor.input.get("crust_sample", 0) == 1 and not model.bag.has("crust_sample"), "device deposit moves unique sample once")
 	before = snapshot(model)
@@ -115,6 +116,7 @@ func run() -> void:
 	expect(restored.ok and saved.save_schema_version == 2, "device operations remain inside existing schema 2 contract")
 	_capacity(panel)
 	_target_and_liveness(panel)
+	_nearby_and_slots(panel)
 	summary.queue_free()
 	panel.queue_free()
 	await process_frame
@@ -363,7 +365,7 @@ func _target_and_liveness(panel: Control) -> void:
 	model.actor.z = 3.5
 	expect(Target.resolve(model, -1).kind == "sample", "nearby sample remains F fallback")
 	var e: Dictionary = model.place("storage", Vector2i(0, 2)).entity
-	expect(Target.resolve(model, e.id).kind == "device", "near center device wins over sample")
+	expect(Target.resolve(model, e.id).kind == "device", "preferred nearby device wins over sample")
 	panel.show_device(model, e.id)
 	e.items = {"crystal": 2}
 	panel.refresh()
@@ -379,3 +381,41 @@ func _target_and_liveness(panel: Control) -> void:
 	model.salvage(e.id)
 	panel.refresh()
 	expect(not panel.visible, "removed target closes device panel")
+
+
+func _nearby_and_slots(panel: Control) -> void:
+	var model := PowerCheck.line()
+	var e: Dictionary = model.by_id(2)
+	model.actor.x = e.x - 1.999
+	model.actor.z = e.z + 0.5
+	var before := snapshot(model)
+	var nearby := Target.candidates(model)
+	expect(nearby.any(func(t): return t.id == e.id), "nearby search includes reachable footprint edge without a camera ray")
+	expect(Target.resolve(model, e.id).id == e.id, "manual choice remains selected among nearby candidates")
+	expect(snapshot(model) == before, "candidate lookup cannot mutate world or inventory")
+	model.actor.x = e.x - 2.002
+	expect(not Target.candidates(model).any(func(t): return t.id == e.id), "nearby search retains strict two-grid authority")
+	model.actor.x = -14
+	model.actor.z = -1
+	model.bag = {"crystal": 4, "catalyst": 2}
+	panel.show_device(model, e.id)
+	before = snapshot(model)
+	panel.bag_slots.catalyst.pressed.emit()
+	expect(panel.bag_item == "catalyst" and panel.bag_rows.catalyst.visible and not panel.bag_rows.crystal.visible, "bag slot selects one material action row")
+	expect(snapshot(model) == before, "slot selection does not transfer inventory")
+	expect(panel.buttons.catalyst_put_all.disabled, "incompatible recipe deposit is visibly unavailable")
+	panel.bag_slots.crystal.pressed.emit()
+	panel.buttons.crystal_put_all.pressed.emit()
+	expect(e.input.crystal == 2 and model.bag.crystal == 2, "selected deposit caps to actual next-batch input room")
+	expect(panel.device_summary.slots.input.crystal.amount == 2, "input tile updates from authoritative stock")
+	panel.device_summary.slots.input.crystal.pressed.emit()
+	panel.buttons.crystal_take_one.pressed.emit()
+	expect(e.input.crystal == 1 and model.bag.crystal == 3, "selected input tile supports one-item withdrawal")
+	panel.recipe.select(panel.recipe_ids.find("basic_catalyst"))
+	panel.refresh()
+	expect(panel.bag_item == "crystal" and panel.device_item == "crystal", "refresh preserves selected bag and device tiles")
+	panel.close_panel()
+	panel.show_inventory(model)
+	expect(panel.inventory_only and not panel.pauses_production() and not panel.device_content.visible, "standalone inventory is read-only and does not pause production")
+	expect(not panel.buttons.crystal_put_all.is_visible_in_tree() and panel.bag_slots.crystal.amount == 3, "standalone inventory has real quantities and no remote device actions")
+	panel.close_panel()

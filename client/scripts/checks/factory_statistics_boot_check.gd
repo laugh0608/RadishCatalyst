@@ -354,6 +354,13 @@ func panel(id: int) -> void:
 
 
 func press(control: Button) -> void:
+	if control.has_meta("item_id") and not control.is_visible_in_tree():
+		var slot: Button = world.discovery_panel.item_button(control.get_meta("item_id"), control.get_meta("bag_side"))
+		driver.expect(slot != null, "material action has a visible slot")
+		if slot == null:
+			check_failures()
+			return
+		await driver.click(slot)
 	await wait_for_focus(control.get_window())
 	driver.expect(control.is_visible_in_tree() and not control.disabled and control.get_window().has_focus(), "native command available " + control.text)
 	check_failures()

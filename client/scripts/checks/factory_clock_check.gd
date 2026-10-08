@@ -194,4 +194,26 @@ func _device_clock(boot: Node) -> void:
 	world._action("discovery", null)
 	expect(not world._producing(), "global process review retains its pause contract")
 	world.discovery_panel.close_panel()
+	world._action("inventory", null)
+	start = _sample()
+	await create_timer(0.2).timeout
+	await _frames(3)
+	expect(world.discovery_panel.inventory_only and _sample().accounted > start.accounted + 0.15, "standalone inventory advances natural active time")
+	world.discovery_panel.close_panel()
+	# Explicit approach fixtures exercise intent cancellation and arrival, not native movement.
+	world._approach_sample()
+	expect(world.pending_sample and not world.model.discovery.sample_taken, "distant sample click only starts movement intent")
+	root.focus_exited.emit()
+	expect(not world.pending_sample and world.actor.target == null, "focus loss cancels approach intent")
+	root.focus_entered.emit()
+	world._approach_sample()
+	world.actor.x = 2.5
+	world.actor.z = 3.5
+	world._movement(0)
+	expect(not world.pending_sample and world.actor.target == null and not world.model.discovery.sample_taken, "arrival stops movement without taking sample")
+	world._movement(0.1)
+	expect(world.model.bag.get("crust_sample", 0) == 0, "waiting nearby does not trigger a deferred pickup")
+	world._pick_sample()
+	expect(world.model.discovery.sample_taken and world.model.bag.crust_sample == 1, "explicit pickup still acquires exactly one sample")
+	world.discovery_panel.close_panel()
 	world._action("return", null)

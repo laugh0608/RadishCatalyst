@@ -19,7 +19,7 @@ static func current(model: RefCounted) -> Dictionary:
 	if produced < 2:
 		return _step("first_line", "准备首批试制材料", "累计催化剂 %d / 2" % produced, "晶体 → 催化剂；样本%s。" % ("已收好" if d.sample_taken else "可稍后拾取"), _first_line(model))
 	if not d.sample_taken:
-		return _step("sample", "拾取矿壳样本", "首批催化剂已产出", "外矿道 (2, 2)：点样本走近拾取，近处也可按 F。", _action("location", "定位地面样本", "样本用于试制开路材料。", {"point": Rules.SAMPLE}))
+		return _step("sample", "拾取矿壳样本", "首批催化剂已产出", "外矿道 (2, 2)：点样本走近，再按 F 或点击拾取。", _action("location", "定位地面样本", "样本用于试制开路材料。", {"point": Rules.SAMPLE}))
 	return _trial(model)
 
 

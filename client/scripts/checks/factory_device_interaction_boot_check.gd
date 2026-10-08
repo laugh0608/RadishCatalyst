@@ -226,7 +226,15 @@ func _first_line() -> void:
 	driver.expect(world.ui.tool == "collector" and world.model.entities.is_empty() and world.model.kits == initial_kits, "first goal selects collector without building or spending")
 	driver.expect(world.actor == initial_actor, "first goal leaves actor in place")
 	await driver.key(KEY_ESCAPE)
-	await walk(Vector2(2.5, 3.5))
+	# A distant click requests approach only; arriving and waiting must not acquire anything.
+	var sample_at: Vector2 = world.hud.viewport_to_screen(world.view.sample_screen())
+	await driver.motion(sample_at)
+	await driver.mouse(sample_at, true)
+	await driver.mouse(sample_at, false)
+	await wait_for(func(): return world.model.near_sample() and not world.pending_sample, 10, "sample approach stops at interaction range")
+	await active(0.5, "waiting near sample requires explicit confirmation")
+	driver.expect(not world.model.discovery.sample_taken and world.model.bag.is_empty(), "arrival and nearby waiting never pick up sample")
+	await driver.shot("00-sample-awaits-confirmation")
 	await driver.key(KEY_F)
 	driver.expect(world.model.discovery.sample_taken, "F retains direct sample interaction when no device is targeted")
 	await native_click(world.hud.buttons.discovery)
@@ -253,7 +261,7 @@ func _first_line() -> void:
 	if not await select_device("reactor"):
 		return
 	driver.expect(not world.discovery_panel.visible and not world.hud.inspector.visible, "far click does not open operations or a duplicate inspector")
-	driver.expect("走近" in world.hud.notice.text, "far selection explains proximity")
+	driver.expect("两格内" in world.hud.notice.text and "Tab" in world.hud.notice.text, "far selection explains proximity and nearby target cycling")
 	await driver.shot("01-distant-selection")
 	await native_click(world.hud.buttons.pause)
 	await walk(Vector2(-12, 2.5))
@@ -281,12 +289,22 @@ func _first_line() -> void:
 	await driver.key(KEY_ESCAPE)
 	driver.expect(not world.discovery_panel.visible and world.ui.paused, "Escape closes without changing pause preference")
 	await native_click(world.hud.buttons.pause)
-	# The follow camera points ahead of the real actor; its actual ray supplies the F target.
+	# Proximity stays valid when the camera points elsewhere; Tab explicitly chooses a target.
 	await driver.settle(20)
-	driver.expect(world.ui.focus_device == ids.reactor and world.ui.focus_ready, "screen center highlights the nearby reactor")
-	await driver.shot("03-center-highlight")
+	var reachable: Array = world.InteractionTarget.candidates(world.model)
+	driver.expect(reachable.any(func(t): return t.id == ids.reactor), "nearby reactor is reachable independently of screen center")
+	var first: int = world._interaction_target().id
+	await native_click(world.hud.buttons.camera_right)
+	driver.expect(world._interaction_target().id == first, "camera rotation does not change actor-based interaction target")
+	await native_click(world.hud.buttons.camera_left)
+	for i in reachable.size():
+		if world.ui.focus_device == ids.reactor:
+			break
+		await driver.key(KEY_TAB)
+	driver.expect(world.ui.focus_device == ids.reactor and world.ui.focus_ready, "Tab selects nearby reactor with matching highlight")
+	await driver.shot("03-nearby-highlight")
 	await driver.key(KEY_F)
-	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == ids.reactor, "F opens the same device highlighted at screen center")
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == ids.reactor, "F opens the highlighted nearby reactor")
 	check_failures()
 	if finished:
 		return
@@ -314,10 +332,15 @@ func _first_line() -> void:
 	var stored: int = world.model.by_id(ids.warehouse).items.get("catalyst", 0)
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) > stored, 20, "warehouse inventory rises while its panel is open")
 	await driver.settle(15)
-	driver.expect("催化剂" in world.discovery_panel.device_summary.values.input.text, "warehouse live inventory is displayed")
+	driver.expect(world.discovery_panel.device_summary.slots.input.catalyst.amount == world.model.by_id(ids.warehouse).items.get("catalyst", 0), "warehouse live inventory is displayed")
 	await native_click(world.discovery_panel.buttons.catalyst_take_all)
 	driver.expect(world.model.bag.get("catalyst", 0) >= 2, "warehouse supplies natural ingredients for trial")
 	await native_click(world.discovery_panel.buttons.close)
+	await driver.key(KEY_I)
+	driver.expect(world.discovery_panel.inventory_only and world._producing(), "I opens standalone live inventory")
+	await native_shot("05-backpack")
+	await driver.key(KEY_I)
+	driver.expect(not world.discovery_panel.visible, "I closes inventory and returns field input")
 	await _other_devices()
 	if finished:
 		return
@@ -347,7 +370,7 @@ func _first_line() -> void:
 	await native_click(world.hud.buttons.save)
 	write_json("expected.json", Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence))
 	write_json("ids.json", ids)
-	stage("write-complete", "single live panel, near click, center F, continuous production, all device types and partial trial saved")
+	stage("write-complete", "live item grids, nearby F/Tab, manual sample pickup, all device types and partial trial saved")
 	await native_click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "save and return exits cleanly")
 
@@ -424,6 +447,13 @@ func open_device() -> void:
 
 
 func native_click(button: Button) -> void:
+	if button.has_meta("item_id") and not button.is_visible_in_tree():
+		var slot: Button = world.discovery_panel.item_button(button.get_meta("item_id"), button.get_meta("bag_side"))
+		driver.expect(slot != null, "material has a visible selectable slot")
+		if slot == null:
+			check_failures()
+			return
+		await native_click(slot)
 	var label := button.text
 	var window: Window = button.get_window()
 	await wait_for_focus(window)
@@ -502,6 +532,22 @@ func _restore() -> void:
 	await driver.settle(20)
 	driver.expect("外矿道" in world.hud.mission.text and "/ 4" in world.hud.mission.text, "completed trial advances goal to four opening materials")
 	await driver.shot("15-restored-next-goal")
+	await walk(Vector2(-14, 2))
+	await driver.settle(20)
+	var before: Dictionary = world._interaction_target()
+	driver.expect(before.get("count", 0) > 1, "walking beside belt and reactor offers multiple reachable targets")
+	check_failures()
+	if finished:
+		return
+	await driver.key(KEY_TAB)
+	var chosen: Dictionary = world._interaction_target()
+	driver.expect(chosen.id != before.id and world.ui.focus_device == chosen.id, "Tab changes target and matching device highlight")
+	await native_click(world.hud.buttons.camera_right)
+	driver.expect(world._interaction_target().id == chosen.id, "cycled target survives camera rotation")
+	await driver.shot("16-nearby-target-cycle")
+	await driver.key(KEY_F)
+	driver.expect(world.discovery_panel.visible and world.discovery_panel.selected == chosen.id, "F opens the exact cycled nearby target")
+	await native_click(world.discovery_panel.buttons.close)
 	stage("read-complete", "independent Boot restore and natural completion of saved partial batch")
 	await driver.click(world.hud.buttons.return)
 

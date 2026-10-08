@@ -1,9 +1,12 @@
 extends VBoxContainer
 
+signal item_selected(item: String)
 ## Read-only live device presentation inside the unified operation panel.
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
+const ItemSlot := preload("res://scripts/factory/item_slot.gd")
+const DevicePreview := preload("res://scripts/factory/device_preview.gd")
 const COLORS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 var compact := true
 var heading := Label.new()
@@ -16,6 +19,9 @@ var progress := ProgressBar.new()
 var production := Label.new()
 var power := Label.new()
 var ports := Label.new()
+var slots := {}
+var grids := {}
+var preview: SubViewportContainer
 
 
 func _ready() -> void:
@@ -53,7 +59,25 @@ func _ready() -> void:
 		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		stack.add_child(value)
 		values[role] = value
+		if not compact and role in ["input", "output"]:
+			var grid := GridContainer.new()
+			grid.columns = 1
+			grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			grid.add_theme_constant_override("h_separation", 10)
+			grid.add_theme_constant_override("v_separation", 10)
+			stack.add_child(grid)
+			grids[role] = grid
+			slots[role] = {}
+			for item in Rules.ITEMS:
+				var slot := ItemSlot.new()
+				slot.item_id = item
+				grid.add_child(slot)
+				slot.pressed.connect(func(): item_selected.emit(item))
+				slots[role][item] = slot
 		if role == "process":
+			if not compact:
+				preview = DevicePreview.new()
+				stack.add_child(preview)
 			progress.custom_minimum_size.y = 18
 			stack.add_child(progress)
 	for label in [production, power, ports]:
@@ -116,8 +140,51 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	else:
 		power.text = "被动物流 · 无需供电"
 	ports.text = port_text(model, e)
+	if not compact:
+		_sync_slots(model, e)
 	for label in [production, power, ports]:
 		label.visible = not label.text.is_empty()
+
+
+func _sync_slots(model: RefCounted, e: Dictionary) -> void:
+	preview.show_device(e.type, e.get("dir", 0))
+	for role in slots:
+		grids[role].columns = 3 if e.type == "storage" else 1
+		for item in slots[role]:
+			var stock := {}
+			var required := {}
+			match e.type:
+				"reactor":
+					stock = e[role]
+					required = Rules.RECIPES[e.recipe_id][role]
+				"collector":
+					if role == "output":
+						stock = e.buffer
+						required = {e.mineral: 0}
+				"storage":
+					if role == "input":
+						stock = e.items
+						for known in Rules.ITEMS:
+							if known in ["crystal", "catalyst"] or model.discovery.trial_completed or (known == "crust_sample" and model.discovery.sample_taken):
+								required[known] = 0
+			var slot: Button = slots[role][item]
+			slot.visible = stock.has(item) or required.has(item)
+			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type == "reactor" else 0)
+		values[role].visible = false
+		if e.type == "storage" and role == "input":
+			values[role].text = "%d / 200 件" % Items.count(e.items)
+			values[role].show()
+		elif e.type == "collector" and role == "output":
+			values[role].text = "%d / 50 件" % Items.count(e.buffer)
+			values[role].show()
+	if e.type == "collector":
+		_card("process", "晶体采集器", "采集缓冲")
+
+
+func select_item(item: String) -> void:
+	for role in slots:
+		for key in slots[role]:
+			slots[role][key].mark_selected(key == item)
 
 
 func _card(role: String, caption: String, value: String) -> void:
