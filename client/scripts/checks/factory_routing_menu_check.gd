@@ -75,7 +75,7 @@ func run() -> void:
 	menu = boot.factory_menu
 	menu.list.select(0)
 	menu.list.item_selected.emit(0)
-	expect(menu.upgrade_button.disabled and not menu.continue_button.disabled and menu.worlds[0].id == id and menu.worlds[0].schema == 4, "upgraded world retains identity and cannot receive a second grant")
+	expect(not menu.upgrade_button.disabled and menu.upgrade_button.text == "升级物品准入口" and not menu.continue_button.disabled and menu.worlds[0].id == id and menu.worlds[0].schema == 4, "upgraded V4 retains identity and offers a separate B upgrade without repeating A")
 	boot.free()
 	finish()
 

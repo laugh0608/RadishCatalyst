@@ -126,7 +126,13 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 			production.text = "终端仓库 · 只接收物流，可近身取放。"
 		"belt":
 			_card("process", "运输 →", "%s\n带上：%s" % [["东 →", "南 ↓", "西 ←", "北 ↑"][e.dir], Rules.NAMES.get(e.cargo, "空")])
-	if e.type in ["splitter", "merger"]:
+	if e.type == "admission_gate":
+		_card("process", "物品准入", "只允许：%s\n单件行程 1 秒 · 容量 1" % Rules.NAMES.get(e.filter_item, "未配置"))
+		_card("output", "在途物料", Rules.NAMES.get(e.cargo, "空"))
+		progress.show()
+		progress.value = e.progress * 100
+		production.text = model.Admission.quantities(e)
+	elif e.type in ["splitter", "merger"]:
 		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Rules.NAMES.get(e.cargo, "空"))
 		_card("output", "在途物料", "")
 		progress.show()
@@ -163,7 +169,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"reactor":
 					stock = e[role]
 					required = Rules.RECIPES[e.recipe_id][role]
-				"splitter", "merger":
+				"splitter", "merger", "admission_gate":
 					if role == "output" and not e.cargo.is_empty():
 						stock = {e.cargo: 1}
 				"collector":
@@ -210,7 +216,7 @@ static func _quantities(stock: Dictionary, batch: Dictionary) -> String:
 
 
 static func port_text(model: RefCounted, e: Dictionary) -> String:
-	if model.supply_id == Rules.ROUTING_SUPPLY_ID:
+	if Rules.routing_world(model.supply_id):
 		return model.Logistics.port_text(model, e)
 	var lines := PackedStringArray()
 	for role in ["input", "output"]:

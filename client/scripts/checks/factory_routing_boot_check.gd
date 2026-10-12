@@ -3,9 +3,10 @@ extends "res://scripts/checks/factory_device_interaction_boot_check.gd"
 var connection_preview_only := false
 
 func run() -> void:
-	evidence_topic = "factory-conveyor-routing-v1"
+	if evidence_topic == "factory-device-interaction-v1": evidence_topic = "factory-conveyor-routing-v1"
 	connection_preview_only = "--connection-preview-only" in OS.get_cmdline_user_args()
-	screenshot_topic = "2026-10-12-factory-routing-connections-preview" if connection_preview_only else "2026-10-08-factory-conveyor-routing-preview"
+	if screenshot_topic == "2026-10-08-factory-device-interaction-preview":
+		screenshot_topic = "2026-10-12-factory-routing-connections-preview" if connection_preview_only else "2026-10-08-factory-conveyor-routing-preview"
 	if connection_preview_only:
 		input_description_override = "Boot/create menus: focused synthetic Enter; pause/tool/save-return and drag/cancel: synthetic mouse; setup: precision coordinates/placement button signals; preview: routed R/Escape; paused topology/layout only, no walking or natural production assertion; no stock/actor position/time injection"
 	await super.run()
@@ -15,7 +16,7 @@ func _first_line() -> void:
 	if connection_preview_only:
 		await _connection_previews()
 		return
-	driver.expect(world.model.supply_id == Codec.V2.Config.ROUTING_SUPPLY_ID and world.model.kits.splitter == 8, "formal menu creates schema4 ordinary supply")
+	driver.expect(world.model.supply_id == Codec.V2.Config.ADMISSION_SUPPLY_ID and world.model.kits.splitter == 8, "formal menu creates current ordinary supply while retaining A budget")
 	await native_click(world.hud.buttons.mission)
 	await walk(Vector2(-16, 5.7))
 	await walk(Vector2(-16, 2))
@@ -83,7 +84,7 @@ func _first_line() -> void:
 
 
 func _connection_previews() -> void:
-	driver.expect(world.model.supply_id == Codec.V2.Config.ROUTING_SUPPLY_ID, "connection preview enters current ordinary schema4 world through Boot")
+	driver.expect(world.model.supply_id == Codec.V2.Config.ADMISSION_SUPPLY_ID, "connection preview enters current ordinary world through Boot")
 	await native_click(world.hud.buttons.pause)
 	await native_click(world.hud.buttons.mission)
 	await place("belt", -13, -5, "", 2)
@@ -209,7 +210,7 @@ func _restore() -> void:
 	ids = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("ids.json")))
 	var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("expected.json")))
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
-	driver.expect(Check.equivalent(actual, expected) and actual.save_schema_version == 4, "independent Boot restores cargo progress both cursors batches and statistics")
+	driver.expect(Check.equivalent(actual, expected) and actual.save_schema_version == expected.save_schema_version, "independent Boot restores cargo progress both cursors batches and statistics")
 	await _open_nearby("splitter")
 	if finished: return
 	await native_shot("05-restored-splitter")

@@ -42,7 +42,7 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 					for item in recipe.input:
 						consumes[item] = recipe.input[item] * 60.0 / recipe.seconds
 			"storage": locations.storage = e.items
-			"belt", "splitter", "merger": locations.transit = {e.cargo: 1} if not e.cargo.is_empty() else {}
+			"belt", "splitter", "merger", "admission_gate": locations.transit = {e.cargo: 1} if not e.cargo.is_empty() else {}
 		for item in rows:
 			var row: Dictionary = rows[item]
 			var present := false

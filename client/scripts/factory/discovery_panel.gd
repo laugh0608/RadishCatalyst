@@ -40,6 +40,7 @@ var scroll := ScrollContainer.new()
 var item_labels := {}
 var guide_overview := Label.new()
 var elapsed := 0.0
+var admission_controls := preload("res://scripts/factory/admission_controls.gd").new()
 
 
 func _ready() -> void:
@@ -68,6 +69,8 @@ func _ready() -> void:
 	header.add_child(runtime)
 	button(header, "pause", "暂停", func(): device_action.emit("pause", selected))
 	button(header, "close", "关闭  ×  Esc", close_panel)
+	layout.add_child(admission_controls)
+	admission_controls.applied.connect(apply)
 	body.add_theme_constant_override("separation", 24)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(body)
@@ -228,10 +231,11 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	bag_item = ""
 	device_item = ""
 	recipe_key = ""
+	admission_controls.config_key = ""
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
 	result_label.text = "点选物品，再取出或放入。产线持续运行；在制材料需取消本批后返还。" if device_only else "背包按物料汇总；容量按件数计算。走近设备后可取放物品。" if inventory_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
-	if device_only and model.by_id(selected).type in ["splitter", "merger"]:
+	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate"]:
 		result_label.text = "物料自动通过附件；空载时可旋转，回收时整件返还内部物料。"
 	result_label.remove_theme_color_override("font_color")
 	scroll.scroll_vertical = 0
@@ -277,7 +281,7 @@ func sync_session(paused: bool, focused: bool) -> void:
 
 
 func apply(result: Dictionary) -> void:
-	result_label.text = ("已转移 %d 件。" % result.amount if result.has("amount") else "操作完成。") if result.ok else result.reason
+	result_label.text = ("已转移 %d 件。" % result.amount if result.has("amount") else result.get("message", "操作完成。")) if result.ok else result.reason
 	result_label.add_theme_color_override("font_color", Color("77d8c6" if result.ok else "efab86"))
 	refresh()
 
@@ -299,6 +303,8 @@ func refresh() -> void:
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
 	var stores_items: bool = device_only and e.type in ["collector", "reactor", "storage"]
+	admission_controls.visible = device_only and e.type == "admission_gate"
+	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
 	if device_only:
 		device_summary.refresh(model, e)
@@ -338,7 +344,7 @@ func refresh() -> void:
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
 	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
-	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger"]
+	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
 	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
 
 

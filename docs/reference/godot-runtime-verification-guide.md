@@ -177,8 +177,14 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 
 ## 分流 / 汇合定向入口
 
-A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从新 schema 4 普通零库存世界自然建线，真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。
+A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从当前新勘探普通零库存世界自然建线（A 原证据为 V4，B 后新建为 V5），真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。
 
 批次根为 `tools/runtime-intake/check-runs/factory-conveyor-routing-v1/`，原图根为 `assets/art-intake/2026-10-08-factory-conveyor-routing-preview/`；亲测根另用 `tools/runtime-intake/review-worlds/factory-conveyor-routing-v1/`。旧 schema 2 / 3 可以原规则继续，升级为独立显式操作。恢复会继续生产并保存，只消费一次；需重试时保留失败报告，用可追溯、哈希一致的未消费起点建立新批。
 
-10 月 12 日增加 `background-preview/preview <新 batch>`：从正式 Boot 新建普通 schema 4 世界，通过精确坐标 / 放置按钮信号构建相邻拓扑，合成鼠标、R / Esc 验证诊断与弯道拖铺取消。暂停下检查几何与布局，无生产 / 行走 / F / Tab 通过声明；结果单列实际输入范围。窗口原图在 `assets/art-intake/2026-10-12-factory-routing-connections-preview/`。只读前后快照固定同一 sequence 比较，自动保存实际发布序号另外记录，不能把文件序号推进误判为预览修改世界。
+10 月 12 日增加 `background-preview/preview <新 batch>`：从正式 Boot 新建普通世界（当时为 schema 4，B 后新建为 V5），通过精确坐标 / 放置按钮信号构建相邻拓扑，合成鼠标、R / Esc 验证诊断与弯道拖铺取消。暂停下检查几何与布局，无生产 / 行走 / F / Tab 通过声明；结果单列实际输入范围。窗口原图在 `assets/art-intake/2026-10-12-factory-routing-connections-preview/`。只读前后快照固定同一 sequence 比较，自动保存实际发布序号另外记录，不能把文件序号推进误判为预览修改世界。
+
+## 准入口定向入口
+
+B 使用 `sh tools/check-factory-admission.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 验证 V5 权威配额、坏档 / 原档保护及 4→5 菜单；`background-write/background-read` 由正式 Boot 普通零库存世界自然筛料、拾样 / 试制、定量 4 件。第三件送出 / 第四件半程且停止接收时保存，独立 read 只再送一件，再启用不重置，显式重置后续产。合成输入、精确放置 / 下拉候选与真实主循环计时分列，不注入物料 / 解锁 / 人物位置或加速。
+
+`review` 从哈希核对的未消费起点副本启动短窗口：暂停恢复、F / Tab、普通 / 最小面板、模型与 R 预览原图；不声明执行自然生产或配置提交。结果的 input 按模式填写，不能沿用完整驱动能力表冒充执行证据。运行根 `tools/runtime-intake/check-runs/factory-item-admission-v1/`，原图 `assets/art-intake/2026-10-12-factory-item-admission-preview/`，用户副本另放 `tools/runtime-intake/review-worlds/factory-item-admission-v1/`。新建默认 V5，旧 2 / 3 / 4 原规则继续与各级升级分别选择；已消费 read 保留，不重复作为原 write 检查点。亲测入口及待验范围见[准入口专题](../features/factory-item-admission-v1.md#playtest)。

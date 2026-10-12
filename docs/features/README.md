@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-[分流 / 汇合](factory-conveyor-routing-v1.md) V4 与预览诊断已实现。[准入口](factory-item-admission-v1.md)提案待确认、未实施；亲测与 D4 待验，见 [W42](../devlogs/2026-W42.md)。
+[分流 / 汇合](factory-conveyor-routing-v1.md) V4 与预览诊断已实现。[准入口](factory-item-admission-v1.md) V5 已实现；亲测、C 与 D4 待验，见 [W42](../devlogs/2026-W42.md)。
 
 [设备交互](factory-device-interaction-v1.md)已实现主动拾样、角色近身 F / Tab、物品格与模型预览；工程证据见专题及 [W41](../devlogs/2026-W41.md)，体验反馈待验。
 

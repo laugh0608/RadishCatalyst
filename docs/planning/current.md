@@ -13,14 +13,15 @@
 ## 当前活跃专题
 
 - [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 已实现；各八件供给、共同仲裁、半程 / 游标保存及显式升级保持。10 月 12 日补齐建造栏连接诊断与稳定占位，状态 526、独立进程 3、后台预览 62、短窗口 69 项通过；七张原图已审阅，亲测待验。既有自然 Boot write 119 / read 28 证据沿用，最新批次见 W42。
-- [Factory Item Admission V1](../features/factory-item-admission-v1.md)：B 设计提案已完成，推荐单物品筛选与不限量 / 本轮总配额、按成功送出计数、空载配置 / 显式重置、停止接收后排空；8 件供给及 schema 5 仍待确认，未修改现行 V4。
+- [Factory Item Admission V1](../features/factory-item-admission-v1.md)：B 整组合同已确认并实现，含 8 件供给与 schema 5。单物品筛选、不限量 / 本轮总配额、成功送出计数、关闭排空、空载配置 / 显式重置已接入；状态 461、独立进程 2、菜单 10、后台自然 write 120 / read 40、短窗口 31 项通过，四张原图已审阅，隔离亲测入口已准备。C 完整组合与用户反馈待验。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
 - [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
 - [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；既往亲测通过记录保留，10 月 8 日样本改为到达后手动确认，当前证据由设备专题接续。
 - [Factory Discovery And Production V1](../features/factory-discovery-and-production-v1.md)：固定样本 → 试制 → 自动制剂 → 两次开路 → 富集资源回流；四配方、近身取放与开拓事实已实现，D3 空世界两次开路与富集回流路径已通过。
 - [Factory Power And Grid V1](../features/factory-power-and-grid-v1.md)：两套 120 kW 电源、12 节点、20Hz 比例分配、缺电降速与停复电；旧显式图合同保留，现行连接方式由范围供电专题补充。
 - [Factory Production Statistics V1](../features/factory-production-statistics-v1.md)：物料 / 电量事件记账和有限历史存读已实现；库存分解、实际 / 理论产消、趋势、定位与收藏页面已接入 D3。
-- [Factory Routing Save V4](../architecture/factory-routing-save-v4.md)：附件严格状态、共同物流与 3→4 独立原档升级；不静默改变旧世界。
+- [Factory Admission Save V5](../architecture/factory-admission-save-v5.md)：当前新勘探世界、准入配置 / 配额严格状态与 4→5 独立原档升级；无准入口旧线轨迹保持。
+- [Factory Routing Save V4](../architecture/factory-routing-save-v4.md)：A 附件严格状态、共同物流与 3→4 独立原档升级；旧 V4 可继续原规则。
 - [Factory Discovery Save V3](../architecture/factory-discovery-save-v3.md)：自动图、版本保护及旧 schema 2 的显式升级与独立原档备份；字段沿用 [V2 联合合同](../architecture/factory-discovery-save-v2.md)。
 - [Factory World State And Save V1](../architecture/factory-world-state-and-save-v1.md)：基础工厂 schema 1，以及两种工厂共用的锁、候选恢复、文件发布和活动时钟合同。
 - [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)：已交付基础工厂的 P1–P3 证据、亲测反馈及 Windows 待验边界；旧 Demo / Web 继续作为参照。
@@ -29,12 +30,13 @@
 
 萝卜SAMA已要求按联合 D1–D4 范围继续实施。D1 的两个自有电力 GLB 和矿道场景已接入 D2 运行分支；D1 静态预览本身仍只算资产与空间证据，不代替玩法验证或美术定稿。
 
-- 默认“基础工厂”仍为 schema 1、原四类构件与预供电；另选“勘探工厂”新建 schema 4，新增分流器 / 汇合器各 8 件。旧 schema 2 / 3 可原规则继续，也可从菜单逐级明确升级并保留原副本；schema 1 与旧二维 schema 10 不迁移。
+- 默认“基础工厂”仍为 schema 1、原四类构件与预供电；另选“勘探工厂”新建 schema 5，分流器 / 汇合器 / 准入口各 8 件，普通实体预算 326。旧 schema 2 / 3 / 4 可原规则继续，也可从菜单分别明确选择逐级升级并保留独立原副本；schema 1 与旧二维 schema 10 不迁移。
 - 勘探工厂使用独立规则 / 地图 / 供给标识，支持基础催化剂、样本试制、常规解壳剂及富集催化剂四配方。唯一样本、两次 4 / 8 份制剂开路、近身按物品取放和多件出料均由权威模型处理。
 - 节点中心 12 格互连、设备中心 6 格接入，矿壳阻挡；建造、回收、源启停与开路后自动重算，只有实际可达才接通。孤网富余不抵消其他网缺口，带与仓被动运行；产物、样本与开路同步记账，搬运与取消不虚增产消。
 - 全局工艺回查保留样本 / 矿道操作并暂停生产；HUD 由发现事实派生用途、缺口与下一步。样本远处仅模型与小图标，近处显示名称，可按 F / 点击提示拾取；远处点样本仅走近，停下后须再次确认。统计页只读且不自动暂停生产，窗口与收藏沿用原偏好字段。正式工厂失焦后仍持续生产 / 物流 / 统计 / 自动保存，只取消残留移动和未确认拖铺；主动暂停与退出后不补产保持。
 - 勘探设备详情、动态与操作集中在一个面板，不再重复右侧详情；走近点击或按 F 打开附近高亮对象，Tab 切换候选；背包可按 I 查看，产线 / 物流 / 统计 / 自动保存继续运行，关闭保留原暂停状态。基础与勘探共用放置模型预览和物流端口提示；schema 1 原操作、规则与存档不变，独立样板保持自己的提示。
 - 已认可的造型、50° 视角、配色、光照、接口箭头、拖铺与真实弯道保持；精细美术另包推进。
+- 准入口只收晶体、催化剂、解壳剂或富集晶体中的一种，样本仍亲手操作。有限配额按成功送出计数，持货占用剩余额度；接收开关 / 读档不重置，持货禁改 / 重置 / 旋转；新配置与显式重置开始新一轮。经过附件只记在途，不虚增产消。
 - 普通供给与工程规模夹具明确区分；不将 100 台 / 1,000 带夹具放入普通新建选项。除本包设备外，经济解锁、液气、战斗、多人、随机地图、多星球、离线收益、量产美术、分发和发布未解冻。
 
 ## 验证状态与退出条件
@@ -46,4 +48,4 @@
 - D3 定向统计 29 项、电力 104 项、发现 118 项、独立进程半批 2 项、基础存档 44 项、活动时钟 28 项、视图 15 项和旧二维存档 161 项通过。新空世界批次 `d3-resume-full-20260929-a` 的完整 write 190 项通过，覆盖两次开路、富集回流、缺电 / 增容、统计运行与输入隔离；独立 Boot 恢复及三段各 60 秒断料 / 修复趋势 40 项通过。历史 a/b/c 失败和本轮读档驱动失败保留在 W40，不作为通过证据，也不把合成输入视为用户亲测。
 - Windows / PowerShell、目标硬件、schema 2 规模前台性能仍待验。D4 普通供给、完整 600 秒历史的关闭 / 物料 / 电力三段各 45 秒对照已通过（30 项、无失焦），帧 p95 为 8.757 / 9.004 / 8.850ms；自动保存尖峰保留。此前失焦及计数误报批次保留在 W40。现行 schema 2 没有工程供给合同，100 台 / 1,000 带须先确认独立供给设计；普通对照不能充当首档规模结果。历史慢绘制根因和诊断标记开销尚未归因，真实复现后再用既有分析器排查，不为追溯解释追加渲染补丁。
 
-预览诊断、B 提案与最新批次见 [W42 周志](../devlogs/2026-W42.md)；设备交互与 A 原自然产线见 [W41 周志](../devlogs/2026-W41.md)，D3 / D4 与样板见 [W40 周志](../devlogs/2026-W40.md)。历史性能方法见 [Metal 呈现诊断记录](../reference/factory-metal-presentation-review-20260912.md)，接续见 [Daily Start](daily-start.md)。
+B 已取得自然筛料 / 试制 / 四件定量备料与独立恢复证据；状态夹具另证明分流、两闸、两反应器和汇合共同调度。这些不代替 C 两种物料的自然组合、完整现版本两次开路、用户理解或 D4。预览诊断、B 实现与最新批次见 [W42 周志](../devlogs/2026-W42.md)；设备交互与 A 原自然产线见 [W41 周志](../devlogs/2026-W41.md)，D3 / D4 与样板见 [W40 周志](../devlogs/2026-W40.md)。历史性能方法见 [Metal 呈现诊断记录](../reference/factory-metal-presentation-review-20260912.md)，接续见 [Daily Start](daily-start.md)。

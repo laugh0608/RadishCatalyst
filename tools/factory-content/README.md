@@ -38,4 +38,8 @@
 
 ## 分流 / 汇合资产
 
-`node tools/factory-content/export-routing-assets.mjs` 复用已有 Three.js 与自有几何帮助函数，生成 `client/assets/factory/routing/{splitter,merger}.glb`。均严格位于 1×1 足印内，分流为竖直圆顶壳体，汇合为横向滚筒，配不同方向的入口 / 出口箭头；不下载素材或依赖。manifest 记录源 / 产物 SHA-256、包围盒与网格 / 三角形数。正式世界按 schema 4 规则加载导入场景；玩法与原图由 `check-factory-routing.sh` 验证，导出成功不代表用户体验或美术定稿。
+`node tools/factory-content/export-routing-assets.mjs` 复用已有 Three.js 与自有几何帮助函数，生成 `client/assets/factory/routing/{splitter,merger}.glb`。均严格位于 1×1 足印内，分流为竖直圆顶壳体，汇合为横向滚筒，配不同方向的入口 / 出口箭头；不下载素材或依赖。manifest 记录源 / 产物 SHA-256、包围盒与网格 / 三角形数。正式世界按 schema 4 / 5 规则加载导入场景；玩法与原图由 `check-factory-routing.sh` 验证，导出成功不代表用户体验或美术定稿。
+
+## 准入口资产
+
+`node tools/factory-content/export-admission-asset.mjs` 沿同一离线 Three.js 流程导出 `client/assets/factory/admission/admission-gate.glb`：1×1 单向窄壳体、后入前出与机械闸口，7 个网格、666 个三角形。manifest 记录源 / 产物 SHA-256 和包围盒；自有 SVG 图标进入建造栏，正式 V5 世界只加载导入资源。未新增依赖或外部资产；玩法、数量和窗口证据由 `check-factory-admission.sh` 另验。

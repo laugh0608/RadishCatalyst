@@ -4,17 +4,20 @@ extends RefCounted
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const OUTPUT_NAMES := ["前", "左", "右"]
 const INPUT_NAMES := ["后", "左", "右"]
+const Admission := preload("res://scripts/factory/admission.gd")
 
 
 static func transport(e: Dictionary) -> bool:
-	return e.get("type", "") in ["belt", "splitter", "merger"]
+	return e.get("type", "") in ["belt", "splitter", "merger", "admission_gate"]
 
 
 static func ports(model: RefCounted, e: Dictionary, role: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var dir: int = e.get("dir", 0)
 	var sides: Array = []
-	if e.type == "splitter":
+	if e.type == "admission_gate":
+		sides = [2] if role == "input" else [0]
+	elif e.type == "splitter":
 		sides = [2] if role == "input" else [0, 3, 1]
 	elif e.type == "merger" or e.type == "belt":
 		sides = [2, 3, 1] if role == "input" else [0]
@@ -64,6 +67,9 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 	var target: Dictionary = connection.target
 	if item == "crust_sample":
 		return {"ok": false, "reason": "样本不可自动运输"}
+	if target.type == "admission_gate":
+		var reason := Admission.receive_reason(target, item)
+		if not reason.is_empty(): return {"ok": false, "reason": reason}
 	if transport(target):
 		if not target.cargo.is_empty():
 			return {"ok": false, "reason": "目标已满"}
@@ -147,6 +153,8 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 	var source: Dictionary = move.source
 	var target: Dictionary = move.target
 	if transport(source):
+		if source.type == "admission_gate" and source.quota_mode == "quota":
+			source.quota_used += 1
 		source.cargo = ""
 		source.batch = 0
 		source.progress = 0.0
@@ -176,9 +184,17 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 
 static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 	if e.cargo.is_empty():
+		if e.type == "admission_gate":
+			var input: Dictionary = ports(model, e, "input")[0]
+			var connection := input_connection(model, e, input)
+			var incoming: Dictionary = connection.source if connection.ok else {}
+			var item: String = incoming.get("cargo", model._output_item(incoming)) if not incoming.is_empty() else ""
+			var reason := Admission.receive_reason(e, item)
+			if not reason.is_empty(): return {"kind": "waiting" if reason == "已停止接收" else "blocked", "label": reason}
+			if not connection.ok: return {"kind": "blocked" if connection.reason == "方向不匹配" else "waiting", "label": connection.reason}
 		return {"kind": "ready", "label": "等待来料"}
 	if e.progress < 1.0 - 1e-9:
-		return {"kind": "running", "label": "运输中"}
+		return {"kind": "running", "label": "已停止接收 · 正在排空" if e.type == "admission_gate" and not e.accepting else "运输中"}
 	var reasons: Array[String] = []
 	for p in ports(model, e, "output"):
 		var state := output_status(model, e, p, e.cargo)

@@ -80,12 +80,17 @@ func _ready() -> void:
 			if not assets[type] is PackedScene:
 				resource_error = "缺少电力模型：" + type
 				return
-		if world_model.supply_id == Model.DiscoveryRules.ROUTING_SUPPLY_ID:
+		if Model.DiscoveryRules.routing_world(world_model.supply_id):
 			for kind in ["splitter", "merger"]:
 				assets[kind] = load(ASSET_ROOT + "routing/" + kind + ".glb")
 				if not assets[kind] is PackedScene:
 					resource_error = "缺少物流附件模型：" + kind
 					return
+		if world_model.kits.has("admission_gate"):
+			assets.admission_gate = load(ASSET_ROOT + "admission/admission-gate.glb")
+			if not assets.admission_gate is PackedScene:
+				resource_error = "缺少物品准入口模型"
+				return
 		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()
@@ -322,13 +327,13 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 	else:
 		var asset: Node3D = assets[e.type].instantiate()
 		root.add_child(asset)
-		if e.type in ["splitter", "merger"]:
+		if e.type in ["splitter", "merger", "admission_gate"]:
 			asset.rotation.y = -e.dir * PI / 2
 			var cargo: Node3D = assets.cargo.instantiate()
 			root.add_child(cargo)
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
-		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger"] else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
+		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
 		result.lamp.scale = Vector3.ONE * 0.21
 		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -444,7 +449,7 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 				mesh.transparency = 0.45
 				mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var shape: Dictionary = Model.CATALOG[ui.tool]
-		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ["splitter", "merger"] else 0.0
+		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ["splitter", "merger", "admission_gate"] else 0.0
 		build_model.position = Vector3(ui.cell.x + shape.w * 0.5, 0.06, ui.cell.y + shape.d * 0.5)
 	var key := str([model.revision, ui.tool, ui.cell, ui.dir, ui.selected])
 	if key == port_key:
@@ -465,7 +470,7 @@ func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
 		return
 	for role in ["input", "output"]:
 		var ports: Array = []
-		if model.supply_id == Model.DiscoveryRules.ROUTING_SUPPLY_ID:
+		if Model.DiscoveryRules.routing_world(model.supply_id):
 			ports = model.Logistics.ports(model, e, role)
 		else:
 			var p := Model.port(e, role)
@@ -504,7 +509,7 @@ func _sync_production(model: RefCounted) -> void:
 				v.cargo.rotation.y = model.time * 0.4
 				v.cargo.scale = Vector3.ONE * (0.9 if e.cargo == "catalyst" else 1.0)
 		else:
-			if e.type in ["splitter", "merger"]:
+			if e.type in ["splitter", "merger", "admission_gate"]:
 				v.cargo.visible = not e.cargo.is_empty() and e.progress < 0.28
 				if v.cargo.visible:
 					var p: Vector2 = Vector2(e.entry) * (0.5 - e.progress)
@@ -518,7 +523,7 @@ func _sync_production(model: RefCounted) -> void:
 			if model.has_method("power_state"):
 				match e.type:
 					"reactor": progress = e.progress / model.DiscoveryRules.RECIPES[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
-					"splitter", "merger": progress = e.progress
+					"splitter", "merger", "admission_gate": progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
 			else:

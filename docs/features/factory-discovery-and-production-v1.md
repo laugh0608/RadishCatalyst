@@ -1,10 +1,12 @@
 # Factory Discovery And Production V1
 
-更新时间：2026-10-08
+更新时间：2026-10-12
 
 状态：联合开发包 D2-A / D2-B 已实现 schema 2、真实供电、多配方、近身取放、唯一样本、试制及两次开路，完成定向状态与正式 Boot 隔离分项复核。D3 统计页与发现 HUD 已接入，空世界两次开路、富集回流与独立 Boot 恢复已有工程证据；用户体验留 D4；已有 schema 1 与旧二维 schema 10 保持原规则。精确字段见[联合存档合同](../architecture/factory-discovery-save-v2.md)，分项证据见 [W39 周志](../devlogs/2026-W39.md)。
 
 10 月 5 日按亲测反馈确认[范围自动供电与直接拾样](factory-range-power-and-pickup-v1.md)。当时新建及升级世界使用 [schema 3](../architecture/factory-discovery-save-v3.md)；10 月 8 日[附件 A](factory-conveyor-routing-v1.md)已将新建改为 schema 4，增加 8+8 附件与共同物流仲裁，旧 2 / 3 可继续原规则或逐级显式升级。下文原 D2 显式接线 / schema 2 描述保留其联合开发背景，现行连接与手动拾样以范围供电及[设备交互](factory-device-interaction-v1.md)为准；配方、开路成本、原六类供给和近身权限保持。
+
+10 月 12 日[准入口 B](factory-item-admission-v1.md)进一步接入新建 schema 5，新增 8 件供给与 4→5 独立原档升级；旧 2 / 3 / 4 仍可原规则继续。筛选、定量、关闭排空和显式重置服务现有配方 / 备料，不改变试制、4 / 8 件开路及富集生产合同。B 自然试制 / 四件备料与独立恢复已通过，完整 V5 开路循环仍待补验。
 
 ## 玩家结果与取舍
 
@@ -124,7 +126,7 @@
 
 ## 状态、存档与兼容提案
 
-D2 原联合包使用工厂 schema 2，以下字段合同继续作为[联合 schema 2](../architecture/factory-discovery-save-v2.md)与[schema 3](../architecture/factory-discovery-save-v3.md)的共同基础。当前新建使用 [schema 4](../architecture/factory-routing-save-v4.md)，附件字段及物流规则在其增量合同中定义；旧 schema 2 / 3 可原规则继续，也可在菜单逐级升级并保留原副本；原“基础工厂”及已有 schema 1 继续原地图、规则和保存版本。列表显式标注世界类型，不给基础工厂插入矿壳；旧二维 schema 10 入口仍隔离。
+D2 原联合包使用工厂 schema 2，以下字段合同继续作为[联合 schema 2](../architecture/factory-discovery-save-v2.md)与[schema 3](../architecture/factory-discovery-save-v3.md)的共同基础。当前新建使用 [schema 5](../architecture/factory-admission-save-v5.md)，A 调度及 B 配额在各自增量合同中定义；旧 schema 2 / 3 / 4 可原规则继续，也可在菜单逐级升级并保留原副本；原“基础工厂”及已有 schema 1 继续原地图、规则和保存版本。列表显式标注世界类型，不给基础工厂插入矿壳；旧二维 schema 10 入口仍隔离。
 
 | 权威数据 | 拟增量及约束 |
 | --- | --- |

@@ -44,7 +44,7 @@ static func snapshot(model: RefCounted, id: String, title: String, sequence: int
 	var entities: Array = []
 	for source in model.entities:
 		var e: Dictionary = source.duplicate(true)
-		if e.type in ["belt", "splitter", "merger"]:
+		if e.type in ["belt", "splitter", "merger", "admission_gate"]:
 			e.entry = [e.entry.x, e.entry.y]
 		entities.append(e)
 	return {

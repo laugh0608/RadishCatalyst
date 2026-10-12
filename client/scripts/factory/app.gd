@@ -99,6 +99,8 @@ func _ready() -> void:
 			return
 		if accepted.has("recovered_from"):
 			hud.announce("已从备份恢复：" + accepted.recovered_from.get_file())
+		elif accepted.get("upgraded_admission", false):
+			hud.announce("已升级物品准入口，原 V4 存档已独立备份。")
 		elif accepted.get("upgraded_routing", false):
 			hud.announce("已升级分流与汇合，原档已独立备份。")
 		elif accepted.get("upgraded_automatic", false):
@@ -280,7 +282,7 @@ func _cancel() -> void:
 
 
 func _turn() -> void:
-	if ui.tool in ["belt", "splitter", "merger"]:
+	if ui.tool in ["belt", "splitter", "merger", "admission_gate"]:
 		ui.dir = (ui.dir + 1) % 4
 	elif ui.selected != -1:
 		var result := model.rotate(ui.selected)
@@ -288,7 +290,7 @@ func _turn() -> void:
 
 
 func _action(name: String, value: Variant) -> void:
-	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger"]:
+	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
 		_choose(name)
 	else:
 		match name:

@@ -48,6 +48,8 @@ func show_device(kind: String, direction := 0) -> void:
 	var path := "res://assets/factory/" + kind + ".glb"
 	if kind in ["power_source", "power_junction"]:
 		path = "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
+	elif kind == "admission_gate":
+		path = "res://assets/factory/admission/admission-gate.glb"
 	elif kind in ["splitter", "merger"]:
 		path = "res://assets/factory/routing/" + kind + ".glb"
 	elif kind == "belt":
@@ -56,7 +58,7 @@ func show_device(kind: String, direction := 0) -> void:
 	assert(packed != null, "Missing device preview: " + path)
 	asset = packed.instantiate()
 	scene.add_child(asset)
-	if kind in ["belt", "splitter", "merger"]:
+	if kind in ["belt", "splitter", "merger", "admission_gate"]:
 		asset.rotation.y = -direction * PI / 2
 	var bounds := AABB()
 	var first := true

@@ -4,6 +4,7 @@ const V1 := preload("res://scripts/factory/save/codec_v1.gd")
 const NewModel := preload("res://scripts/factory/discovery_model.gd")
 const Config := preload("res://data/factory/discovery_rules.gd")
 const RoutingValidator := preload("res://scripts/factory/save/routing_validator.gd")
+const AdmissionValidator := preload("res://scripts/factory/save/admission_validator.gd")
 const Validator := preload("res://scripts/factory/save/statistics_validator.gd")
 
 
@@ -115,10 +116,10 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 			return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
-		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id"]:
+		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used"]:
 			if e.has(key):
 				e[key] = int(e[key])
-		if e.type in ["belt", "splitter", "merger"]:
+		if e.type in ["belt", "splitter", "merger", "admission_gate"]:
 			e.entry = Vector2i(source.entry[0], source.entry[1])
 		for key in ["buffer", "input", "output", "invested", "items"]:
 			if e.has(key):
@@ -127,7 +128,7 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 			if active_batches.has(e.active_batch):
 				return failure("在制批次重复。")
 			active_batches[e.active_batch] = true
-		var batch := int(e.output_batch) if e.type == "reactor" and not e.output.is_empty() else int(e.batch) if e.type in ["belt", "splitter", "merger"] else 0
+		var batch := int(e.output_batch) if e.type == "reactor" and not e.output.is_empty() else int(e.batch) if e.type in ["belt", "splitter", "merger", "admission_gate"] else 0
 		if batch > 0:
 			var item: String = e.output.keys()[0] if e.type == "reactor" else e.cargo
 			var amount: int = NewModel.Items.count(e.output) if e.type == "reactor" else 1
@@ -183,7 +184,9 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 static func validate_power_entity(e: Variant, next_id: int, next_batch: int, model: RefCounted) -> Dictionary:
 	if not e is Dictionary or not e.has("type") or not e.type is String:
 		return failure("设备对象无效。")
-	if model.supply_id == Config.ROUTING_SUPPLY_ID and Config.ROUTING_CATALOG.has(e.type):
+	if model.supply_id == Config.ADMISSION_SUPPLY_ID and e.type == "admission_gate":
+		return AdmissionValidator.validate(e, next_id, next_batch)
+	if Config.routing_world(model.supply_id) and Config.ROUTING_CATALOG.has(e.type):
 		return RoutingValidator.validate(e, next_id, next_batch)
 	if not Config.SUPPLY.has(e.type):
 		return failure("未知设备类型。", true)

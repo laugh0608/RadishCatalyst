@@ -67,7 +67,7 @@ func list_worlds() -> Array[Dictionary]:
 		if candidate.ok:
 			entry.name = candidate.document.name
 			entry.schema = int(candidate.document.save_schema_version)
-			entry.name += " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			entry.name += " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -216,6 +216,16 @@ func upgrade_routing(candidate: Dictionary) -> Dictionary:
 	return candidate
 
 
+func upgrade_admission(candidate: Dictionary) -> Dictionary:
+	if not _owns_lock() or not candidate.get("ok", false) or candidate.document.save_schema_version != 4:
+		return _error("只有已锁定并校验的分流汇合世界可以升级准入口。")
+	var result := Codec.V5.upgrade(candidate.document)
+	if not result.ok: return result
+	candidate.model = result.model
+	candidate.upgrade_admission = true
+	return candidate
+
+
 ## Called only after the candidate's model and view have been fully reconstructed.
 func accept(candidate: Dictionary) -> Dictionary:
 	if not _owns_lock() or _hash(candidate.source) != candidate.hash or _hash(path("autosave.json")) != expected_main_hash:
@@ -223,7 +233,7 @@ func accept(candidate: Dictionary) -> Dictionary:
 	if _fail("reconstruction"):
 		return _error("候选重建失败。")
 	loaded = true
-	if candidate.get("upgrade_automatic", false) or candidate.get("upgrade_routing", false):
+	if candidate.get("upgrade_automatic", false) or candidate.get("upgrade_routing", false) or candidate.get("upgrade_admission", false):
 		var retained := _retain_upgrade_source(candidate)
 		if not retained.ok:
 			loaded = false
@@ -232,7 +242,7 @@ func accept(candidate: Dictionary) -> Dictionary:
 		if not upgraded.ok:
 			loaded = false
 			return upgraded
-		upgraded["upgraded_routing" if candidate.get("upgrade_routing", false) else "upgraded_automatic"] = true
+		upgraded["upgraded_admission" if candidate.get("upgrade_admission", false) else "upgraded_routing" if candidate.get("upgrade_routing", false) else "upgraded_automatic"] = true
 		return upgraded
 	if candidate.source != path("autosave.json"):
 		var result := save(candidate.model, candidate)
@@ -245,7 +255,7 @@ func accept(candidate: Dictionary) -> Dictionary:
 
 
 func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
-	var prefix := "pre-routing-v3" if candidate.get("upgrade_routing", false) else "pre-auto-power-v2"
+	var prefix := "pre-admission-v4" if candidate.get("upgrade_admission", false) else "pre-routing-v3" if candidate.get("upgrade_routing", false) else "pre-auto-power-v2"
 	var name := "backups/%s-%d-%s.json" % [prefix, int(candidate.document.sequence), candidate.hash.left(12)]
 	if FileAccess.file_exists(path(name)):
 		return {"ok": true} if _hash(path(name)) == candidate.hash else _error("升级前副本内容不一致，未覆盖。")
@@ -260,7 +270,7 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 
 
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
-	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID]:
+	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID]:
 		return _error("范围供电仅适用于勘探工厂。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
@@ -286,7 +296,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic
 func _create_locked(title: String, supply: String, automatic_power: bool) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
-	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID]:
+	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID]:
 		return _error("未知供给版本。")
 	var id := Crypto.new().generate_random_bytes(16).hex_encode()
 	if DirAccess.make_dir_absolute(root.path_join(id)) != OK:
@@ -299,7 +309,9 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	expected_main_hash = ""
 	loaded = true
 	var model: RefCounted
-	if supply == Codec.V2.Config.ROUTING_SUPPLY_ID:
+	if supply == Codec.V2.Config.ADMISSION_SUPPLY_ID:
+		model = Codec.V5.AdmissionModel.new()
+	elif supply == Codec.V2.Config.ROUTING_SUPPLY_ID:
 		model = Codec.V4.RoutingModel.new()
 	else:
 		model = Codec.V2.NewModel.new(automatic_power) if supply == Codec.V2.Config.SUPPLY_ID else Codec.Model.new(supply)

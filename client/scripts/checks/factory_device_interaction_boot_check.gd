@@ -516,7 +516,7 @@ func _restore() -> void:
 	# The final save-and-return increments the file sequence without changing the paused state.
 	var actual := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, expected.sequence)
 	driver.expect(world.store.sequence >= expected.sequence, "restored file sequence retains monotonic save order")
-	driver.expect(Check.equivalent(actual, expected), "independent Boot restores full unchanged schema 4 snapshot")
+	driver.expect(Check.equivalent(actual, expected), "independent Boot restores full unchanged exploration snapshot")
 	if not await select_device("reactor"):
 		return
 	await driver.shot("13-restored-partial-trial")

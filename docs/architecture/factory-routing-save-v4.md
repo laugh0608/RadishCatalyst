@@ -1,12 +1,12 @@
 # Factory Routing Save V4
 
-更新时间：2026-10-08
+更新时间：2026-10-12
 
 ## 范围与身份
 
-对应已确认的[分流 / 汇合 A 专题](../features/factory-conveyor-routing-v1.md)。新勘探世界使用 `factory_3d / 4 / factory_discovery_routing_v1 / factory_discovery_yard_64_v1 / factory_discovery_routing_starter_v1`。schema 4 增加物流附件、普通构件预算及共同仲裁时序；自动电网、配方、发现、统计和活动时钟沿用现行合同，不将旧世界静默解释为新物流。
+对应已确认的[分流 / 汇合 A 专题](../features/factory-conveyor-routing-v1.md)。V4 勘探世界使用 `factory_3d / 4 / factory_discovery_routing_v1 / factory_discovery_yard_64_v1 / factory_discovery_routing_starter_v1`。schema 4 增加物流附件、普通构件预算及共同仲裁时序；自动电网、配方、发现、统计和活动时钟沿用现行合同，不将旧世界静默解释为新物流。
 
-字段基础见 [V2](factory-discovery-save-v2.md)，自动图检查见 [V3](factory-discovery-save-v3.md)，锁、候选恢复、原子发布见[共用保存合同](factory-world-state-and-save-v1.md)。本篇只定义 V4 增量；实际执行结果见 [W41](../devlogs/2026-W41.md)。
+字段基础见 [V2](factory-discovery-save-v2.md)，自动图检查见 [V3](factory-discovery-save-v3.md)，锁、候选恢复、原子发布见[共用保存合同](factory-world-state-and-save-v1.md)。本篇只定义 V4 增量；当前新建已随准入口采用 [V5](factory-admission-save-v5.md)，4→5 为独立显式选择。A 原执行结果见 [W41](../devlogs/2026-W41.md)，最新回归见 [W42](../devlogs/2026-W42.md)。
 
 ## 权威状态
 

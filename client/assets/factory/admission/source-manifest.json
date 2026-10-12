@@ -1,0 +1,33 @@
+{
+  "source": "Repository-authored mechanical admission gate; offline existing Three.js",
+  "files": {
+    "admission-gate.glb": {
+      "bytes": 70280,
+      "sha256": "34a6c44c8eeef74f858127dce2d50ac9fbeb26aa09abf16ef3fbdb556ff17709",
+      "footprint": [
+        1,
+        1
+      ],
+      "bounds": {
+        "min": [
+          -0.5,
+          0.009999996051192284,
+          -0.3199999928474426
+        ],
+        "max": [
+          0.5,
+          0.887499988079071,
+          0.3199999928474426
+        ]
+      },
+      "meshes": 7,
+      "triangles": 666
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-admission-asset.mjs": "73e150477f7ab0201001243bd564f1bdcb8183d3520a1119dda6703679dc3896",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}
