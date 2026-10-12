@@ -5,6 +5,7 @@ const Legacy := preload("res://scripts/factory/discovery_model.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const Store := preload("res://scripts/factory/save/store.gd")
 const Compare := preload("res://scripts/checks/factory_discovery_check.gd")
+const Hud := preload("res://scripts/factory/hud.gd")
 const ID := "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
 var checks := 0
 var failures: Array[String] = []
@@ -56,6 +57,7 @@ func run() -> void:
 		_restore()
 	else:
 		_ports_and_commands()
+		await _preview_connections()
 		_routing()
 		_competition_and_saturation()
 		_natural_and_codec()
@@ -91,6 +93,79 @@ func _ports_and_commands() -> void:
 		expect(not model.salvage(e.id).ok and snapshot(model) == before, "full bag salvage atomic %d" % dir)
 		model.bag = {}
 		expect(model.salvage(e.id).ok and model.bag.crystal == 1 and model.kits.splitter == 8, "salvage returns kit and cargo %d" % dir)
+
+
+func _preview_connections() -> void:
+	for dir in 4:
+		var model := Model.new()
+		var cell := Vector2i(-12, -5)
+		var ghost := {"type": "splitter", "x": cell.x, "z": cell.y, "dir": dir}
+		model.place("belt", cell - model.DIRS[dir], dir)
+		model.place("belt", cell + model.DIRS[dir], (dir + 2) % 4)
+		var side: int = (dir + 3) % 4
+		var target: Dictionary = model.place("belt", cell + model.DIRS[side], side).entity
+		var before := snapshot(model)
+		var text: String = Model.Logistics.preview_text(model, ghost)
+		expect("后输入：已接通" in text and "前输出：方向不匹配" in text and "左输出：已接通" in text and "右输出：未连接" in text, "splitter preview diagnoses every rotated edge %d" % dir)
+		expect(snapshot(model) == before, "preview does not allocate ids kits cargo or cursors %d" % dir)
+		var placed: Dictionary = model.place("splitter", cell, dir).entity
+		expect(Model.Logistics.preview_text(model, placed) == text, "placed and previewed topology agree %d" % dir)
+		var output: Dictionary = Model.Logistics.ports(model, placed, "output")[1]
+		expect(Model.Logistics.output_status(model, placed, output, "crystal").ok, "previewed connection permits the actual transfer %d" % dir)
+		target.cargo = "crystal"
+		expect(Model.Logistics.preview_text(model, placed) == text and Model.Logistics.output_status(model, placed, output, "crystal").reason == "目标已满", "structural preview does not promise capacity on a connected full edge %d" % dir)
+		var source: Dictionary = model.entity_at(cell - model.DIRS[dir])
+		model.rotate(source.id)
+		model.rotate(source.id)
+		var wrong_input := {"type": "merger", "x": cell.x, "z": cell.y, "dir": dir}
+		expect("后输入：方向不匹配" in Model.Logistics.preview_text(model, wrong_input), "input-to-input mismatch is diagnosed %d" % dir)
+	var machine_model := Model.new()
+	machine_model.place("collector", Vector2i(-20, -1))
+	machine_model.place("reactor", Vector2i(-17, -2))
+	var belt := {"type": "belt", "x": -18, "z": 0, "dir": 0}
+	var before := snapshot(machine_model)
+	var machine_text: String = Model.Logistics.preview_text(machine_model, belt)
+	expect("后输入：已接通" in machine_text and "前输出：已接通" in machine_text, "machine footprint ports join a previewed belt")
+	expect(snapshot(machine_model) == before, "machine preview keeps the complete save snapshot unchanged")
+	belt.dir = 1
+	expect("右输入：已接通" in Model.Logistics.preview_text(machine_model, belt), "ordinary belt side input remains legal in preview")
+	var hud := Hud.new()
+	root.add_child(hud)
+	var model := Model.new()
+	model.place("belt", Vector2i(-13, -5))
+	model.place("belt", Vector2i(-11, -5), 2)
+	var ui := {"build": true, "tool": "splitter", "cell": Vector2i(-12, -5), "dir": 0,
+		"selected": -1, "stroke": Array([], TYPE_VECTOR2I, "", null), "paused": true, "mission": false}
+	before = snapshot(model)
+	hud.refresh(model, model.actor, ui, true)
+	expect(hud.connection_preview.visible and "后输入：已接通" in hud.connection_preview.text and "前输出：方向不匹配" in hud.connection_preview.text, "HUD exposes per-port diagnostics before placement")
+	expect(not hud.buttons.place.disabled and hud.placement_reason.text == "可放置", "connection mismatch does not prohibit legal placement")
+	var prior: String = hud.connection_preview.text
+	ui.stroke.append(Vector2i(-12, -5))
+	hud.refresh(model, model.actor, ui, true)
+	expect(not hud.connection_preview.visible and hud.connection_preview_slot.visible, "drag path hides single ghost diagnostics without changing reserved height")
+	ui.stroke.clear()
+	ui.dir = 1
+	hud.refresh(model, model.actor, ui, true)
+	expect(hud.connection_preview.text != prior, "rotating the ghost refreshes connection diagnostics")
+	ui.cell = Vector2i(-13, -5)
+	hud.refresh(model, model.actor, ui, true)
+	expect(not hud.connection_preview.visible and hud.connection_preview_slot.visible and hud.buttons.place.disabled, "occupied position hides irrelevant diagnostics while retaining stable layout")
+	ui.cell = Vector2i(-12, -5)
+	ui.tool = "power_junction"
+	hud.refresh(model, model.actor, ui, true)
+	expect(not hud.connection_preview.visible, "devices without logistics ports do not show empty diagnostics")
+	ui.tool = ""
+	hud.refresh(model, model.actor, ui, true)
+	expect(not hud.connection_preview.visible and not hud.connection_preview_slot.visible, "cancelled construction removes the diagnostic region")
+	expect(snapshot(model) == before, "HUD rotation movement and cancellation are read-only")
+	ui.tool = "belt"
+	ui.cell = Vector2i(-12, -5)
+	for legacy in [Legacy.new(false), Legacy.new(true), preload("res://scripts/factory/model.gd").new()]:
+		hud.refresh(legacy, legacy.actor, ui, true)
+		expect(not hud.connection_preview.visible and not hud.connection_preview_slot.visible, "legacy world retains its existing placement feedback")
+	hud.queue_free()
+	await process_frame
 
 
 func _routing() -> void:

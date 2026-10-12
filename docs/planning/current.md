@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-08
+更新时间：2026-10-12
 
 ## 当前阶段
 
@@ -12,7 +12,8 @@
 
 ## 当前活跃专题
 
-- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 批已实现；普通供给各八件、共同仲裁、半程 / 游标保存及显式升级已接入。状态 488、跨进程 3、菜单 9、自然 Boot write 119 / read 28 项通过；日终核对发现建造预览的连接原因仍待补（现仅有箭头与落位结果），亲测待验，准入口留 B。
+- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 已实现；各八件供给、共同仲裁、半程 / 游标保存及显式升级保持。10 月 12 日补齐建造栏连接诊断与稳定占位，状态 526、独立进程 3、后台预览 62、短窗口 69 项通过；七张原图已审阅，亲测待验。既有自然 Boot write 119 / read 28 证据沿用，最新批次见 W42。
+- [Factory Item Admission V1](../features/factory-item-admission-v1.md)：B 设计提案已完成，推荐单物品筛选与不限量 / 本轮总配额、按成功送出计数、空载配置 / 显式重置、停止接收后排空；8 件供给及 schema 5 仍待确认，未修改现行 V4。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
 - [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
 - [Factory Range Power And Pickup V1](../features/factory-range-power-and-pickup-v1.md)：正式自动接电、直接拾样及旧世界升级；既往亲测通过记录保留，10 月 8 日样本改为到达后手动确认，当前证据由设备专题接续。
@@ -45,4 +46,4 @@
 - D3 定向统计 29 项、电力 104 项、发现 118 项、独立进程半批 2 项、基础存档 44 项、活动时钟 28 项、视图 15 项和旧二维存档 161 项通过。新空世界批次 `d3-resume-full-20260929-a` 的完整 write 190 项通过，覆盖两次开路、富集回流、缺电 / 增容、统计运行与输入隔离；独立 Boot 恢复及三段各 60 秒断料 / 修复趋势 40 项通过。历史 a/b/c 失败和本轮读档驱动失败保留在 W40，不作为通过证据，也不把合成输入视为用户亲测。
 - Windows / PowerShell、目标硬件、schema 2 规模前台性能仍待验。D4 普通供给、完整 600 秒历史的关闭 / 物料 / 电力三段各 45 秒对照已通过（30 项、无失焦），帧 p95 为 8.757 / 9.004 / 8.850ms；自动保存尖峰保留。此前失焦及计数误报批次保留在 W40。现行 schema 2 没有工程供给合同，100 台 / 1,000 带须先确认独立供给设计；普通对照不能充当首档规模结果。历史慢绘制根因和诊断标记开销尚未归因，真实复现后再用既有分析器排查，不为追溯解释追加渲染补丁。
 
-设备交互批次、失败与修正见 [W41 周志](../devlogs/2026-W41.md)，D3 / D4 与样板证据见 [W40 周志](../devlogs/2026-W40.md)，前序见 [W39 周志](../devlogs/2026-W39.md)；历史性能方法见 [Metal 呈现诊断记录](../reference/factory-metal-presentation-review-20260912.md)。接续事项与验证入口见 [Daily Start](daily-start.md)，不自动重跑四档长测。
+预览诊断、B 提案与最新批次见 [W42 周志](../devlogs/2026-W42.md)；设备交互与 A 原自然产线见 [W41 周志](../devlogs/2026-W41.md)，D3 / D4 与样板见 [W40 周志](../devlogs/2026-W40.md)。历史性能方法见 [Metal 呈现诊断记录](../reference/factory-metal-presentation-review-20260912.md)，接续见 [Daily Start](daily-start.md)。

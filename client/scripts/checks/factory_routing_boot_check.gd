@@ -1,13 +1,20 @@
 extends "res://scripts/checks/factory_device_interaction_boot_check.gd"
 
+var connection_preview_only := false
 
 func run() -> void:
 	evidence_topic = "factory-conveyor-routing-v1"
-	screenshot_topic = "2026-10-08-factory-conveyor-routing-preview"
+	connection_preview_only = "--connection-preview-only" in OS.get_cmdline_user_args()
+	screenshot_topic = "2026-10-12-factory-routing-connections-preview" if connection_preview_only else "2026-10-08-factory-conveyor-routing-preview"
+	if connection_preview_only:
+		input_description_override = "Boot/create menus: focused synthetic Enter; pause/tool/save-return and drag/cancel: synthetic mouse; setup: precision coordinates/placement button signals; preview: routed R/Escape; paused topology/layout only, no walking or natural production assertion; no stock/actor position/time injection"
 	await super.run()
 
 
 func _first_line() -> void:
+	if connection_preview_only:
+		await _connection_previews()
+		return
 	driver.expect(world.model.supply_id == Codec.V2.Config.ROUTING_SUPPLY_ID and world.model.kits.splitter == 8, "formal menu creates schema4 ordinary supply")
 	await native_click(world.hud.buttons.mission)
 	await walk(Vector2(-16, 5.7))
@@ -73,6 +80,88 @@ func _first_line() -> void:
 	stage("write-complete", "natural split/merge, partial transit, live panel, blocked branch and repair")
 	await native_click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "routing world saves and returns")
+
+
+func _connection_previews() -> void:
+	driver.expect(world.model.supply_id == Codec.V2.Config.ROUTING_SUPPLY_ID, "connection preview enters current ordinary schema4 world through Boot")
+	await native_click(world.hud.buttons.pause)
+	await native_click(world.hud.buttons.mission)
+	await place("belt", -13, -5, "", 2)
+	await place("merger", -11, -5, "adjacent_merger")
+	world.view.inspection_target = Vector3(-12, 0, -5)
+	await native_click(world.hud.buttons.splitter)
+	world.hud.cell_x.value = -12
+	world.hud.cell_z.value = -5
+	await driver.settle()
+	var before := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
+	var original: String = world.hud.connection_preview.text
+	driver.expect("后输入：方向不匹配" in original and "前输出：已接通" in original and "左输出：未连接" in original, "splitter diagnoses wrong inlet connected outlet and missing branch")
+	driver.expect(not world.hud.buttons.place.disabled, "unconnected or mismatched ports do not disable legal placement")
+	await _preview_layout("splitter")
+	var preview_bounds: Rect2 = world.hud.world_image.get_global_rect()
+	await driver.key(KEY_R)
+	driver.expect(world.ui.dir == 1 and world.hud.connection_preview.text != original, "routed R updates relative port diagnostics")
+	await driver.shot("preview-rotated")
+	for i in 3: await driver.key(KEY_R)
+	driver.expect(world.hud.connection_preview.text == original, "four rotations restore the same connection preview")
+	world.hud.cell_x.value = -11
+	await driver.settle()
+	driver.expect(not world.hud.connection_preview.visible and world.hud.buttons.place.disabled, "occupied preview retains placement error without misleading connection result")
+	driver.expect(world.hud.world_image.get_global_rect() == preview_bounds, "valid-to-invalid preview keeps the same world image bounds including label line spacing")
+	await driver.shot("preview-invalid")
+	world.hud.cell_x.value = -12
+	await driver.key(KEY_ESCAPE)
+	driver.expect(not world.hud.connection_preview.visible, "Escape hides the preview")
+	# Autosave may publish a newer file during inspection; compare state at the same sequence.
+	var after := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, before.sequence)
+	write_json("preview-before.json", before)
+	write_json("preview-after.json", after)
+	write_json("preview-save-sequences.json", {"before": before.sequence, "after": world.store.sequence})
+	driver.expect(Check.equivalent(before, after), "rotation invalid placement and cancellation preserve all authoritative state")
+	await place("splitter", -12, -5, "placed_splitter")
+	var placed_text: String = world.model.Logistics.preview_text(world.model, world.model.by_id(ids.placed_splitter))
+	driver.expect(original.ends_with(placed_text), "actual placed topology agrees with the earlier ghost")
+	await place("belt", -10, 0)
+	await place("belt", -9, -1, "", 1)
+	await place("belt", -9, 1, "", 1)
+	await place("reactor", -8, -2)
+	world.view.inspection_target = Vector3(-9, 0, 0)
+	await native_click(world.hud.buttons.merger)
+	world.hud.cell_x.value = -9
+	world.hud.cell_z.value = 0
+	await driver.settle()
+	driver.expect("后输入：已接通" in world.hud.connection_preview.text and "左输入：已接通" in world.hud.connection_preview.text and "右输入：方向不匹配" in world.hud.connection_preview.text and "前输出：已接通" in world.hud.connection_preview.text, "merger previews each inlet and the machine footprint outlet")
+	await _preview_layout("merger")
+	await driver.key(KEY_ESCAPE)
+	await native_click(world.hud.buttons.belt)
+	before = Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
+	var image_bounds: Rect2 = world.hud.world_image.get_global_rect()
+	var start: Vector2 = driver.cell_screen(Vector2i(-10, 3))
+	var end: Vector2 = driver.cell_screen(Vector2i(-9, 4))
+	await driver.motion(start)
+	await driver.mouse(start, true)
+	await driver.motion(end, true)
+	write_json("preview-drag.json", {"start": str(start), "end": str(end), "cell": str(world.ui.cell), "stroke": str(world.ui.stroke), "image_before": str(image_bounds), "image_after": str(world.hud.world_image.get_global_rect())})
+	driver.expect(world.ui.stroke.size() >= 3 and not world.hud.connection_preview.visible, "routed bent drag uses path preview without a misleading single-cell diagnostic")
+	driver.expect(world.hud.world_image.get_global_rect() == image_bounds, "diagnostic visibility never shifts screen-to-grid coordinates during dragging")
+	await driver.shot("preview-drag-cancel")
+	await driver.key(KEY_ESCAPE)
+	await driver.mouse(end, false)
+	driver.expect(world.ui.stroke.is_empty() and Check.equivalent(before, Codec.snapshot(world.model, world.store.world_id, world.store.world_name, before.sequence)), "Escape cancels the bent drag without committing belts")
+	stage("connection-preview-complete", "formal Boot ordinary construction; precision fields/buttons plus routed R/Escape; paused geometry test without material position or time injection")
+	await native_click(world.hud.buttons.return)
+	driver.expect(boot.factory_world == null, "preview layout saves and returns from isolated world")
+
+
+func _preview_layout(name: String) -> void:
+	for dimensions in [Vector2i(1100, 720), Vector2i(1440, 900)]:
+		root.size = dimensions
+		await driver.settle(25)
+		var bounds: Rect2 = root.get_visible_rect()
+		driver.expect(bounds.encloses(world.hud.footer.get_global_rect()), "build footer fits supported window " + str(dimensions))
+		driver.expect(world.hud.footer.get_global_rect().encloses(world.hud.connection_preview.get_global_rect()), "all connection diagnostics remain inside footer " + name)
+		driver.expect(bounds.encloses(world.hud.buttons.place.get_global_rect()), "placement remains reachable alongside diagnostics " + name)
+		await driver.shot("preview-%s-%dx%d" % [name, dimensions.x, dimensions.y])
 
 
 func _place_attachment(kind: String, cell: Vector2i) -> void:

@@ -22,6 +22,8 @@ var coordinates := Label.new()
 var details := Label.new()
 var inspector_scroll := ScrollContainer.new()
 var placement_reason := Label.new()
+var connection_preview := Label.new()
+var connection_preview_slot := VBoxContainer.new()
 var tool_row := HFlowContainer.new()
 var placement_row := HBoxContainer.new()
 var build_help := Label.new()
@@ -230,6 +232,15 @@ func _build_footer(parent: Node) -> void:
 	_button(placement_row, "place", "放置 Enter")
 	_button(placement_row, "cancel", "取消 Esc")
 	placement_row.add_child(placement_reason)
+	connection_preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	connection_preview.add_theme_color_override("font_color", Color("b1d5cb"))
+	connection_preview.tooltip_text = "接口接通后仍需来料与空位；未连接时可先放置，再铺带接线。"
+	rows.add_child(connection_preview_slot)
+	connection_preview_slot.add_child(connection_preview)
+	var line_height := ceilf(connection_preview.get_theme_font("font").get_height(connection_preview.get_theme_font_size("font_size")))
+	connection_preview_slot.custom_minimum_size.y = 3 * line_height + 2 * connection_preview.get_theme_constant("line_spacing")
+	connection_preview_slot.hide()
+	connection_preview.hide()
 	power_help.text = PowerRange.legend()
 	power_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	power_help.add_theme_color_override("font_color", Color("b1d5cb"))
@@ -305,6 +316,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
 	placement_row.visible = not ui.tool.is_empty()
+	connection_preview.hide()
+	connection_preview_slot.hide()
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
@@ -322,6 +335,13 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
 		buttons.place.disabled = not valid.ok
+		if model.supply_id == Model.DiscoveryRules.ROUTING_SUPPLY_ID:
+			var preview := {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}
+			var connections: String = model.Logistics.preview_text(model, preview)
+			# Reserve the same height while hovering and dragging so screen-to-grid mapping stays stable.
+			connection_preview_slot.visible = not connections.is_empty()
+			connection_preview.text = "接口预览 · 可先放置再接线\n" + connections
+			connection_preview.visible = valid.ok and ui.stroke.is_empty() and not connections.is_empty()
 	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
 	buttons.discovery.visible = model.has_method("power_state")
 	buttons.inventory.visible = model.has_method("power_state")

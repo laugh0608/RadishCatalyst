@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-10-08
+更新时间：2026-10-12
 
 ## 用途
 
@@ -25,9 +25,9 @@
 
 ## 当前状态
 
-[分流 / 汇合](factory-conveyor-routing-v1.md)已按确认实现供给、共同调度与 schema 4，定向状态、自然建线及独立恢复通过；亲测待验，B 未开工。原交互 / 首程亲测与 D4 待验项保留。
+[分流 / 汇合](factory-conveyor-routing-v1.md) V4 与预览诊断已实现。[准入口](factory-item-admission-v1.md)提案待确认、未实施；亲测与 D4 待验，见 [W42](../devlogs/2026-W42.md)。
 
-[正式设备面板与接口提示](factory-device-interaction-v1.md)当前接续 10 月 8 日三项亲测反馈：样本改为到达后主动确认，近身 F / Tab 替代中心焦点，背包 / 设备以图标格、真实数量及模型预览呈现。新批次验证和待验边界见专题与 [W41](../devlogs/2026-W41.md)；本轮工程回归已交付，剩余体验反馈继续保留。
+[设备交互](factory-device-interaction-v1.md)已实现主动拾样、角色近身 F / Tab、物品格与模型预览；工程证据见专题及 [W41](../devlogs/2026-W41.md)，体验反馈待验。
 
 [低投入交互样板](factory-refinement-demo-v1.md)的圆润机械 / 化工方向已初步认可。[范围供电与拾取](factory-range-power-and-pickup-v1.md)及[首程引导](factory-first-journey-guidance-v1.md)已有工程证据；最新手动拾样以设备专题为准。后续顺序见[附件日程](../planning/factory-conveyor-accessories-roadmap.md)。
 

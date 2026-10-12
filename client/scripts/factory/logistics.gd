@@ -37,13 +37,31 @@ static func receiving_port(model: RefCounted, target: Dictionary, output: Dictio
 	return {}
 
 
-static func output_status(model: RefCounted, source: Dictionary, output: Dictionary, item: String) -> Dictionary:
+static func output_connection(model: RefCounted, output: Dictionary) -> Dictionary:
 	var target: Dictionary = model.entity_at(Vector2i(output.x + output.dx, output.z + output.dz))
 	if target.is_empty():
 		return {"ok": false, "reason": "未连接"}
 	var input := receiving_port(model, target, output)
 	if input.is_empty():
 		return {"ok": false, "reason": "方向不匹配"}
+	return {"ok": true, "reason": "已接通", "target": target, "output": output, "input": input}
+
+
+static func input_connection(model: RefCounted, target: Dictionary, input: Dictionary) -> Dictionary:
+	var source: Dictionary = model.entity_at(Vector2i(input.x + input.dx, input.z + input.dz))
+	if source.is_empty():
+		return {"ok": false, "reason": "未连接"}
+	for output in ports(model, source, "output"):
+		if receiving_port(model, target, output) == input:
+			return {"ok": true, "reason": "已接通", "source": source}
+	return {"ok": false, "reason": "方向不匹配"}
+
+
+static func output_status(model: RefCounted, source: Dictionary, output: Dictionary, item: String) -> Dictionary:
+	var connection := output_connection(model, output)
+	if not connection.ok:
+		return connection
+	var target: Dictionary = connection.target
 	if item == "crust_sample":
 		return {"ok": false, "reason": "样本不可自动运输"}
 	if transport(target):
@@ -52,7 +70,7 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 	elif not item.is_empty() and model.input_room(target, item) <= 0:
 		var accepts: bool = target.type == "storage" or (target.type == "reactor" and model.recipe_available(target.recipe_id) and model.DiscoveryRules.RECIPES[target.recipe_id].input.has(item))
 		return {"ok": false, "reason": "目标已满" if accepts else "目标不收该物品"}
-	return {"ok": true, "reason": "可接收", "source": source, "target": target, "output": output, "input": input}
+	return connection.merged({"reason": "可接收", "source": source}, true)
 
 
 static func step(model: RefCounted, dt: float) -> void:
@@ -180,11 +198,20 @@ static func port_text(model: RefCounted, e: Dictionary) -> String:
 			if role == "output":
 				message = output_status(model, e, p, item).reason
 			else:
-				var source: Dictionary = model.entity_at(Vector2i(p.x + p.dx, p.z + p.dz))
-				if not source.is_empty():
-					message = "方向不匹配"
-					for output in ports(model, source, "output"):
-						if not receiving_port(model, e, output).is_empty():
-							message = "已连接 #%d" % source.id
+				var connection := input_connection(model, e, p)
+				message = "已连接 #%d" % connection.source.id if connection.ok else connection.reason
 			lines.append("%s%s：%s" % [p.name, "输入" if role == "input" else "输出", message])
 	return "\n".join(lines)
+
+
+static func preview_text(model: RefCounted, e: Dictionary) -> String:
+	# Empty construction ghosts only describe geometry, never reserve cargo or capacity.
+	var groups := PackedStringArray()
+	for role in ["input", "output"]:
+		var lines := PackedStringArray()
+		for p in ports(model, e, role):
+			var connection := input_connection(model, e, p) if role == "input" else output_connection(model, p)
+			lines.append("%s%s：%s" % [p.name, "输入" if role == "input" else "输出", connection.reason])
+		if not lines.is_empty():
+			groups.append(" · ".join(lines))
+	return "\n".join(groups)

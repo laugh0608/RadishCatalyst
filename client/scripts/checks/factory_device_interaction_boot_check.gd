@@ -3,6 +3,7 @@ extends "res://scripts/checks/factory_statistics_boot_check.gd"
 var preview_only := false
 var evidence_topic := "factory-device-interaction-v1"
 var screenshot_topic := "2026-10-08-factory-device-interaction-preview"
+var input_description_override := ""
 
 ## Reuse the existing focus-aware walking/input and snapshot helpers, with this package's path.
 func run() -> void:
@@ -557,8 +558,11 @@ func finish() -> void:
 	if finished:
 		return
 	finished = true
+	var input_description := "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: Control-focused synthetic Enter; HUD/model selection/drag/live panel buttons: synthetic mouse; setup devices: precision fields/button signal; automatic wiring; recipe dropdown selected; walking: synthetic WASD; F/Tab/I/Escape: routed synthetic input; no injected stock/unlocks/actor position or accelerated time"
+	if not input_description_override.is_empty():
+		input_description = input_description_override
 	write_json("preview-result.json" if preview_only else "read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages,
 		"foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Default foundation and explicit discovery selection; Boot/create menus: focused synthetic Enter; preview/mouse placement/cancel/selection/nearby belt: synthetic mouse and Escape; discovery approach: synthetic WASD; no state injection" if preview_only else "Boot menu: Control-focused synthetic Enter; HUD/model selection/drag/live panel buttons: synthetic mouse; setup devices: precision fields/button signal; automatic wiring; recipe dropdown selected; walking: synthetic WASD; F/Tab/I/Escape: routed synthetic input; no injected stock/unlocks/actor position or accelerated time"}.merged(execution_evidence()))
+		"input": input_description}.merged(execution_evidence()))
 	print("Device interaction Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)

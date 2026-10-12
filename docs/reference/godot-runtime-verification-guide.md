@@ -180,3 +180,5 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从新 schema 4 普通零库存世界自然建线，真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。
 
 批次根为 `tools/runtime-intake/check-runs/factory-conveyor-routing-v1/`，原图根为 `assets/art-intake/2026-10-08-factory-conveyor-routing-preview/`；亲测根另用 `tools/runtime-intake/review-worlds/factory-conveyor-routing-v1/`。旧 schema 2 / 3 可以原规则继续，升级为独立显式操作。恢复会继续生产并保存，只消费一次；需重试时保留失败报告，用可追溯、哈希一致的未消费起点建立新批。
+
+10 月 12 日增加 `background-preview/preview <新 batch>`：从正式 Boot 新建普通 schema 4 世界，通过精确坐标 / 放置按钮信号构建相邻拓扑，合成鼠标、R / Esc 验证诊断与弯道拖铺取消。暂停下检查几何与布局，无生产 / 行走 / F / Tab 通过声明；结果单列实际输入范围。窗口原图在 `assets/art-intake/2026-10-12-factory-routing-connections-preview/`。只读前后快照固定同一 sequence 比较，自动保存实际发布序号另外记录，不能把文件序号推进误判为预览修改世界。

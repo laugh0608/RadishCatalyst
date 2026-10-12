@@ -10,14 +10,16 @@ background=false
 case "$mode" in
   background-write) mode=write; background=true ;;
   background-read) mode=read; background=true ;;
+  background-preview) mode=preview; background=true ;;
 esac
 case "$mode" in
   state|menu) if [ -d "$log_root" ]; then echo 'Use a new batch; prior evidence is retained.' >&2; exit 2; fi; set -- ;;
   process-read) if [ ! -f "$log_root/expected.json" ] || [ -f "$log_root/read-result.json" ]; then echo 'Requires unconsumed successful state batch.' >&2; exit 2; fi; set -- --read ;;
   write) if [ "$#" -lt 2 ] || [ -d "$log_root" ]; then echo 'Write requires a new explicit batch.' >&2; exit 2; fi; set -- ;;
+  preview) if [ "$#" -lt 2 ] || [ -d "$log_root" ]; then echo 'Preview requires a new explicit batch.' >&2; exit 2; fi; set -- --connection-preview-only ;;
   review) if [ ! -f "$log_root/expected.json" ] || [ -f "$log_root/read-result.json" ]; then echo 'Review requires an unused isolated copy of a write snapshot.' >&2; exit 2; fi; set -- --read --visual-only ;;
   read) if [ ! -f "$log_root/expected.json" ] || [ -f "$log_root/read-result.json" ]; then echo 'Read requires an unconsumed write batch.' >&2; exit 2; fi; set -- --read ;;
-  *) echo 'Usage: sh tools/check-factory-routing.sh [state|menu|process-read|background-write|background-read|write|read|review] [batch]' >&2; exit 2 ;;
+  *) echo 'Usage: sh tools/check-factory-routing.sh [state|menu|process-read|background-preview|preview|background-write|background-read|write|read|review] [batch]' >&2; exit 2 ;;
 esac
 mkdir -p "$log_root"
 if [ "$mode" = state ] || [ "$mode" = process-read ]; then

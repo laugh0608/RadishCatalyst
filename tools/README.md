@@ -44,6 +44,7 @@
 | `sh tools/check-factory-first-journey.sh state [batch]` | 首程引导由事实派生、先拾样 / 先建线、材料位置、供电 / 回压、替代路线、目标拆除、独立解码与只读不变；已登记 Shell / PowerShell 默认 Godot 检查 |
 | `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新勘探空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
 | `sh tools/check-factory-routing.sh state/process-read <batch>` | schema 4 端口 / 公平轮转 / 守恒 / 严格解码 / 显式升级与 IO 失败、独立进程完整恢复；state 用新批次，process-read 同批一次 |
+| `sh tools/check-factory-routing.sh background-preview/preview <batch>` | 正式 Boot 普通供给的单构件连接诊断、R / Esc、错接 / 非法位置、弯道拖铺取消、落位一致及普通 / 最小窗口布局；新 batch。前者无窗口，后者短窗口原图；暂停几何路径，不代替自然产线 / 亲测 |
 | `sh tools/check-factory-routing.sh menu <batch>` | 正式菜单：旧 schema 3 原规则继续、升级取消 / 确认与来源副本、不得重复领取 |
 | `sh tools/check-factory-routing.sh background-write/background-read <batch>` | 正式 Boot 新 schema 4 零库存自然两路生产、合流、堵塞修复、半程保存与独立恢复；无窗口不截图 |
 | `sh tools/check-factory-routing.sh review <batch>` | 使用哈希核对过的未消费 write 副本短窗口检查面板、旋转预览和全线；原图另存 art-intake，不代替亲测 |
