@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-12
+更新时间：2026-10-17
 
 ## 当前阶段
 
@@ -12,6 +12,7 @@
 
 ## 当前活跃专题
 
+- [Factory Conveyor Combination V1](../features/factory-conveyor-combination-v1.md)：10 月 17 日完成 C 组合方案与验收路径；外矿道后接普通 / 富集两物料，组合产物用于第二次开路。沿 V5 / 普通供给，精确布局、驱动、自然运行及亲测待验，不记阶段退出。
 - [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 已实现；各八件供给、共同仲裁、半程 / 游标保存及显式升级保持。10 月 12 日补齐建造栏连接诊断与稳定占位，状态 526、独立进程 3、后台预览 62、短窗口 69 项通过；七张原图已审阅，亲测待验。既有自然 Boot write 119 / read 28 证据沿用，最新批次见 W42。
 - [Factory Item Admission V1](../features/factory-item-admission-v1.md)：B 整组合同已确认并实现，含 8 件供给与 schema 5。单物品筛选、不限量 / 本轮总配额、成功送出计数、关闭排空、空载配置 / 显式重置已接入；状态 461、独立进程 2、菜单 10、后台自然 write 120 / read 40、短窗口 31 项通过，四张原图已审阅，隔离亲测入口已准备。C 完整组合与用户反馈待验。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
