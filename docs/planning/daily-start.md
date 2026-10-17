@@ -4,11 +4,11 @@
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[分流 / 汇合](../features/factory-conveyor-routing-v1.md)、[准入口](../features/factory-item-admission-v1.md)、[设备交互](../features/factory-device-interaction-v1.md)、[首程](../features/factory-first-journey-guidance-v1.md)及 [W42 周志](../devlogs/2026-W42.md)。按任务补读[范围供电](../features/factory-range-power-and-pickup-v1.md)、[发现生产](../features/factory-discovery-and-production-v1.md)、[基础电力](../features/factory-power-and-grid-v1.md)和[统计](../features/factory-production-statistics-v1.md)；前序批次见 W41。版本读 [schema 5](../architecture/factory-admission-save-v5.md)、[schema 4](../architecture/factory-routing-save-v4.md)、[schema 3](../architecture/factory-discovery-save-v3.md)、[schema 2](../architecture/factory-discovery-save-v2.md)及[共用保存合同](../architecture/factory-world-state-and-save-v1.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[D3 退出证据与 D4 方案](factory-d3-exit-and-d4-validation.md)及 [W42 周志](../devlogs/2026-W42.md)。性能准备补读[统计专题](../features/factory-production-statistics-v1.md)与方案指定的检查入口；亲测或整改再按需读取 [C 组合](../features/factory-conveyor-combination-v1.md)、[分流 / 汇合](../features/factory-conveyor-routing-v1.md)、[准入口](../features/factory-item-admission-v1.md)、[设备交互](../features/factory-device-interaction-v1.md)和[首程](../features/factory-first-journey-guidance-v1.md)。供给 / 存档改动须读 [schema 5](../architecture/factory-admission-save-v5.md)及相关前序合同，不默认展开全部专题。
 
 ## 当前交接
 
-- 10 月 17 日完成 [C 组合工程验收](../features/factory-conveyor-combination-v1.md)：84 实体精确布局、双原料自然加工 / 两次开路、7+1 保存与两次独立继续、六故障分支和 14 张原图均已复核。下一步使用独立亲测副本确认来料、配额和恢复操作的理解。
+- 10 月 17 日完成 [C 组合工程验收](../features/factory-conveyor-combination-v1.md)：84 实体精确布局、双原料自然加工 / 两次开路、7+1 保存与两次独立继续、六故障分支和 14 张原图均已复核。随后按萝卜SAMA要求先梳理 D3 退出证据和 D4 方案，亲测稍后进行；当前 V5 性能入口准备可独立接续。
 - 萝卜SAMA确认 A 方案后，[分流 / 汇合](../features/factory-conveyor-routing-v1.md)已实现：各 8 件供给、共同调度、schema 4 半程 / 游标保存与旧世界显式升级。状态 488、跨进程 3、菜单 9、后台自然 write 119 / read 28 项通过；原图与亲测分列，D4 缺口保留。
 - 10 月 12 日补齐 A 建造栏逐端口连接诊断，合法 / 非法与拖铺切换保持场地高度；状态 526、独立进程 3、后台预览 62、短窗口 69 项通过，七张原图已审阅。随后明确确认并实施 [B](../features/factory-item-admission-v1.md)：单物品筛选、不限量 / 本轮总配额、关闭排空、空载配置 / 重置、8 件供给与 schema 5 独立升级。状态 461、独立进程 2、菜单 10、后台自然 write 120 / read 40、短窗口 31 项通过，四张原图已审阅；失败与范围见 W42，亲测待验。
 - 10 月 8 日亲测反馈已收到，当前整改为样本到达后手动拾取、角色近身 F / Tab 和物品格面板；I 可独立查看背包，设备 / 背包内持续生产。最新状态 122、窗口 write 245 / read 45 项通过；后台功能 write 241 / read 42 与时钟 49 项进一步通过；最新反应器 / 背包原图已审阅，后台渲染“不取焦点”目标失败，不能作可靠入口。证据与亲测入口见[设备专题](../features/factory-device-interaction-v1.md)。
@@ -31,15 +31,15 @@
 
 ## 当前接续事项（2026-10-17）
 
-1. **接续 A 与交互亲测反馈**：[专题入口](../features/factory-conveyor-routing-v1.md#亲测入口)已分别提供连接诊断布局与既有自然产线。检查模型 / 端口原因能否理解、F / Tab 与空载旋转是否顺手、背包 / 仓库和首程是否可独立操作；遇真实阻塞优先整改，已通过的工程检查按变更风险使用。
-2. **接续 C 组合亲测**：[C 亲测副本](../features/factory-conveyor-combination-v1.md#playtest)提供 7+1 配额检查点与两次开路后的组合工厂。工程检查已覆盖真实普通供给、自然来源、保存与故障恢复；重点收集双物料去向、停止原因、配额 / 排空和恢复操作的理解，不重复申请 B / V5 已确认合同。
+1. **接续 D3 / D4 工程准备**：[证据矩阵与执行方案](factory-d3-exit-and-d4-validation.md)已完成，D3 工程证据支持提交退出裁决，阶段状态仍保留复核。下一工程动作是 D4-P0：适配 V5 普通供给性能入口及 600 桶准备，随后安排 P1 同状态三段窗口；现有入口只接受 V2，不能直接传入 C 快照。
+2. **保留 A / B / C 与交互亲测**：萝卜SAMA稍后亲测。[A 入口](../features/factory-conveyor-routing-v1.md#亲测入口)与 [C 检查点](../features/factory-conveyor-combination-v1.md#playtest)可复核连接、双原料、配额 / 排空及堵塞恢复；空世界首程另测理解与时间。收到实际反馈后优先整改，不将工程通过当作体验通过。
 3. **按变更风险补验**：已按确认取消失焦自动暂停，失焦清理输入、手动暂停、失败暂停和退出后不补产保持。设备 `background-write` / `background-read` 已通过且不占前台；新界面与首程仍需用户体验反馈。macOS 后台渲染探针仍取得焦点，不能默认重用；剩余截图 / 原生切窗 / 性能按需单独安排，不再例行跑前台完整自然生产。
 4. **保留批次与范围边界**：A 预览与 B 实现批次见 W42，A 原自然产线 / 读档和设备完整功能批次见 W41。A 预览为暂停几何布局；B 自然定量备料与短窗口暂停复核分开，不当作完整开路、C 或体验验收。已消费 read 不重复使用，亲测与自动证据分开。6 / 12 格、矿壳、多网、容量、原档备份与低投入资产保持；首屏偶发命中和独立样板点击待办保留。
 
 ## 后续顺序与保留待办
 
 1. **传送带附件顺位**：[附件路线](factory-conveyor-accessories-roadmap.md) A / B 接续反馈，C 接续独立亲测和具体反馈；工程交付不记作 D4 退出。
-2. **依据普通对照结果决定后续规模验证**：`d4-window-20260929-c` 的完整 600 桶、同状态关闭 / 物料 / 电力各 45 秒已通过，30 项、无失焦；帧 p95 8.757 / 9.004 / 8.850ms，采样内三次自动保存成功且尖峰保留。此项无需例行重跑。schema 2 的 100 台 / 1,000 带仍需先确认工程供给设计；不能将普通负载短测当作首档或持续验收。入口与亲测清单见[统计专题](../features/factory-production-statistics-v1.md#d4-普通供给对照与亲测准备)。
+2. **先当前普通对照，再明确工程规模合同**：历史 V2 `d4-window-20260929-c` 的完整 600 桶、三段各 45 秒已通过，不例行重跑；当前 V5 的自动电网、共同物流与准入口另按 D4-P0 / P1 准备一次对照。100 台 / 1,000 带须先明确 V5 独立工程供给、矿点 / 地图和真实电力合同，普通短测不充当规模或持续验收；细节见[D4 方案](factory-d3-exit-and-d4-validation.md)。
 3. **保留独立待办**：Windows / PowerShell、目标硬件验收及统计页图标接入 / 精细美术仍待完成。不复用历史四档成绩冒充最新联合版本通过，不自动解冻玩法。
 
 Godot 开窗前先告知；切走可暂停检查输入，工厂仍继续生产，用户关闭窗口后不自动重开。若复跑统计 read，注意它会在恢复验证后继续生产并保存；使用新 write 批次保留可审计的起点。

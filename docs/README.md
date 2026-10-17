@@ -88,6 +88,7 @@
 
 - [Daily Start](planning/daily-start.md)
 - [Current Plan](planning/current.md)
+- [Factory D3 Exit And D4 Validation](planning/factory-d3-exit-and-d4-validation.md)
 - [Project Purpose And Solo AI Development Review](planning/project-purpose-and-solo-ai-development-review.md)
 - [Milestone Review Checklist](planning/milestone-review-checklist.md)
 - [Agent Collaboration](process/agent-collaboration.md)
