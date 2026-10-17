@@ -15,7 +15,7 @@
 | 游戏 / 资料 | 本次读取与限制 |
 | --- | --- |
 | 终末地：[官网集成工业知识](https://endfield.gryphline.com/zh-tw)、[开发组通讯 02](https://endfield.gryphline.com/zh-tw/news/1340) | 官方正文可读。通讯发布于 2025-11-01，属于“全面测试”设计说明，不把其所有规则当作当前版本事实；官网明确列出装备、爆炸物、电池、战术物品等自动化产物 |
-| 终末地：[森空岛 Wiki](https://wiki.skland.com/) | 找到入口；网页读取只有标题，动态浏览器加载超时，未读到具体配方页。因此未用它核准 IndustrialPlanner 数值，也不把社区 `fz.wiki` 冒称官方 |
+| 终末地：[森空岛 Wiki](https://wiki.skland.com/) | 前轮抓取 / 标签页读取失败；用户提供设备目录后，改用 Chrome 原生窗口成功读取目录与 9 个详情页，核对代表配方和用途，见[正文核对](endfield-production-planning-study.md#森空岛-wiki-正文核对)。未进行全表或游戏内验证 |
 | Factorio：[Oil processing](https://wiki.factorio.com/Oil_processing)、[FFF #305](https://factorio.com/blog/post/fff-305) | 官方 Wiki 正文与开发日志可读。前者支持生产和回压关系；后者是 2019-07-26 的设计复盘，只用于解释分阶段引入复杂度 |
 | Satisfactory：[Recipes](https://satisfactory.wiki.gg/wiki/Recipes)、[替代配方选择](https://satisfactory.wiki.gg/wiki/Tutorial:Picking_an_alternate_recipe)、[AWESOME Sink](https://satisfactory.wiki.gg/wiki/AWESOME_Sink) | 官方名义 Wiki 的搜索索引可读，部分正文请求返回 403 / 读取错误；只采用索引明确支持的机制。替代配方教程标记未完成，不能当全配方排名 |
 | Captain of Industry：[Slag](https://wiki.coigame.com/Slag)、[Contracts](https://wiki.coigame.com/Contracts) | 开发商域名 Wiki 正文 / 索引可读；[官网论坛入口](https://coigame.com/Forum)明确称其为社区 Wiki。只提炼矿渣去向与长期供货结构，不沿用表中版本数值 |
@@ -26,7 +26,7 @@
 
 | 参考 | 可核对的机制 | 对本项目的提炼 | 当前不搬入的部分 |
 | --- | --- | --- | --- |
-| 终末地 | 官方通讯把探索、工业供货、地区建设及收益联系起来；配方页提供产线异常提示 | 成品应改变可行动范围或生产能力；在物品页显示用途和缺口，设备提示具体阻塞 | 地区货币、交易涨跌、在线共享、整套蓝图系统 |
+| 终末地 | 官方通讯连接探索、供货与建设；Wiki 核对到电池有发电 / 充能 / 交易用途、工业爆炸物支持多种地图交互，联产污水有耗电处置出口 | 成品应改变可行动范围或生产能力；副产物回用之外也要考虑最终出口；在物品页显示用途和缺口 | 地区货币、交易涨跌、在线共享、整套蓝图系统 |
 | Factorio | 基础炼油先提供较简单输出，进阶炼油引入多产物；任一输出满会阻塞整批，裂解可改变产物比例 | 先让玩家完成直接工艺，再引导可选回用；看清“哪种产物堵住”，保留不依赖副产物消费的工艺 | 开局同时引入液气、裂解、控制电路和完整科技包 |
 | Satisfactory | 替代配方可以改变原料和加工步骤；Cast Screw 省去铁棒中间步骤；Sink 销毁物品换积分 / 券 | 工艺价值既可以是节材，也可以是少机器、少运输；产物出口与生产配方必须一起设计 | 随机硬盘解锁、万能销毁换币、为保持全厂常转而强造需求 |
 | Captain of Industry | 矿渣可粉碎后用于混凝土，多余矿渣可倾倒；贸易合同承担长期资源交换 | 区分“回用价值”和“剩余处置”；扩建停止后再看副产物是否堵住能源线 | 全地形倾倒、污染、居民需求和航运经济 |
