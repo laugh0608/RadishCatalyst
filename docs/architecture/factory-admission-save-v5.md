@@ -1,12 +1,21 @@
 # Factory Admission Save V5
 
-更新时间：2026-10-12
+更新时间：2026-10-17
 
 ## 范围与身份
 
 对应已确认的[准入口 B](../features/factory-item-admission-v1.md)：`factory_3d / 5 / factory_discovery_admission_v1 / factory_discovery_yard_64_v1 / factory_discovery_admission_starter_v1`。普通供给加 `admission_gate=8`、总预算 326；原物品、配方、发现、电网、时钟和 A 调度保持，旧 V4 不静默升级。
 
 共用字段 / 文件发布沿 [V2](factory-discovery-save-v2.md)、[V3](factory-discovery-save-v3.md)、[V4](factory-routing-save-v4.md)与[共用保存合同](factory-world-state-and-save-v1.md)。本篇只记录 V5 增量，工程批次与失败保留见 [W42](../devlogs/2026-W42.md)。
+
+## 工程身份增量
+
+10 月 17 日已接入独立[工程规模合同](factory-engineering-scale-v1.md)：仍为 `factory_3d / 5`，三元组为 `factory_engineering_admission_v1 / factory_engineering_yard_64_v1 / factory_engineering_load_100_v1`。它复用 V5 字段与准入口语义，采用独立地图和 1,280 实体供给；本篇的 326 预算与 4→5 增发八件仅适用于普通身份，工程世界没有普通升级 / 转换入口。
+
+- `codec_v5.gd` 仅接受两套完整身份，错配 / 未知组合致命拒绝；构造相应模型后，矿点 / 通行按地图身份查询，普通六矿点与工程二十矿点各自校验。
+- `codec_v2.gd` 的连接列表上限普通为 91、工程为 1,770；统计装机 / 请求上限普通为 240 / 1,440 kW、工程为 4,800 / 3,600 kW。只对工程身份应用对应上界，不放宽普通坏档校验。
+- 默认 Store / 正式菜单拒绝工程创建与继续；只有显式工程上下文且保存根不为默认根时才允许，检查 runner 另行保证仓库内双根隔离。工程上下文不跳过严格解码、锁、读回和发布流程。
+- Store 在可读主档 / 候选声明身份时检查同 schema 的备份身份，普通与工程不互相回退；持有会话身份后也拒绝保存时互换。主档损坏到无法取得身份时仍沿严格候选校验，不声称能从不可解析 JSON 还原原身份。
 
 ## 准入口权威字段
 
