@@ -175,6 +175,12 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 
 - D2-A / D2-B 已增加 `tools/check-factory-power.sh` 和 `tools/check-factory-discovery.sh`，模式、固定夹具目录和跨进程顺序见 [Tools](../../tools/README.md#正式工厂定向检查)。发现窗口使用加速生产的分段夹具与合成输入，不能拼成自然玩家全路径；完整统计页、自然发现循环和窗口尺寸全覆盖仍属 D3。上述 74 入口全套与四档长测发生于 D1–D2 代码变更前，适用于当时的基础工厂，不代表最新 schema 2 全量或性能通过。
 
+## 统计性能准备与对照
+
+统计性能的 V5 准备与恢复入口见 [Tools](../../tools/README.md#正式工厂定向检查)和 [D4 方案](../planning/factory-d3-exit-and-d4-validation.md)。`prepare-v5` 从成功 C 完成态的只读副本开始，以真实碰撞行走和近身空载配置开放 G4，再显式推进 600 秒填满历史；`verify-v5` 在正式 Boot 三份独立双根中冻结首帧、比较全快照，按相同 900 步比对终点。它们是准备 / 状态证据，不是自然玩家路径或性能验收。
+
+`interrupt-v5` 注入失焦 / 关闭信号，验证采样中断与后续阶段终止，不声明原生切窗覆盖。`window-v5` 才承担三段各 45 秒的前台对照，准备页须手动开始、失焦即停止；保存尖峰计入帧统计，并检查样本内自动保存和两类产品实际入仓。父批次 / 准备产物 / 代码哈希一致才可派生，每次新 batch；不复用消耗后的恢复目录。启动前告知，不自动重开。PowerShell 入口已补齐但尚未实跑，不能以本机 Shell 通过代签平台验收。
+
 ## 分流 / 汇合定向入口
 
 A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从当前新勘探普通零库存世界自然建线（A 原证据为 V4，B 后新建为 V5），真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。

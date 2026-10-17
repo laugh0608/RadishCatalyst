@@ -6,7 +6,7 @@
 
 正式三维基础工厂 P1–P3 开发机交付已收口，Windows / 目标硬件验收待办。发现、电力与统计联合包已完成 D1、D2-A、D2-B 的实现及定向工程验证；D3 统计页面与发现 HUD 已实现，完整自然生产路径及独立 Boot 恢复已取得工程证据；D3 阶段退出复核及 D4 体验、性能收口仍按既定闸门推进。
 
-10 月 17 日按萝卜SAMA要求先完成 [D3 退出证据梳理与 D4 验证方案](factory-d3-exit-and-d4-validation.md)，亲测稍后接续。证据支持提交 D3 退出裁决，尚未宣布阶段退出；下一工程准备为 V5 普通负载性能入口，规模工程供给合同及 Windows / 目标硬件分别推进。
+10 月 17 日按萝卜SAMA要求完成 [D3 退出证据梳理与 D4 验证方案](factory-d3-exit-and-d4-validation.md)，随后 D4-P0 的 V5 普通负载准备、三页面独立 Boot 及中断检查已通过；下一步为 P1 前台同状态对照，尚无当前 V5 性能成绩。亲测稍后接续，D3 退出裁决、规模工程供给合同及 Windows / 目标硬件分别保留。
 
 产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准：化工生产经营为核心，探索提供资源、空间和长期目的。既有二维切片、schema 10 和历史验证保留，旧整改 S0 暂缓。
 

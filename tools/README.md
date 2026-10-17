@@ -34,6 +34,10 @@
 | `sh tools/check-factory-discovery.sh process-read [batch]` | 先完成 state，再用独立进程核对多件半批与后续轨迹 |
 | `sh tools/check-factory-discovery.sh write/read <batch>` | 先完成 state，再用同一唯一 batch 串行执行 `write`、`read`，覆盖正式 Boot 分项交互与恢复 |
 | `sh tools/check-factory-statistics-performance.sh prepare/window <batch> <absolute-source-snapshot>` | 显式 runtime-intake 内 schema 2 来源；prepare 无窗口补满 600 秒历史，window 从相同准备状态分别测关闭 / 物料 / 电力各 45 秒。窗口准备页手动开始；独立双根、唯一 batch、原预算、失焦即停；仅普通供给对照，不算首档规模或持续验收 |
+| `sh tools/check-factory-statistics-performance.sh prepare-v5 <新 batch> <C 完成恢复 batch>` | 严格 V5 普通 C 完成态，真实碰撞行走后近身将空载 G4 改不限量；显式 600 秒准备与独立 45 秒工作探针，保留 84 实体 / 240 kW，不改库存或供给 |
+| `sh tools/check-factory-statistics-performance.sh verify-v5 <新 batch> <prepare-v5 batch>` | 无窗口独立 Boot 分别恢复关闭 / 物料 / 电力页，首帧完整比对，暂停下各推进 900 固定步；终点和守恒一致，不计性能或自然时长 |
+| `sh tools/check-factory-statistics-performance.sh interrupt-v5 <新 batch> <prepare-v5 batch> --interrupt-at before/sampling/close` | 末参数三选一；无窗口注入采样前失焦、实际采样后失焦或关闭，确认后续阶段不运行、部分证据保留，不计性能 |
+| `sh tools/check-factory-statistics-performance.sh window-v5 <新 batch> <prepare-v5 batch>` | 开窗、准备页手动开始，从同一已准备快照做三段各 45 秒；原帧 / 单步预算及自动保存保持，失焦即停。须先告知并安排连续前台 |
 | `sh tools/check-factory-statistics.sh state [batch]` | 统计查询、窗口、库存 / 理论口径、恢复与页面挂载定向检查 |
 | `sh tools/check-factory-statistics.sh ui <batch>` | 新隔离世界短窗口复核统计按钮与 Escape，先于完整路径执行 |
 | `sh tools/check-factory-statistics.sh write/read <batch>` | 新 batch 从空勘探世界按真实活动时间生产、步行与开路，复核统计 / 窗口；read 独立 Boot 恢复后继续断料 / 修复趋势验证 |
@@ -80,6 +84,8 @@ C 入口由 Shell / PowerShell 调用已有 Python 3 标准库 runner，不安�
 发现检查的 `[batch]` 只控制状态日志位置；当前状态脚本将夹具 / JSON 结果固定写到 `tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925/`，process-read 与窗口 write 都从此取输入。复跑 state 会更新该固定目录，需先保留要审计的旧证据；窗口批次另用唯一名称，read 读取 write 的 manifest。窗口夹具由加速模型生产并准备布局 / 人物位置，不能作为自然玩家全路径。`check-client` 的 Godot 模式已登记 power / discovery / statistics 状态检查，不自动覆盖这些跨进程或窗口模式。
 
 统计窗口 write 使用 HUD 精确放置按钮、合法接线命令、稳定 ID 选择、合成 WASD 与原生面板 Enter，不预填材料、传送人物、直接解锁或加速时间。普通功能路径失焦时停止输入、等待手动切回，在同一进程 / 世界继续并记录失焦区间；不抢焦点，连续性能检查仍失焦即中断。同名 batch 不用于重建自然路径，失败批次须保留。read 仅用于已完成 write 的批次：通过键盘 Enter 进入工厂菜单，先冻结首帧核对完整快照，再在真实恢复世界分别观察正常供料、拆带断料、重建修复各 60 秒，最后保存并记录 `read-final.json`。因此 read 成功后不能以同一最终存档再次比较原 write 快照；若需复跑，使用新 write 批次，失败证据单独保留。它是自动工程路径，不替代用户亲测或首次阅读 / 建线时长。
+
+统计性能的 Shell / PowerShell 共用 Python runner；PowerShell 参数为 `-Mode`、`-Batch`、`-Source`、可选 `-InterruptAt` / `-GodotExe`。V5 来源必须是成功 C `complete-read` 或成功 `prepare-v5`，拒绝持锁、软链接、覆盖和失败父批次；复制后 / 运行后复核父哈希，准备产物与模型 / 检查代码指纹必须匹配。批次根仍为 `factory-statistics-v1`；当前已验证准备为 `p0-v5-prepare-20261017-c`，P1 可另选新 batch 运行 `window-v5`。代码变化则重新准备；无窗口结果 `performance_acceptance=false`，不代替窗口结果。Windows / PowerShell 尚未实跑，批次范围见 [D4 方案](../docs/planning/factory-d3-exit-and-d4-validation.md)及 [W42](../docs/devlogs/2026-W42.md)。
 
 首程窗口复用已有完整路径：建造使用 HUD 精确字段 / 动作，操作使用聚焦 Enter，人物 WASD 行走，统计与新增引导入口使用合成鼠标；焦点注入明确登记。自动供电连接只检查实际图，不发送旧接线命令。全程不注入物料、解锁、人物位置或加速时间。恢复通过列表 / 按钮信号首帧冻结核对。日志 / 世界在 `factory-first-journey-v1`，截图在 `2026-10-05-factory-first-journey-preview`；合成路径不当作首次游玩时长。
 
