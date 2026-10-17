@@ -27,6 +27,13 @@
 
 | 入口 | 模式与用途 |
 | --- | --- |
+| `sh tools/check-factory-engineering.sh identity/identity-read <新 batch> [父 batch]` | [D4-S0 工程合同](../docs/architecture/factory-engineering-scale-v1.md)的严格身份、地图与隔离；identity-read 必须指定成功 identity 父批次 |
+| `sh tools/check-factory-engineering.sh prepare/prepare-read <新 batch> [父 batch]` | 零库存合法前置、20 单元全量构建、服务路线和真实 600 秒历史；prepare-read 从成功 prepare 副本独立比对首态与 20 步轨迹 |
+| `sh tools/check-factory-engineering.sh capacity/density/repair/competition <新 batch> <prepare 父 batch>` | 分别为 2,500 秒总容量、900–1,000 件高密度、拆带 / 停复电、真实竞争 / 配额；全为模型显式步，不计前台性能 |
+| `sh tools/check-factory-engineering.sh checkpoint-write <新 batch> <prepare 或负载父 batch>` | 对命名状态生成独立 20 步预期；保留输入、来源整目录哈希与每个检查点，历史产物若在消费时补哈希会明确登记 |
+| `sh tools/check-factory-engineering.sh boot-restore <新 batch> <checkpoint-write 父 batch>` | 正式双根隔离 Boot 首帧冻结、全快照与续跑终点比对、实际 Store 保存；无窗口 |
+| `sh tools/check-factory-engineering.sh interrupt <新 batch> <prepare 父 batch> --interrupt-at before/sampling/close` | 三个值须分别运行；无窗口合成失焦 / 关闭，采样中先有真实步进和保存，后续档位不得继续 |
+| `sh tools/check-factory-engineering.sh short-window <新 batch> <prepare 父 batch>` | 手动准备页后四档各 12 秒，正式 Boot / 原采样器 / 原门槛；失焦即停，不自动重开。仅 S0 初筛，未提供 S1 长测入口 |
 | `sh tools/check-factory-foundation.sh <mode>` | 基础工厂状态 / 保存 / 规模与 Boot；各模式、前置和窗口边界见运行时指南 |
 | `sh tools/check-factory-power.sh state [batch]` | 无窗口电图、能量守恒、半批存读及版本保护 |
 | `sh tools/check-factory-power.sh write/read <batch>` | 同一唯一 batch、两个独立进程的普通线窗口写入 / 恢复；实际执行时分别使用 `write` 或 `read` |

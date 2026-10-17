@@ -179,6 +179,8 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 
 统计性能的 V5 准备与恢复入口见 [Tools](../../tools/README.md#正式工厂定向检查)和 [D4 方案](../planning/factory-d3-exit-and-d4-validation.md)。`prepare-v5` 从成功 C 完成态的只读副本开始，以真实碰撞行走和近身空载配置开放 G4，再显式推进 600 秒填满历史；`verify-v5` 在正式 Boot 三份独立双根中冻结首帧、比较全快照，按相同 900 步比对终点。它们是准备 / 状态证据，不是自然玩家路径或性能验收。
 
+工程规模使用独立的 `tools/check-factory-engineering.sh` / `.ps1`，模式与参数见 Tools，边界见 [工程合同](../architecture/factory-engineering-scale-v1.md)。批次根为 `tools/runtime-intake/check-runs/factory-engineering-scale-v1/<new-batch>/`，窗口原图在 `assets/art-intake/<date>-factory-engineering-preview/<batch>/`。全部子检查消费成功父批次的哈希副本，核对完整父目录未变；运行代码指纹与状态兼容指纹分开记录，后者严格核对正式 factory / data / boot 脚本及固定布局，增加独立读检查不会使旧世界被改写。旧负载批次缺少产物完成时哈希时，只允许明确标记消费时补采，不能伪称原批次已记录。`prepare` 的全局放置、碰撞行走与显式模型时间属于工程准备；`short-window` 才使用真实前台时钟，手动开始、四档各 12 秒且失焦停止，不替代 S1 四档各 450 秒。
+
 `interrupt-v5` 注入失焦 / 关闭信号，验证采样中断与后续阶段终止，不声明原生切窗覆盖。`window-v5` 才承担三段各 45 秒的前台对照，准备页须手动开始、失焦即停止；保存尖峰计入帧统计，并检查样本内自动保存和两类产品实际入仓。父批次 / 准备产物 / 代码哈希一致才可派生，每次新 batch；不复用消耗后的恢复目录。启动前告知，不自动重开。PowerShell 入口已补齐但尚未实跑，不能以本机 Shell 通过代签平台验收。
 
 ## 分流 / 汇合定向入口
