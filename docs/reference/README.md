@@ -20,7 +20,7 @@
 ## Historical / External References
 
 - [Endfield Production Planning Study](endfield-production-planning-study.md)
-
+- [Factory Game Production Study](factory-game-production-study.md)
 - [Chemical Automation Game Outline](chemical-automation-game-outline.md)
 - [Cultivation Game Outline](cultivation-game-outline.md)
 - [Community Advice](community-advice.md)

@@ -4,12 +4,12 @@
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)和[本周周志](../devlogs/2026-W42.md)。研究参考时读[终末地产线提炼](../reference/endfield-production-planning-study.md)；只有任务涉及原验收或历史证据时再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)和[本周周志](../devlogs/2026-W42.md)。研究参考时读[六款生产游戏对照](../reference/factory-game-production-study.md)及其中的来源链接；只有任务涉及原验收或历史证据时再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
 
 ## 当前交接
 
 - 萝卜SAMA明确将当前重点切到 Demo 内容扩展：增加物品、设备和合成链，以完整生产用途验证玩法。先做方案，随后分批交付可玩的内容。
-- 首版提案：15 种物品、14 个加工配方、3 类新增加工设备与电芯发电机，形成“材料制造扩建设备 → 电芯支撑产能 → 开拓用品取得更好资源”关系；具体数值 / 存档方案未实现。
+- 修订提案仍为 15 种物品 / 14 配方、3 类新加工设备与电芯发电机；跨游戏研究补充工艺取舍、回用需求变化与成品消费形态。高产矿长期价值尚未证明，不能用四件胶囊的一次性需求代替持续压力；数值 / 存档方案未实现。
 - 附件原位替换和取消带货两格限制已通过定向工程验证，萝卜SAMA亲测反馈无明显问题，本次整改收口。三类附件、原四配方、两次开路及统计 / 存读基础供新包复用。
 - 原 D3 工程退出已批准，D4-P / S 开发机验证已完成；D4-U / X 和原保留项继续登记，**不作为内容扩展设计 / 开发的前置门槛**。Windows 暂缓，目标硬件待验。
 
