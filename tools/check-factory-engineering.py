@@ -13,7 +13,7 @@ import sys
 REPO = Path(__file__).resolve().parents[1]
 RUNS = REPO / "tools/runtime-intake/check-runs/factory-engineering-scale-v1"
 MODES = ["identity", "identity-read", "prepare", "prepare-read", "capacity", "density", "repair",
-         "competition", "checkpoint-write", "boot-restore", "interrupt", "short-window"]
+         "competition", "checkpoint-write", "boot-restore", "interrupt", "short-window", "sustained", "sustained-preflight", "sustained-interrupt", "workload-check"]
 CHECKPOINTS = {
     "prepare": ["source.json"], "repair": ["deficit.json", "endpoint.json"],
     "competition": ["quota-held.json", "quota-stopped-held.json", "quota-exhausted.json", "quota-reset.json", "endpoint.json"],
@@ -64,8 +64,10 @@ def code_hashes(mode=None):
         checks.append("factory_engineering_load_check")
     if mode in [None, "checkpoint-write"]:
         checks.append("factory_engineering_restore_check")
-    if mode in [None, "boot-restore", "interrupt", "short-window"]:
+    if mode in [None, "boot-restore", "interrupt", "short-window", "sustained", "sustained-preflight", "sustained-interrupt", "workload-check"]:
         checks.append("factory_engineering_boot_check")
+    if mode in [None, "sustained", "sustained-preflight", "sustained-interrupt", "workload-check"]:
+        checks += ["factory_engineering_sustained_check", "factory_engineering_live_observer", "factory_engineering_workload_check"]
     paths = [REPO / f"client/scripts/checks/{name}.gd" for name in checks]
     for name in ["factory_discovery_check", "factory_performance_check", "factory_window_driver", "factory_diagnostic_gate"]:
         paths.append(REPO / f"client/scripts/checks/{name}.gd")
@@ -143,9 +145,13 @@ def main():
     script = ("factory_engineering_check" if args.mode in ["identity", "identity-read"] else
               "factory_engineering_prepare_check" if args.mode in ["prepare", "prepare-read"] else
               "factory_engineering_restore_check" if args.mode == "checkpoint-write" else
-              "factory_engineering_boot_check" if args.mode in ["boot-restore", "interrupt", "short-window"] else
+              "factory_engineering_boot_check" if args.mode in ["boot-restore", "interrupt", "short-window", "sustained", "sustained-preflight", "sustained-interrupt", "workload-check"] else
               "factory_engineering_load_check")
-    command = [godot] + ([] if args.mode == "short-window" else ["--headless"])
+    if args.mode.startswith("sustained"):
+        script = "factory_engineering_sustained_check"
+    elif args.mode == "workload-check":
+        script = "factory_engineering_workload_check"
+    command = [godot] + ([] if args.mode in ["short-window", "sustained"] else ["--headless"])
     command += ["--path", str(REPO / "client"), "--script", f"res://scripts/checks/{script}.gd", "--no-header",
                 "--log-file", str(destination / "godot.log"), "--", f"--evidence={destination}", f"--mode={args.mode}",
                 f"--interrupt-at={args.interrupt_at}"]
@@ -158,7 +164,7 @@ def main():
     errors = []
     with (destination / "console.log").open("w", encoding="utf-8") as stream:
         try:
-            completed = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=1800)
+            completed = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=2400 if args.mode == "sustained" else 1800)
             exit_code = completed.returncode
         except subprocess.TimeoutExpired:
             exit_code = -1
@@ -177,6 +183,8 @@ def main():
         errors.append("Missing or mismatched result mode.")
     if args.mode == "prepare" and report.get("ready") is not True:
         errors.append("Preparation is not ready.")
+    if args.mode == "sustained" and report.get("sustained_acceptance") is not True:
+        errors.append("Sustained acceptance did not pass.")
     unchanged = not parent or hashes(parent) == before
     if not unchanged:
         errors.append("Parent changed.")

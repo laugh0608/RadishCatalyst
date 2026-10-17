@@ -18,7 +18,7 @@ func _run() -> void:
 	driver = Driver.new()
 	root.add_child(driver)
 	auto_accept_quit = false
-	duration = 12
+	duration = 450 if mode == "sustained" else 35 if mode == "sustained-preflight" else 12
 	active_fixture = true
 	if mode == "boot-restore":
 		var checkpoints: Array = read_json("checkpoints.json")
@@ -38,23 +38,25 @@ func _run() -> void:
 		finish()
 		return
 	prepared = read_json("source.json")
-	if mode == "short-window":
+	if mode in ["short-window", "sustained"]:
 		driver.shot_root = SliceCheckPaths.repository_root().path_join("assets/art-intake/" + Time.get_date_string_from_system() + "-factory-engineering-preview").path_join(run_root.get_file())
 		DirAccess.make_dir_recursive_absolute(driver.shot_root)
 		var gate := preload("res://scripts/checks/factory_diagnostic_gate.gd")
-		if not await gate.wait_for_start(self, "异星催化 · D4-S0 工程规模短窗", "工程规模验证：100 台生产/仓储、1,000 段带。\n窗口/最大化 × 局部/拉远，每档 12 秒；不是 30 分钟验收。\n点击开始后保持前台；失焦或关闭停止全部后续档位。", "开始工程规模短窗"):
+		var title := "D4-S1 持续验收" if mode == "sustained" else "D4-S0 工程规模短窗"
+		var detail := "每档 450 秒，共约 30 分钟；请保持前台且勿操作工厂。" if mode == "sustained" else "每档 12 秒；不是 30 分钟验收。"
+		if not await gate.wait_for_start(self, "异星催化 · " + title, "工程规模验证：100 台生产/仓储、1,000 段带。\n窗口/最大化 × 局部/拉远，" + detail + "\n点击开始后保持前台；失焦或关闭停止全部后续档位。", "开始" + title):
 			_interrupt("start_not_confirmed")
 			finish()
 			return
 	else:
 		interruption_check = true
-		Engine.max_fps = 60
+		Engine.max_fps = 120 if mode == "sustained-preflight" else 60
 	root.focus_exited.connect(_interrupt.bind("focus_lost"))
 	root.close_requested.connect(_interrupt.bind("window_closed"))
 	if not await load_world("continuous"):
 		finish()
 		return
-	if mode == "interrupt":
+	if mode in ["interrupt", "sustained-interrupt"]:
 		await verify_interruption()
 		finish()
 		return
@@ -62,7 +64,9 @@ func _run() -> void:
 	driver.expect(camera_route.ok, "actual collision movement to central camera position")
 	world._refresh()
 	world._set_paused(false)
-	for spec in [["1080-local", false, 1.0], ["1080-wide", false, 0.45], ["max-local", true, 1.0], ["max-wide", true, 0.45]]:
+	var specs := [["1080-local", false, 1.0], ["1080-wide", false, 0.45], ["max-local", true, 1.0], ["max-wide", true, 0.45]]
+	if mode == "sustained-preflight": specs = [["headless-instrumentation", false, 1.0]]
+	for spec in specs:
 		if not await _phase(spec[0], spec[1], spec[2]):
 			finish()
 			return
@@ -166,7 +170,7 @@ func finish() -> void:
 	report.short_screening_passed = mode == "short-window" and phases.size() == 4 and not interrupted and driver.failures.is_empty()
 	report.verification = verification
 	report.camera_route = camera_route
-	report.interrupt_at = interrupt_at if mode == "interrupt" else ""
+	report.interrupt_at = interrupt_at if mode in ["interrupt", "sustained-interrupt"] else ""
 	if mode == "boot-restore": report.sampling = "Headless formal Boot first-frame and explicit 20-step continuation; no performance samples"
 	if mode == "interrupt": report.sampling = "Headless synthetic interruption with real clock step/save; no performance claim"
 	write_json("result.json", report)

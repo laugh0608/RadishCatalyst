@@ -33,7 +33,11 @@
 | `sh tools/check-factory-engineering.sh checkpoint-write <新 batch> <prepare 或负载父 batch>` | 对命名状态生成独立 20 步预期；保留输入、来源整目录哈希与每个检查点，历史产物若在消费时补哈希会明确登记 |
 | `sh tools/check-factory-engineering.sh boot-restore <新 batch> <checkpoint-write 父 batch>` | 正式双根隔离 Boot 首帧冻结、全快照与续跑终点比对、实际 Store 保存；无窗口 |
 | `sh tools/check-factory-engineering.sh interrupt <新 batch> <prepare 父 batch> --interrupt-at before/sampling/close` | 三个值须分别运行；无窗口合成失焦 / 关闭，采样中先有真实步进和保存，后续档位不得继续 |
-| `sh tools/check-factory-engineering.sh short-window <新 batch> <prepare 父 batch>` | 手动准备页后四档各 12 秒，正式 Boot / 原采样器 / 原门槛；失焦即停，不自动重开。仅 S0 初筛，未提供 S1 长测入口 |
+| `sh tools/check-factory-engineering.sh short-window <新 batch> <prepare 父 batch>` | 手动准备页后四档各 12 秒，正式 Boot / 原采样器 / 原门槛；失焦即停，不自动重开。仅 S0 初筛，不代替 S1 |
+| `sh tools/check-factory-engineering.sh workload-check <新 batch> <prepare 父 batch>` | S1 逐帧工作记录与逐步参考计数逐台比对，验证漏采拒绝和只读；无窗口显式步 |
+| `sh tools/check-factory-engineering.sh sustained-preflight <新 batch> <prepare 父 batch>` | 正式 Boot 35 秒真实时钟、周期自动保存与工作记录；无窗口，不计前台性能 |
+| `sh tools/check-factory-engineering.sh sustained-interrupt <新 batch> <prepare 父 batch> --interrupt-at before/sampling/close` | S1 工作记录启用时的三个中断边界，分别运行，保留部分样本且禁止后续档位 |
+| `sh tools/check-factory-engineering.sh sustained <新 batch> <prepare 父 batch>` | S1 手动开始、同一世界连续四档各 450 秒；沿原画质 / 门槛，逐台事件、滚动工作覆盖、每秒负载与全部自动保存；失焦 / 关闭停止全轮 |
 | `sh tools/check-factory-foundation.sh <mode>` | 基础工厂状态 / 保存 / 规模与 Boot；各模式、前置和窗口边界见运行时指南 |
 | `sh tools/check-factory-power.sh state [batch]` | 无窗口电图、能量守恒、半批存读及版本保护 |
 | `sh tools/check-factory-power.sh write/read <batch>` | 同一唯一 batch、两个独立进程的普通线窗口写入 / 恢复；实际执行时分别使用 `write` 或 `read` |
