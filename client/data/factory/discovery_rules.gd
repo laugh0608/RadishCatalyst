@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Engineering := preload("res://data/factory/engineering_rules.gd")
 const Foundation := preload("res://data/factory/rules.gd")
 const RULESET_ID := "factory_discovery_v1"
 const AUTO_RULESET_ID := "factory_discovery_auto_power_v1"
@@ -30,7 +31,10 @@ static func admission_supply() -> Dictionary:
 	return routing_supply().merged({"admission_gate": 8})
 
 static func routing_world(supply: String) -> bool:
-	return supply in [ROUTING_SUPPLY_ID, ADMISSION_SUPPLY_ID]
+	return supply == ROUTING_SUPPLY_ID or admission_world(supply)
+
+static func admission_world(supply: String) -> bool:
+	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID]
 
 const ITEMS := ["crystal", "catalyst", "crust_sample", "crust_solvent", "rich_crystal"]
 const NAMES := {"crystal": "晶体", "catalyst": "催化剂", "crust_sample": "矿壳样本", "crust_solvent": "解壳剂", "rich_crystal": "富集晶体"}
@@ -49,12 +53,27 @@ const CONSUMER_RANGE := 6.0
 const POWER := {"collector": 20.0, "reactor": 40.0}
 const CYCLE := {"collector": 1.0, "reactor": 10.0}
 
-static func ore_sites() -> Array[Vector2i]:
+static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
+	if map_id == Engineering.MAP_ID:
+		return Engineering.ore_sites()
+	if map_id != MAP_ID:
+		return []
 	return [Vector2i(-20, -13), Vector2i(-20, -1), Vector2i(-20, 11), Vector2i(10, -1), Vector2i(26, -13), Vector2i(26, 11)]
 
-static func open_cell(cell: Vector2i, passages: Dictionary) -> bool:
+static func mineral_at(cell: Vector2i, map_id: String = MAP_ID) -> String:
+	if map_id == Engineering.MAP_ID:
+		return Engineering.mineral_at(cell)
+	if map_id != MAP_ID or cell not in ore_sites():
+		return ""
+	return "crystal" if cell.x < 4 else "rich_crystal"
+
+static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP_ID) -> bool:
+	if map_id not in [MAP_ID, Engineering.MAP_ID]:
+		return false
 	if cell.x < -32 or cell.x >= 32 or cell.y < -32 or cell.y >= 32:
 		return false
+	if map_id == Engineering.MAP_ID:
+		return true
 	if cell.x < 4:
 		return true
 	if not passages.outer:

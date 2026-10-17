@@ -12,14 +12,14 @@ static func snapshot(model: RefCounted, id: String, title: String, sequence: int
 	var doc := V1.snapshot(model, id, title, sequence)
 	doc.save_schema_version = 2
 	doc.ruleset_id = Config.RULESET_ID
-	doc.map_id = Config.MAP_ID
+	doc.map_id = model.map_id
 	for key in ["power_links", "discovery", "statistics_ui"]:
 		doc.state[key] = model.get(key).duplicate(true)
 	doc.state.statistics = model.statistics.snapshot()
 	return doc
 
 
-static func unpack_state(value: Variant) -> Dictionary:
+static func unpack_state(value: Variant, max_power_links := 91) -> Dictionary:
 	if not fields(value, STATE_FIELDS + ["power_links", "discovery", "statistics", "statistics_ui"]):
 		return failure("联合工厂状态字段无效。")
 	var s: Dictionary = value.duplicate(true)
@@ -31,7 +31,7 @@ static func unpack_state(value: Variant) -> Dictionary:
 			return failure("发现状态必须是布尔值。")
 	if (d.sample_taken and not d.surveyed) or (d.trial_completed and not d.sample_taken) or (d.passages.outer and not d.trial_completed) or (d.passages.inner and not d.passages.outer):
 		return failure("发现与矿道前置事实矛盾。")
-	if not s.power_links is Array or s.power_links.size() > 91:
+	if not s.power_links is Array or s.power_links.size() > max_power_links:
 		return failure("电力连接列表超限。")
 	if not fields(s.statistics_ui, ["window_seconds", "favorites"]) or not integer(s.statistics_ui.window_seconds) or int(s.statistics_ui.window_seconds) not in [60, 300, 600] or not s.statistics_ui.favorites is Array:
 		return failure("统计偏好无效。")
@@ -64,7 +64,7 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 	# Unsupported versions are fatal even when an older backup exists.
 	if value.has("save_schema_version") and integer(value.save_schema_version) and value.save_schema_version > schema:
 		return failure("此工厂来自更新版本，当前版本不能读取。", true)
-	for pair in [["ruleset_id", ruleset], ["map_id", Config.MAP_ID]]:
+	for pair in [["ruleset_id", ruleset], ["map_id", model.map_id]]:
 		if value.has(pair[0]) and value[pair[0]] != pair[1]:
 			return failure("不支持的工厂规则或地图版本。", true)
 	if not fields(value, TOP_FIELDS) or value.world_kind != "factory_3d" or value.save_schema_version != schema:
@@ -75,7 +75,7 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 		return failure("世界名称无效。")
 	if not integer(value.sequence, 1) or not value.supply_id is String or value.supply_id != model.supply_id:
 		return failure("存档序号或构件供给版本无效。", value.supply_id != model.supply_id)
-	var decoded := unpack_state(value.state)
+	var decoded := unpack_state(value.state, Config.Engineering.MAX_POWER_LINKS if model.supply_id == Config.Engineering.SUPPLY_ID else 91)
 	if not decoded.ok:
 		return decoded
 	var s: Variant = decoded.state
@@ -184,7 +184,7 @@ static func decode_world(value: Variant, expected_id: String, schema: int, rules
 static func validate_power_entity(e: Variant, next_id: int, next_batch: int, model: RefCounted) -> Dictionary:
 	if not e is Dictionary or not e.has("type") or not e.type is String:
 		return failure("设备对象无效。")
-	if model.supply_id == Config.ADMISSION_SUPPLY_ID and e.type == "admission_gate":
+	if Config.admission_world(model.supply_id) and e.type == "admission_gate":
 		return AdmissionValidator.validate(e, next_id, next_batch)
 	if Config.routing_world(model.supply_id) and Config.ROUTING_CATALOG.has(e.type):
 		return RoutingValidator.validate(e, next_id, next_batch)
@@ -206,7 +206,7 @@ static func validate_power_entity(e: Variant, next_id: int, next_batch: int, mod
 		return failure("设备电力接入无效。")
 	match e.type:
 		"collector":
-			var mineral := "crystal" if e.x < 4 else "rich_crystal"
+			var mineral: String = model.mineral_at(Vector2i(e.x, e.z))
 			if e.mineral != mineral or not bounded_items(e.buffer, {mineral: 50}) or not number(e.progress, 0, 1) or e.progress >= 1:
 				return failure("矿物、缓冲或采集进度无效。")
 		"reactor":

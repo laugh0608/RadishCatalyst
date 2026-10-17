@@ -4,6 +4,7 @@ signal back_requested
 signal world_ready(store: RefCounted, model: RefCounted, candidate: Dictionary)
 const Store := preload("res://scripts/factory/save/store.gd")
 var save_root := Store.DEFAULT_ROOT
+var engineering_context := false
 var catalog: RefCounted
 var worlds: Array[Dictionary] = []
 var list := ItemList.new()
@@ -21,7 +22,7 @@ var pending_upgrade := ""
 
 
 func _ready() -> void:
-	catalog = Store.new(save_root)
+	catalog = Store.new(save_root, engineering_context)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
 	shade.color = Color("182d2c")
@@ -90,7 +91,7 @@ func _selection() -> void:
 
 
 func _create() -> void:
-	var store := Store.new(save_root)
+	var store := Store.new(save_root, engineering_context)
 	var result := store.create(title_input.text, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID if world_type.selected == 1 else Store.Codec.Rules.NORMAL_SUPPLY, world_type.selected == 1)
 	if not result.ok:
 		notice.text = result.reason
@@ -122,7 +123,7 @@ func _upgrade_title(schema: int) -> String:
 
 
 func _open_world(id: String, upgrade_schema := 0) -> void:
-	var store := Store.new(save_root)
+	var store := Store.new(save_root, engineering_context)
 	var result := store.prepare(id)
 	if result.ok and upgrade_schema != 0:
 		match upgrade_schema:

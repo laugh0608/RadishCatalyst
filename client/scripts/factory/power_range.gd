@@ -42,12 +42,12 @@ func sync(model: RefCounted, actor: Dictionary, ui: Dictionary, enabled: bool) -
 	key = next
 	_clear()
 	var center := Grid.center(e)
-	_ring(center, Grid.Rules.CONSUMER_RANGE, CONSUMER_COLOR, false, valid, model.discovery.passages)
-	_ring(center, Grid.Rules.NODE_RANGE, NODE_COLOR, true, valid, model.discovery.passages)
+	_ring(center, Grid.Rules.CONSUMER_RANGE, CONSUMER_COLOR, false, valid, model.discovery.passages, model.map_id)
+	_ring(center, Grid.Rules.NODE_RANGE, NODE_COLOR, true, valid, model.discovery.passages, model.map_id)
 	if not valid:
 		return
 	for candidate in model.entities:
-		if candidate.id == e.get("id", -1) or not Grid.reachability(e, candidate, model.discovery.passages).ok:
+		if candidate.id == e.get("id", -1) or not Grid.reachability(e, candidate, model.discovery.passages, model.map_id).ok:
 			continue
 		var hint := Node3D.new()
 		hint.set_meta("entity_id", candidate.id)
@@ -71,7 +71,7 @@ func _clear() -> void:
 		child.queue_free()
 
 
-func _ring(center: Vector2, radius: float, color: Color, dashed: bool, valid: bool, passages: Dictionary) -> void:
+func _ring(center: Vector2, radius: float, color: Color, dashed: bool, valid: bool, passages: Dictionary, map_id: String) -> void:
 	var shape := ImmediateMesh.new()
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -85,7 +85,7 @@ func _ring(center: Vector2, radius: float, color: Color, dashed: bool, valid: bo
 			continue
 		var a := Vector2.from_angle(TAU * i / STEPS)
 		var b := Vector2.from_angle(TAU * (i + 1) / STEPS)
-		var open := Grid.line_open(center, center + (a + b).normalized() * radius, passages)
+		var open := Grid.line_open(center, center + (a + b).normalized() * radius, passages, map_id)
 		if not open:
 			blocked += 1
 		var tint := color if open else Color("637a77", 0.55)

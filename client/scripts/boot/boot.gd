@@ -11,6 +11,7 @@ var slice_save_catalog := SliceSaveCatalog.new()
 var slice_save_service: SliceSaveService
 var slice_world: SliceWorld
 var startup_menu: StartupMenu
+var factory_engineering_context := false
 var factory_save_root := "user://saves/factory/worlds"
 var factory_menu: Control
 var factory_world: Control
@@ -65,6 +66,7 @@ func _show_factory_menu() -> void:
 		startup_menu = null
 	factory_menu = FACTORY_MENU.new()
 	factory_menu.save_root = factory_save_root
+	factory_menu.engineering_context = factory_engineering_context
 	factory_menu.back_requested.connect(func():
 		factory_menu.queue_free()
 		factory_menu = null

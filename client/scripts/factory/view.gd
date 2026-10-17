@@ -99,7 +99,7 @@ func _ready() -> void:
 		var ore: Node3D = assets.ore.instantiate()
 		add_child(ore)
 		ore.position = Vector3(cell.x + 8, 0, cell.y + 1)
-		if world_model != null and world_model.has_method("power_state") and cell.x > 4:
+		if world_model != null and world_model.has_method("power_state") and world_model.mineral_at(cell) == "rich_crystal":
 			ore.scale = Vector3(1, 1.7, 1)
 			for part in ore.find_children("*", "MeshInstance3D", true, false):
 				part.material_override = rich_mat
@@ -539,7 +539,7 @@ func _build_mineral_barriers() -> void:
 	clear_node(barriers)
 	terrain_key = str(world_model.discovery)
 	# Imported ore clusters follow the same permanent passage facts as collision.
-	for start_x in [4, 20]:
+	for start_x in ([4, 20] if world_model.map_id == Model.DiscoveryRules.MAP_ID else []):
 		for z in range(-32, 32, 2):
 			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
 				continue

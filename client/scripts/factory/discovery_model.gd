@@ -12,6 +12,7 @@ var power := {}
 var power_revision := -1
 var power_time := -1.0
 var automatic_power := false
+var map_id := DiscoveryRules.MAP_ID
 
 
 ## Schema 2 uses the same item maps in simulation and persistence.
@@ -25,7 +26,11 @@ func _init(auto_power := false) -> void:
 
 
 func ore_sites() -> Array[Vector2i]:
-	return DiscoveryRules.ore_sites()
+	return DiscoveryRules.ore_sites(map_id)
+
+
+func mineral_at(cell: Vector2i) -> String:
+	return DiscoveryRules.mineral_at(cell, map_id)
 
 
 func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
@@ -34,7 +39,7 @@ func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictiona
 		return valid
 	for x in range(cell.x, cell.x + CATALOG[type].w):
 		for z in range(cell.y, cell.y + CATALOG[type].d):
-			if not DiscoveryRules.open_cell(Vector2i(x, z), discovery.passages):
+			if not DiscoveryRules.open_cell(Vector2i(x, z), discovery.passages, map_id):
 				return failure("矿区尚未开放，不能穿过矿壳建设")
 	return success()
 
@@ -45,7 +50,7 @@ func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Di
 		var e: Dictionary = result.entity
 		match type:
 			"collector":
-				e.mineral = "crystal" if cell.x < 4 else "rich_crystal"
+				e.mineral = mineral_at(cell)
 				e.buffer = {}
 			"reactor":
 				e.recipe_id = "basic_catalyst"
@@ -250,7 +255,7 @@ func feedback(e: Dictionary) -> Dictionary:
 func blocked_for_actor(x: float, z: float) -> bool:
 	for dx in [-0.29, 0.29]:
 		for dz in [-0.29, 0.29]:
-			if not DiscoveryRules.open_cell(Vector2i(floori(x + dx), floori(z + dz)), discovery.passages):
+			if not DiscoveryRules.open_cell(Vector2i(floori(x + dx), floori(z + dz)), discovery.passages, map_id):
 				return true
 	return super.blocked_for_actor(x, z)
 
@@ -275,7 +280,7 @@ func near_entity(e: Dictionary) -> bool:
 		return false
 	var point := Vector2(actor.x, actor.z)
 	var nearest := Vector2(clampf(point.x, e.x + 0.001, e.x + CATALOG[e.type].w - 0.001), clampf(point.y, e.z + 0.001, e.z + CATALOG[e.type].d - 0.001))
-	return point.distance_to(nearest) <= 2 and Grid.line_open(point, nearest, discovery.passages)
+	return point.distance_to(nearest) <= 2 and Grid.line_open(point, nearest, discovery.passages, map_id)
 
 
 func change_recipe(id: int, recipe_id: String) -> Dictionary:
@@ -364,7 +369,7 @@ func deposit(_id: int) -> Dictionary:
 
 func near_sample() -> bool:
 	var point := Vector2(actor.x, actor.z)
-	return point.distance_to(DiscoveryRules.SAMPLE) <= 2 and Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages)
+	return point.distance_to(DiscoveryRules.SAMPLE) <= 2 and Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages, map_id)
 
 
 func survey_sample(pickup := false) -> Dictionary:
@@ -390,7 +395,7 @@ func near_passage(id: String) -> bool:
 	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
 	var point := Vector2(actor.x, actor.z)
 	var target := Vector2(rule.x - 0.001, clampf(point.y, -1.999, 1.999))
-	return point.x < rule.x and point.distance_to(target) <= 2 and Grid.line_open(point, target, discovery.passages)
+	return point.x < rule.x and point.distance_to(target) <= 2 and Grid.line_open(point, target, discovery.passages, map_id)
 
 
 func open_passage(id: String) -> Dictionary:

@@ -8,7 +8,7 @@ const V5 := preload("res://scripts/factory/save/codec_v5.gd")
 
 
 static func snapshot(model: RefCounted, id: String, title: String, sequence: int) -> Dictionary:
-	if model.supply_id == V2.Config.ADMISSION_SUPPLY_ID:
+	if V2.Config.admission_world(model.supply_id):
 		return V5.snapshot(model, id, title, sequence)
 	if model.supply_id == V2.Config.ROUTING_SUPPLY_ID:
 		return V4.snapshot(model, id, title, sequence)
