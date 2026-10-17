@@ -1,5 +1,6 @@
 extends SceneTree
 
+const ReplacementCheck := preload("res://scripts/checks/factory_attachment_replacement_check.gd")
 const Model := preload("res://scripts/factory/routing_model.gd")
 const Legacy := preload("res://scripts/factory/discovery_model.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
@@ -55,7 +56,9 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute(evidence)
 	if "--read" in OS.get_cmdline_user_args():
 		_restore()
+		ReplacementCheck.restore(self, Model)
 	else:
+		ReplacementCheck.run(self, Model)
 		_ports_and_commands()
 		await _preview_connections()
 		_routing()
@@ -134,6 +137,7 @@ func _preview_connections() -> void:
 	var model := Model.new()
 	model.place("belt", Vector2i(-13, -5))
 	model.place("belt", Vector2i(-11, -5), 2)
+	model.place("merger", Vector2i(-14, -5))
 	var ui := {"build": true, "tool": "splitter", "cell": Vector2i(-12, -5), "dir": 0,
 		"selected": -1, "stroke": Array([], TYPE_VECTOR2I, "", null), "paused": true, "mission": false}
 	before = snapshot(model)
@@ -150,7 +154,10 @@ func _preview_connections() -> void:
 	expect(hud.connection_preview.text != prior, "rotating the ghost refreshes connection diagnostics")
 	ui.cell = Vector2i(-13, -5)
 	hud.refresh(model, model.actor, ui, true)
-	expect(not hud.connection_preview.visible and hud.connection_preview_slot.visible and hud.buttons.place.disabled, "occupied position hides irrelevant diagnostics while retaining stable layout")
+	expect(hud.connection_preview.visible and not hud.buttons.place.disabled and "替换传送带" in hud.placement_reason.text, "belt replacement exposes legal preview and refund")
+	ui.cell = Vector2i(-14, -5)
+	hud.refresh(model, model.actor, ui, true)
+	expect(not hud.connection_preview.visible and hud.connection_preview_slot.visible and hud.buttons.place.disabled, "occupied attachment hides irrelevant diagnostics while retaining stable layout")
 	ui.cell = Vector2i(-12, -5)
 	ui.tool = "power_junction"
 	hud.refresh(model, model.actor, ui, true)

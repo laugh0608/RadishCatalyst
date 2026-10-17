@@ -12,7 +12,44 @@ func _init() -> void:
 	kits = DiscoveryRules.routing_supply()
 
 
-func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Dictionary:
+func placement_replacement(type: String, cell: Vector2i) -> Dictionary:
+	if type not in ["splitter", "merger", "admission_gate"] or not kits.has(type):
+		return {}
+	var target := entity_at(cell)
+	return target if target.get("type", "") == "belt" else {}
+
+
+func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
+	var valid := super.placement(type, cell, player)
+	if not valid.ok:
+		return valid
+	var belt := placement_replacement(type, cell)
+	if not belt.is_empty() and Items.count(bag) + Items.count(Items.contents(belt)) > 200:
+		return failure("背包放不下带上物料，不能替换；原带保持不变")
+	if not belt.is_empty() and not belt.cargo.is_empty() and not near_entity(belt):
+		return failure("带上有物料；请走到传送带两格内改装")
+	return valid
+
+
+func _place_entity(type: String, cell: Vector2i, dir: int) -> Dictionary:
+	var belt := placement_replacement(type, cell)
+	var recovered := {}
+	if not belt.is_empty():
+		recovered = Items.contents(belt)
+		Items.merge(bag, recovered)
+		kits.belt += 1
+		entities.erase(belt)
+		instances.erase(belt.id)
+		input_sides.erase(belt.id)
+		occupancy.erase(cell)
+	var result := super._place_entity(type, cell, dir)
+	if not belt.is_empty():
+		result.merge({"replaced_belt": belt.id, "recovered_items": recovered})
+	return result
+
+
+func place(type: String, cell: Vector2i, dir := -1, player: Variant = null) -> Dictionary:
+	dir = placement_direction(type, cell, dir)
 	var result := super.place(type, cell, dir, player)
 	if result.ok and type in ["splitter", "merger"]:
 		var e: Dictionary = result.entity

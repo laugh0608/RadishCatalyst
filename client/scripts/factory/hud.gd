@@ -333,7 +333,11 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger", "admission_gate"]
 		buttons.rotate.text = "方向：" + DIRECTIONS[ui.dir]
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
+		var replacement: Dictionary = model.placement_replacement(ui.tool, ui.cell)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
+		if valid.ok and not replacement.is_empty():
+			var recovered := Items.contents(replacement)
+			placement_reason.text = "替换传送带 · 返还带 ×1" + ("" if recovered.is_empty() else " · 物料回收至背包")
 		buttons.place.disabled = not valid.ok
 		if Model.DiscoveryRules.routing_world(model.supply_id):
 			var preview := {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}

@@ -91,6 +91,16 @@ func ore_sites() -> Array[Vector2i]:
 	return Rules.ore_sites()
 
 
+func placement_replacement(_type: String, _cell: Vector2i) -> Dictionary:
+	return {}
+
+
+func placement_direction(type: String, cell: Vector2i, dir := -1) -> int:
+	if dir != -1:
+		return dir
+	return int(placement_replacement(type, cell).get("dir", 0))
+
+
 func placement(type: String, cell: Vector2i, actor: Variant = null) -> Dictionary:
 	if not CATALOG.has(type) or not kits.has(type):
 		return failure("请选择有效构件和格位")
@@ -101,9 +111,11 @@ func placement(type: String, cell: Vector2i, actor: Variant = null) -> Dictionar
 		return failure("超出可建造厂坪")
 	if type == "collector" and cell not in ore_sites():
 		return failure("采集器需要完整覆盖青色晶体矿点")
+	var replacement := placement_replacement(type, cell)
 	for x in range(cell.x, cell.x + def.w):
 		for z in range(cell.y, cell.y + def.d):
-			if not entity_at(Vector2i(x, z)).is_empty():
+			var occupant := entity_at(Vector2i(x, z))
+			if not occupant.is_empty() and occupant.get("id") != replacement.get("id"):
 				return failure("这里已有设备或传送带")
 	if actor != null and type != "belt":
 		if actor.x > cell.x - 0.3 and actor.x < cell.x + def.w + 0.3 and actor.z > cell.y - 0.3 and actor.z < cell.y + def.d + 0.3:
@@ -117,6 +129,11 @@ func place(type: String, cell: Vector2i, dir := 0, actor: Variant = null) -> Dic
 		return valid
 	if dir < 0 or dir > 3:
 		return failure("传送带方向无效")
+	return _place_entity(type, cell, dir)
+
+
+## Called only after all placement validation, without yielding to simulation.
+func _place_entity(type: String, cell: Vector2i, dir: int) -> Dictionary:
 	var e := {"id": next_id, "type": type, "x": cell.x, "z": cell.y, "dir": dir if type == "belt" else 0}
 	next_id += 1
 	match type:

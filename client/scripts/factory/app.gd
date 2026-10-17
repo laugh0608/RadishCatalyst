@@ -56,6 +56,8 @@ var power_description := Label.new()
 var pending_salvage := -1
 var pending_connections: Array = []
 var save_samples: Array[Dictionary] = []
+var replacement_preview_id := -1
+var replacement_preview_tool := ""
 
 
 func _ready() -> void:
@@ -210,7 +212,18 @@ func _set_paused(paused: bool) -> void:
 		actor.target = null
 
 
+func _sync_replacement_direction() -> void:
+	var replacement := model.placement_replacement(ui.tool, ui.cell)
+	var id: int = replacement.get("id", -1)
+	if id != replacement_preview_id or ui.tool != replacement_preview_tool:
+		if id != -1:
+			ui.dir = model.placement_direction(ui.tool, ui.cell)
+		replacement_preview_id = id
+		replacement_preview_tool = ui.tool
+
+
 func _refresh() -> void:
+	_sync_replacement_direction()
 	ui.blocked = discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
 	var target := _interaction_target()
 	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
@@ -233,6 +246,7 @@ func _stop_pointer() -> void:
 
 
 func _choose(type: String) -> void:
+	replacement_preview_id = -1
 	_stop_pointer()
 	ui.build = true
 	ui.tool = type
@@ -247,12 +261,18 @@ func _choose(type: String) -> void:
 func _commit() -> void:
 	if ui.tool.is_empty():
 		return
+	_sync_replacement_direction()
 	var result := model.place(ui.tool, ui.cell, ui.dir, actor)
 	if not result.ok:
 		hud.announce(result.reason, true)
 		return
 	var e: Dictionary = result.entity
-	hud.announce(Model.CATALOG[e.type].name + "已放置。")
+	if result.has("replaced_belt"):
+		var recovered: String = model.Items.describe(result.recovered_items)
+		hud.announce("已替换为%s，返还传送带 ×1%s" % [Model.CATALOG[e.type].name,
+			"。" if result.recovered_items.is_empty() else "；物料已回收至背包：" + recovered])
+	else:
+		hud.announce(Model.CATALOG[e.type].name + "已放置。")
 	if e.type == "belt":
 		ui.cell = Vector2i(e.x, e.z) + Model.DIRS[ui.dir]
 	else:
@@ -282,6 +302,7 @@ func _cancel() -> void:
 
 
 func _turn() -> void:
+	_sync_replacement_direction()
 	if ui.tool in ["belt", "splitter", "merger", "admission_gate"]:
 		ui.dir = (ui.dir + 1) % 4
 	elif ui.selected != -1:

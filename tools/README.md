@@ -60,6 +60,8 @@
 | `sh tools/check-factory-first-journey.sh write/read <batch>` | 正式新勘探空世界首程卡 / 回查 / 最小窗口、完整自然生产与两次开路、富集回流、停复电 / 增容及独立 Boot 全快照恢复；新 write 批次、同批 read 仅一次 |
 | `sh tools/check-factory-routing.sh state/process-read <batch>` | schema 4 端口 / 公平轮转 / 守恒 / 严格解码 / 显式升级与 IO 失败、独立进程完整恢复；state 用新批次，process-read 同批一次 |
 | `sh tools/check-factory-routing.sh background-preview/preview <batch>` | 正式 Boot 普通供给的单构件连接诊断、R / Esc、错接 / 非法位置、弯道拖铺取消、落位一致及普通 / 最小窗口布局；新 batch。前者无窗口，后者短窗口原图；暂停几何路径，不代替自然产线 / 亲测 |
+| `sh tools/check-factory-routing.sh replacement-background-write/replacement-background-read <batch>` | 正式 Boot 零库存自然采集，鼠标 / Enter / 按钮替换三类带货附件，R 与换目标朝向、回收守恒、保存及独立恢复；无窗口不截图。write 新批次，read 同批一次 |
+| `sh tools/check-factory-routing.sh replacement-write/replacement-read <batch>` | 同一路径的短窗口与原图；read 另验取消、R 转向后提交及最小窗口。使用 `factory-attachment-replacement-v1` 双根隔离目录，不消费用户亲测档 |
 | `sh tools/check-factory-routing.sh menu <batch>` | 正式菜单：旧 schema 3 原规则继续、升级取消 / 确认与来源副本、不得重复领取 |
 | `sh tools/check-factory-routing.sh background-write/background-read <batch>` | 正式 Boot 当前新勘探世界零库存自然两路生产、合流、堵塞修复、半程保存与独立恢复；无窗口不截图 |
 | `sh tools/check-factory-routing.sh review <batch>` | 使用哈希核对过的未消费 write 副本短窗口检查面板、旋转预览和全线；原图另存 art-intake，不代替亲测 |

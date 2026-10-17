@@ -9,7 +9,8 @@ func _init() -> void:
 	kits = DiscoveryRules.admission_supply()
 
 
-func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Dictionary:
+func place(type: String, cell: Vector2i, dir := -1, player: Variant = null) -> Dictionary:
+	dir = placement_direction(type, cell, dir)
 	var result := super.place(type, cell, dir, player)
 	if result.ok and type == "admission_gate":
 		var e: Dictionary = result.entity

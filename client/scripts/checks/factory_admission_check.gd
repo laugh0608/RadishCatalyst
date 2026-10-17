@@ -1,5 +1,6 @@
 extends SceneTree
 
+const ReplacementCheck := preload("res://scripts/checks/factory_attachment_replacement_check.gd")
 const Model := preload("res://scripts/factory/admission_model.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const Store := preload("res://scripts/factory/save/store.gd")
@@ -52,7 +53,9 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute(evidence)
 	if "--read" in OS.get_cmdline_user_args():
 		_restore()
+		ReplacementCheck.restore(self, Model)
 	else:
+		ReplacementCheck.run(self, Model)
 		_commands()
 		_transport()
 		_natural_and_codec()
