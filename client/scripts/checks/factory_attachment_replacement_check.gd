@@ -40,11 +40,7 @@ static func _matrix(check: SceneTree, script: Script, type: String, dir: int, ca
 	belt.batch = 1 if cargo in ["catalyst", "crust_solvent"] else 0
 	var label := "replacement %s/%d/%s: " % [type, dir, cargo]
 	var before := state(model)
-	if not cargo.is_empty():
-		check.expect(not model.placement(type, CELL).ok and not model.place(type, CELL).ok and state(model) == before, label + "remote material recovery is rejected atomically")
-	model.actor.x = CELL.x + 0.5
-	model.actor.z = CELL.y + 2
-	before = state(model)
+	check.expect(not model.near_entity(belt), label + "replacement exercises normal build range beyond interaction reach")
 	var held: Dictionary = model.material_balance().held
 	check.expect(model.placement(type, CELL).ok and model.placement_direction(type, CELL) == dir, label + "preview inherits belt heading")
 	check.expect(state(model) == before, label + "preview is read-only")
@@ -72,6 +68,7 @@ static func _failures(check: SceneTree, script: Script, type: String) -> void:
 	belt.progress = 0.75
 	model.bag = {"crystal": 200}
 	var before := state(model)
+	check.expect("背包放不下" in model.placement(type, CELL).reason, "replacement %s: remote full bag explains capacity restriction" % type)
 	check.expect(not model.placement(type, CELL).ok and not model.place(type, CELL).ok and state(model) == before, "replacement %s: full bag rejects loaded belt atomically" % type)
 	belt.cargo = ""
 	belt.progress = 0.0
@@ -118,13 +115,14 @@ static func _natural_save(check: SceneTree, script: Script, type: String) -> voi
 	model.place("power_source", Vector2i(-22, -5))
 	model.advance(1.5)
 	check.expect(model.entity_at(cell).cargo == "crystal" and Codec.decode(snapshot(model), ID).ok, "replacement %s: naturally produced loaded belt is strictly valid" % type)
-	model.actor.x = -18
-	model.actor.z = 2
+	check.expect(not model.near_entity(model.entity_at(cell)), "replacement %s: natural loaded replacement is outside interaction reach" % type)
 	var before: Dictionary = model.material_balance().held
 	var result: Dictionary = model.place(type, cell)
 	check.expect(result.ok and model.material_balance().held == before, "replacement %s: natural material conservation" % type)
 	if not result.ok: return
 	if type == "admission_gate":
+		var unconfigured := state(model)
+		check.expect(not model.configure_admission(result.entity.id, "crystal", "unlimited", 0).ok and state(model) == unconfigured, "replacement: remote build does not grant remote gate configuration")
 		model.actor.x = -18
 		model.actor.z = 2
 		check.expect(model.configure_admission(result.entity.id, "crystal", "unlimited", 0).ok and model.set_admission_accepting(result.entity.id, true).ok, "replacement: new gate can be explicitly configured and enabled")

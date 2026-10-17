@@ -18,20 +18,6 @@ func _first_line() -> void:
 	await place("power_source", -22, -5)
 	world.view.inspection_target = Vector3(-17, 0, 0)
 	await native_click(world.hud.buttons.pause)
-	await wait_for(func(): return world.model.entity_at(Vector2i(-18, 0)).cargo == "crystal", 5, "remote belt receives natural cargo")
-	if finished: return
-	await native_click(world.hud.buttons.pause)
-	await native_click(world.hud.buttons.splitter)
-	await driver.motion(driver.cell_screen(Vector2i(-18, 0)))
-	await driver.settle()
-	var remote_before := Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
-	driver.expect(world.hud.buttons.place.disabled and "两格内" in world.hud.placement_reason.text, "loaded belt preview explains existing proximity requirement")
-	await driver.key(KEY_ENTER)
-	driver.expect(Check.equivalent(remote_before, Codec.snapshot(world.model, world.store.world_id, world.store.world_name, remote_before.sequence)), "remote Enter cannot recover belt cargo or change the world")
-	await driver.shot("00-remote-loaded-rejected")
-	await driver.key(KEY_ESCAPE)
-	await native_click(world.hud.buttons.pause)
-	await walk(Vector2(-17, 2))
 	await wait_for(func(): return [-18, -17, -16].all(func(x): return world.model.entity_at(Vector2i(x, 0)).cargo == "crystal"), 15, "all three belts hold naturally mined crystal")
 	if finished: return
 	await native_click(world.hud.buttons.pause)
@@ -43,6 +29,7 @@ func _first_line() -> void:
 		var cell := Vector2i(-18 + index, 0)
 		var old_id: int = world.model.entity_at(cell).id
 		var belt_kits: int = world.model.kits.belt
+		driver.expect(not world.model.near_entity(world.model.entity_at(cell)), type + " loaded replacement is beyond two-cell interaction reach")
 		await native_click(world.hud.buttons[type])
 		await driver.motion(driver.cell_screen(cell))
 		await driver.settle()
@@ -94,7 +81,7 @@ func _first_line() -> void:
 	driver.expect(Codec.decode(saved, world.store.world_id).ok, "modified natural world strictly validates")
 	write_json("expected.json", saved)
 	write_json("ids.json", ids)
-	stage("replacement-write", "three loaded belts replaced by mouse/Enter/button, material conserved and save validated")
+	stage("replacement-write", "three remote loaded belts replaced by mouse/Enter/button, material conserved and save validated")
 	await native_click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "replacement world saves and returns")
 

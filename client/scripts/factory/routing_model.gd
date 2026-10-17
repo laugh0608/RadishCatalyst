@@ -26,8 +26,6 @@ func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictiona
 	var belt := placement_replacement(type, cell)
 	if not belt.is_empty() and Items.count(bag) + Items.count(Items.contents(belt)) > 200:
 		return failure("背包放不下带上物料，不能替换；原带保持不变")
-	if not belt.is_empty() and not belt.cargo.is_empty() and not near_entity(belt):
-		return failure("带上有物料；请走到传送带两格内改装")
 	return valid
 
 

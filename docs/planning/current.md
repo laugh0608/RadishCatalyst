@@ -15,7 +15,7 @@
 ## 当前活跃专题
 
 - [Factory Conveyor Combination V1](../features/factory-conveyor-combination-v1.md)：10 月 17 日完成精确布局及 C 检查：普通供给 84 实体、实际同网 240 kW；自然双原料组合、两次开路及两次独立继续通过，六故障分支和 14 张原图已复核。隔离亲测已准备，用户理解、D4 与跨平台保持待验。
-- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 已实现；各八件供给、共同仲裁、半程 / 游标保存及显式升级保持。连接诊断与稳定占位已实现。10 月 17 日按亲测反馈补齐三类附件原位替换普通带；守恒、失败零变更、正式 Boot 存读与八张原图通过，体验复测待反馈，批次见 W42。
+- [Factory Conveyor Routing V1](../features/factory-conveyor-routing-v1.md)：A 已实现；各八件供给、共同仲裁、半程 / 游标保存及显式升级保持。连接诊断与稳定占位已实现。10 月 17 日按亲测反馈补齐三类附件原位替换普通带；亲测反馈后已取消带货距离限制。远处替换、守恒、失败零变更、正式 Boot 存读及七张原图通过，本次调整待亲测，见 W42。
 - [Factory Item Admission V1](../features/factory-item-admission-v1.md)：B 整组合同已确认并实现，含 8 件供给与 schema 5。单物品筛选、不限量 / 本轮总配额、成功送出计数、关闭排空、空载配置 / 显式重置已接入；状态 461、独立进程 2、菜单 10、后台自然 write 120 / read 40、短窗口 31 项通过，四张原图已审阅，隔离亲测入口已准备。C 组合工程证据见上项，用户反馈待验。
 - [Factory Device Interaction V1](../features/factory-device-interaction-v1.md)：整改接续；手动拾样、角色近身 F / Tab、物品格与 I 背包已实现。最新状态 122、窗口 write 245 / read 45 项通过；反应器 / 背包末次布局已有实际原图复核，仓库仍保留后续亲测。现已按用户确认取消失焦自动暂停，新增无窗口功能路径 241 / 42 项通过；后台渲染启动仍取得焦点，不能作为可靠后台入口；双世界建造预览、端口与范围沿用。
 - [Factory First Journey Guidance V1](../features/factory-first-journey-guidance-v1.md)：短目标、真实数量、下一步入口和全部步骤回查；由既有事实重建，不新增教程存档；此前完整 Boot 249、独立恢复 22 项通过；10 月 8 日状态 95 项及新面板入口衔接补验通过，首次理解与独立完成仍待亲测。
