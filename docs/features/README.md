@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-[分流 / 汇合](factory-conveyor-routing-v1.md)与[准入口](factory-item-admission-v1.md)已实现；[C 组合方案](factory-conveyor-combination-v1.md)已完成设计，运行与亲测待验，D4 未退出。见 [W42](../devlogs/2026-W42.md)。
+[分流 / 汇合](factory-conveyor-routing-v1.md)与[准入口](factory-item-admission-v1.md)已实现；[C 组合](factory-conveyor-combination-v1.md)已完成精确布局、自然两次开路 / 独立恢复、六故障分支及原图工程复核；隔离亲测已准备，用户反馈与 D4 仍待验。见 [W42](../devlogs/2026-W42.md)。
 
 [设备交互](factory-device-interaction-v1.md)已实现主动拾样、角色近身 F / Tab、物品格与模型预览；工程证据见专题及 [W41](../devlogs/2026-W41.md)，体验反馈待验。
 

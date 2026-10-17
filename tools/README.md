@@ -52,6 +52,14 @@
 | `sh tools/check-factory-admission.sh menu <batch>` | 正式菜单 V4 原规则继续、升级取消 / 确认、原档与八件供给、不得重复领取、新建 V5 |
 | `sh tools/check-factory-admission.sh background-write/background-read <batch>` | 正式 Boot 普通零库存筛晶体、自然试制、解壳剂配额 4；3+在途第 4 件独立恢复、关闭排空、再启用不重置与显式重置续产；前台为 0，无截图 |
 | `sh tools/check-factory-admission.sh write/read/review <batch>` | write/read 为同一路径的窗口模式；review 只消费哈希核对的 write 副本，短窗口检查暂停恢复、F / Tab、配置 / 数量布局与 R 预览，不声称自然生产 / 配置提交通过；原图另存 art-intake |
+| `sh tools/check-factory-combination.sh geometry <新 batch>` | C 精确 84 实体 / 63 带、实际端口、同网电力及人物碰撞采样；构造夹具，不代替自然 Boot |
+| `sh tools/check-factory-combination.sh state <新 batch> <write 父 batch 或隔离快照绝对路径>` | C3 来源快照的严格守恒、双配方 / 富集多件批次、顺序 / FPS 重放、配额及故障状态；显式步进与来源类型分列 |
+| `sh tools/check-factory-combination.sh process-read <新 batch> <state 父 batch>` | 新进程从哈希核对副本重放，核对完整初始和终点快照 |
+| `sh tools/check-factory-combination.sh background-write <新 batch>` | 正式 Boot 普通零库存，试制 / 首轮四件开路、无损改线、双原料组合与富集来源跟踪、第二轮 7+1 保存；正常主循环，无窗口 |
+| `sh tools/check-factory-combination.sh background-read <新 batch> <write 父 batch>` | 独立 Boot 首帧完整比对、关闭排出第八件、再启用不重置、取新八件开内矿道并保存 |
+| `sh tools/check-factory-combination.sh background-complete-read <新 batch> <read 父 batch>` | 再次独立 Boot 恢复两次开路及配额，观察双加工源继续完成出货 |
+| `sh tools/check-factory-combination.sh background-faults <新 batch> <write 父 batch> --fault <分支>` | 每分支从独立 C3 副本启动；`raw-closed` / `wrong-gap` / `sink-blocked` / `g4-blocked` / `quota-reset` / `power-shortage` 分别检查队首停收、隔带反例、仓支路断接、末件堵塞、空载重置和缺电恢复 |
+| `sh tools/check-factory-combination.sh review <新 batch> <write 父 batch>` | 正式 Boot 短窗口：C3 原图、普通 / 最小面板、Tab / F / I、统计定位与旋转预览；随后在该子副本真实阻挡 / 修复第八件并捕获 8/8，不重走 C0–C4 |
 | `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |
 | `sh tools/check-factory-range-power.sh write/read <batch>` | 新自动世界鼠标建线与自然生产、停复电、远近样本 / F 拾取；另用声明的旧布局夹具检查菜单升级和地面点击拾取。read 独立恢复新世界完整快照及半批；要求新 write 批次、同批 read 仅一次 |
 
@@ -62,6 +70,8 @@
 设备交互复用统计路径的真实行走与输入驱动；窗口模式等待原生焦点，无窗口 `background-*` 模式直接向引擎 Viewport 投递合成输入，使用相同模型、主循环与活动时钟，不注入活动焦点。窗口模式等待期间工厂仍继续生产，计时单列；无窗口模式限 60 FPS，不加速生产，省略截图列表进入结果。Boot 首屏使用聚焦后的合成 Enter；初始建造使用既有精确放置字段 / 按钮信号，当前 schema 3 / 4 / 5 只核对自动电图，不发送手动接线命令。拖带、近身模型点击和面板按钮走合成鼠标，附近目标用 F / Tab、背包用 I、行走用 WASD；源启停经统一面板按钮，配方下拉候选由驱动选中后点击切换。场景内 `Control` 面板按所在窗口路由完整鼠标手势，检查按钮可见且仅激活一次；测试准备、合成控件输入与用户亲测分列。无物料 / 解锁 / 人物位置注入或生产加速；启动前告知，用户关闭即停止。
 
 准入口批次根为 `tools/runtime-intake/check-runs/factory-item-admission-v1/`，原图为 `assets/art-intake/2026-10-12-factory-item-admission-preview/`，亲测另用 `tools/runtime-intake/review-worlds/factory-item-admission-v1/`。write 不复用已有目录，read 续产并保存，只消费一次；review 从未消费检查点副本启动，报告分别声明实际输入和计时，不能把截图拼成自然路径。面板下拉 / 整数候选由驱动精确设置，提交走真实按钮；状态组合夹具的显式时间推进与自然 Boot 分列。
+
+C 入口由 Shell / PowerShell 调用已有 Python 3 标准库 runner，不安装依赖；PowerShell 参数为 `-Mode`、`-Batch`、`-Source`，支持 `-GodotExe`。所有模式均要求新 batch，恢复直接提供父 batch 名，由入口复制所需存档 / 上下文并生成 `origin.json`；父结果必须断言通过且 runner 无错误，持锁、软链接或已消费 write 拒绝。子进程结束再次核对父文件 SHA-256，`runner-result.json` 同时记录退出码与 Godot 错误，不以绿色断言掩盖字体 / 脚本错误。根为 `tools/runtime-intake/check-runs/factory-conveyor-combination-v1/`；不自动加入依赖自然检查点的默认 Godot 状态套件。逐项运行证据见 [C 专题](../docs/features/factory-conveyor-combination-v1.md)。
 
 10 月 8 日确认薄传送带须使用带面采样，修正检查驱动并保留失败退出；返回菜单释放按钮后仍核对激活次数，但不再访问已释放控件。`unified-window-20261008-b` 的 write 211 / read 32 项通过，包含新面板下首程目标与回压恢复；read 已续产保存，不重复消费。10 月 5 日 c 与 10 月 8 日 a 的失败证据保留，不能当作通过批次；详见 [W41 周志](../docs/devlogs/2026-W41.md)。旧电力 / 发现 / 统计脚本的面板入口已适配并编译通过，本轮未重跑其全部窗口路径。
 

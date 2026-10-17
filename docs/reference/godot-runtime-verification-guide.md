@@ -188,3 +188,9 @@ A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](
 B 使用 `sh tools/check-factory-admission.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 验证 V5 权威配额、坏档 / 原档保护及 4→5 菜单；`background-write/background-read` 由正式 Boot 普通零库存世界自然筛料、拾样 / 试制、定量 4 件。第三件送出 / 第四件半程且停止接收时保存，独立 read 只再送一件，再启用不重置，显式重置后续产。合成输入、精确放置 / 下拉候选与真实主循环计时分列，不注入物料 / 解锁 / 人物位置或加速。
 
 `review` 从哈希核对的未消费起点副本启动短窗口：暂停恢复、F / Tab、普通 / 最小面板、模型与 R 预览原图；不声明执行自然生产或配置提交。结果的 input 按模式填写，不能沿用完整驱动能力表冒充执行证据。运行根 `tools/runtime-intake/check-runs/factory-item-admission-v1/`，原图 `assets/art-intake/2026-10-12-factory-item-admission-preview/`，用户副本另放 `tools/runtime-intake/review-worlds/factory-item-admission-v1/`。新建默认 V5，旧 2 / 3 / 4 原规则继续与各级升级分别选择；已消费 read 保留，不重复作为原 write 检查点。亲测入口及待验范围见[准入口专题](../features/factory-item-admission-v1.md#playtest)。
+
+## 两原料组合定向入口
+
+C 使用 `sh tools/check-factory-combination.sh`；完整模式 / 参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`geometry` 为构造几何；`state/process-read` 为声明来源的严格快照与显式固定步重放。`background-write` 才承担普通空世界的自然 C0–C3，`background-read` 和 `background-complete-read` 分别承担两次独立 Boot 继续；不以状态夹具补签自然路径。检查只读跟踪连续固定步上的富集 batch、制剂整批投入及 G4 放行，采样跨步时清除未完成来源链，不从稀疏库存统计猜测来源。
+
+每个模式都使用新 batch。恢复 / 故障 / review 指定成功父批次，由 runner 复制输入并记录 SHA-256；禁止覆盖、消费原父档或以失败父结果继续验收，子结束后复核父目录未变。运行根为 `tools/runtime-intake/check-runs/factory-conveyor-combination-v1/`，原图为 `assets/art-intake/2026-10-17-factory-conveyor-combination-preview/`，亲测另用同专题 `review-worlds/`。`review` 先证明暂停下镜头 / 面板只读，再在独立子档中用真实回收、返料和短时自然推进演示末件堵塞 / 修复 / 8/8；该短段不是重新完成全程。Godot 日志使用绝对仓库路径，退出码、脚本断言与日志错误共同决定通过；不忽略字体或脚本错误。
