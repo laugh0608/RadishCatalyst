@@ -1,6 +1,6 @@
 # Factory Game Production Study
 
-查阅日期：2026-10-17
+查阅日期：2026-10-17；终末地离线资料补读：2026-10-18
 
 ## 用途与结论
 
@@ -15,7 +15,7 @@
 | 游戏 / 资料 | 本次读取与限制 |
 | --- | --- |
 | 终末地：[官网集成工业知识](https://endfield.gryphline.com/zh-tw)、[开发组通讯 02](https://endfield.gryphline.com/zh-tw/news/1340) | 官方正文可读。通讯发布于 2025-11-01，属于“全面测试”设计说明，不把其所有规则当作当前版本事实；官网明确列出装备、爆炸物、电池、战术物品等自动化产物 |
-| 终末地：[森空岛 Wiki](https://wiki.skland.com/) | 前轮抓取 / 标签页读取失败；用户提供设备目录后，改用 Chrome 原生窗口成功读取目录与 9 个详情页，核对代表配方和用途，见[正文核对](endfield-production-planning-study.md#森空岛-wiki-正文核对)。未进行全表或游戏内验证 |
+| 终末地：[森空岛 Wiki](https://wiki.skland.com/) | 10 月 17 日经 Chrome 原生窗口核对目录与 9 个详情页；18 日补读用户提供的离线设备 / 系统蓝图，新增完整产线、仓库出料及建造成本对照，见[离线补充](endfield-production-planning-study.md#offline-industrial-materials)。159 篇目录完整性不等于全表核验，未进行游戏内验证 |
 | Factorio：[Oil processing](https://wiki.factorio.com/Oil_processing)、[FFF #305](https://factorio.com/blog/post/fff-305) | 官方 Wiki 正文与开发日志可读。前者支持生产和回压关系；后者是 2019-07-26 的设计复盘，只用于解释分阶段引入复杂度 |
 | Satisfactory：[Recipes](https://satisfactory.wiki.gg/wiki/Recipes)、[替代配方选择](https://satisfactory.wiki.gg/wiki/Tutorial:Picking_an_alternate_recipe)、[AWESOME Sink](https://satisfactory.wiki.gg/wiki/AWESOME_Sink) | 官方名义 Wiki 的搜索索引可读，部分正文请求返回 403 / 读取错误；只采用索引明确支持的机制。替代配方教程标记未完成，不能当全配方排名 |
 | Captain of Industry：[Slag](https://wiki.coigame.com/Slag)、[Contracts](https://wiki.coigame.com/Contracts) | 开发商域名 Wiki 正文 / 索引可读；[官网论坛入口](https://coigame.com/Forum)明确称其为社区 Wiki。只提炼矿渣去向与长期供货结构，不沿用表中版本数值 |

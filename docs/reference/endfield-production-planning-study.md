@@ -1,6 +1,6 @@
 # Endfield Production Planning Study
 
-查阅日期：2026-10-17
+查阅日期：2026-10-17、2026-10-18
 
 ## 用途与来源边界
 
@@ -14,6 +14,26 @@
 | [森空岛终末地 Wiki](https://wiki.skland.com/endfield/catalog?mainTypeId=1&subTypeId=5&filterIds=&header=0) | 通过用户已打开的 Chrome 窗口读取设备目录和下列 9 个详情页；粉碎机页面另看截图 | 正式中文名称、代表配方、制造来源、设备足印 / 功率值与成品用途；未进行游戏内实测，不宣称全表核验 |
 
 IndustrialPlanner 的 README 明确列有无限来源、无限供电及加速等调试能力，并提示部分预支持内容、复杂物流与跨基地结果仍应回游戏核实。GameHeads 自称非官方同人网站。本轮引用上述工具的结构，不把调试便利性作为 RadishCatalyst 的生产规则。
+
+<a id="offline-industrial-materials"></a>
+
+## 10 月 18 日离线资料补充
+
+萝卜SAMA提供 `build/endfield-sample/out/`，入口为 `README.md`，清单为 `manifest.json`，正文和图片分别在 `entries/`、`images/`。本地核对有 159 篇词条（102 设备、52 系统蓝图及 5 篇教程 / 攻略 / 档案 / 任务）和 232 张图片；清单对应文件、正文来源 URL 与图片引用均存在。此为文件完整性核对，不是全站或全部配方正确性验证。资料说明只保存抓取时默认版本页签，未收录历史版本；图片约 10.5 MiB。离线包留在本地参考目录，正式文档记录提炼结论与原始页面来源，不将第三方图片转入游戏资产。
+
+本轮重点阅读加工、发电、准入口、仓储与四份产线蓝图，直接查看电池 / 爆炸物两张布局图。相比前轮九页核对，新增价值是“工序 → 设备组合 → 物流 / 供电 → 占地”的对应关系：
+
+| 资料 | 实际观察与设计用途 |
+| --- | --- |
+| [中容谷地电池蓝图（806）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=18&gameEntryId=806&header=0) | 14×6，一台粉碎机、一台封装机及一根供电桩；输入铁制零件与源矿。它省略上游零件制造，不能当作从原矿起步的全链成本 |
+| [工业爆炸物蓝图（796）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=18&gameEntryId=796&header=0) | 13×6，同样由粉碎与封装组合，输入紫晶零件和酮化灌木；布局图以物品图标、端口和带方向表达支线职责，可参考教学呈现，不要求复制自动蓝图功能 |
+| [致密蓝铁粉末蓝图（809）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=18&gameEntryId=809&header=0) | 18×6，精炼炉一台、粉碎机两台、研磨机一台、供电桩两根；输入蓝铁矿和砂叶。说明多来源升级需要同时核对工序、占地与电力，不能只看单步配方 |
+| [仓库取货口（170）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=5&gameEntryId=170&header=0) | 可选择当地仓库物品并经带自动输出；本项目终端仓没有这项能力，参考布局中的供料便利不能直接套用，需另算取料、改配方与重新上料的操作 |
+| [传送带（161）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=5&gameEntryId=161&header=0)、[准入口（10）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=5&gameEntryId=10&header=0) | 前者可免费放置，后者须置于带上，兼作物料标记，后续研究另解锁限速。我们的带构件制造成本、附件放置和配额规则仍为自有设计，不把参考布局的占地直接等同建造成本 |
+
+**产线可运行不等于所有设备满速。** 按离线[粉碎机（54）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=5&gameEntryId=54&header=0)的源矿 1 → 源石粉末 1 / 2 秒与[封装机（177）](https://wiki.skland.com/endfield/detail?mainTypeId=1&subTypeId=5&gameEntryId=177&header=0)的粉末 15 + 铁制零件 10 → 电池 1 / 10 秒计算，上述单粉碎机蓝图每分钟仅供粉末 30，其他条件充足时电池的理想持续上限为 2 颗/分钟；封装机单独加工能力为 6 颗/分钟。该差异是依据词条的纸面推导，未运行游戏验证，也不据此判定蓝图错误；它可能服务首次生产或低速需求，不能据图宣称全链满产。
+
+后续优先用资料辅助 E1 的“首次两包构件”与“扩建后混料回用”两份布局草图：标清哪些材料来自现场采集、哪些需要手动暂存 / 回填，并比较完整链吞吐、占地、电力、构件支出和操作次数。具体草图与本项目吞吐尚未完成。提取正文的表格存在扁平化、教程依赖图片等情况，精确字段仍须逐项配对，不能直接自动导入配方库。
 
 ## 森空岛 Wiki 正文核对
 
