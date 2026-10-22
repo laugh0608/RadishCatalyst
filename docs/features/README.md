@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-10-17
+更新时间：2026-10-22
 
 ## 用途
 
@@ -26,6 +26,8 @@
 ## 当前状态
 
 **当前主线：[Factory Production Expansion V1](factory-production-expansion-v1.md)。** 已按授权提出物品、设备、配方与用途方案，分材料扩建、能源、开拓三批；尚未实现。参考见[终末地产线研究](../reference/endfield-production-planning-study.md)。原 D4 保留但非前置，顺位见 [Current Plan](../planning/current.md)。
+
+[E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)待确认后实施。
 
 [分流 / 汇合](factory-conveyor-routing-v1.md)与[准入口](factory-item-admission-v1.md)已实现；[C 组合](factory-conveyor-combination-v1.md)已完成精确布局、自然两次开路 / 独立恢复、六故障分支及原图工程复核；隔离亲测已接续，附件原位替换及带货距离限制整改已获用户复测无明显问题反馈；其余 D4 体验范围仍保留。见 [W42](../devlogs/2026-W42.md)。
 
