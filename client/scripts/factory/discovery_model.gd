@@ -3,6 +3,10 @@ extends "res://scripts/factory/model.gd"
 const Items := preload("res://scripts/factory/items.gd")
 const Grid := preload("res://scripts/factory/power_grid.gd")
 const Statistics := preload("res://scripts/factory/statistics.gd")
+var recipes := DiscoveryRules.RECIPES.duplicate(true)
+var item_ids := DiscoveryRules.ITEMS.duplicate()
+var process_types := ["reactor"]
+var input_batches := 1
 var power_links: Array = []
 var discovery := {"surveyed": false, "sample_taken": false, "trial_completed": false, "passages": {"outer": false, "inner": false}}
 var statistics := Statistics.new()
@@ -185,19 +189,21 @@ func _step(dt: float) -> void:
 			continue
 		if e.type == "collector":
 			e.progress += work
-			if e.progress >= 1 - 1e-9:
+			if e.progress >= collector_cycle(e) - 1e-9:
 				e.progress = 0.0
 				Items.add(e.buffer, e.mineral, 1)
 				generated += 1
 				statistics.event("produced", e.mineral, 1)
-		elif e.type == "reactor":
-			var recipe: Dictionary = DiscoveryRules.RECIPES[e.recipe_id]
+				_collected(e.mineral)
+		elif e.type in process_types:
+			var recipe: Dictionary = recipes[e.recipe_id]
 			if not e.processing:
 				e.invested = recipe.input.duplicate()
 				Items.merge(e.input, e.invested, -1)
 				e.processing = true
 				e.active_batch = next_batch
 				next_batch += 1
+				_batch_started(e)
 			e.progress += work
 			if e.progress >= recipe.seconds - 1e-9:
 				e.output = recipe.output.duplicate()
@@ -211,6 +217,7 @@ func _step(dt: float) -> void:
 				for item in e.output:
 					statistics.event("produced", item, e.output[item])
 				e.invested.clear()
+				_batch_completed(e)
 				if e.recipe_id == "solvent_trial":
 					discovery.trial_completed = true
 					revision += 1
@@ -232,13 +239,13 @@ func feedback(e: Dictionary) -> Dictionary:
 	match e.type:
 		"collector":
 			production = {"kind": "blocked", "label": "缓冲已满"} if Items.count(e.buffer) >= 50 else {"kind": "running", "label": "缓冲可用，可采集"}
-		"reactor":
+		"reactor", "crusher", "refinery", "assembler":
 			production = {"kind": "running", "label": "有在制，可推进"} if e.processing else {"kind": "blocked", "label": "等待取出输出"} if not e.output.is_empty() else {"kind": "running", "label": "原料齐全，可开批"} if work_spec(e).ready else {"kind": "waiting", "label": "缺少配方原料"}
 		"storage":
 			production = {"kind": "blocked", "label": "仓储已满"} if Items.count(e.items) >= 200 else {"kind": "ready", "label": "接收物料"}
 		"belt":
 			production = {"kind": "blocked", "label": "前方堵塞"} if belt_blocked(e) else {"kind": "ready", "label": "等待物料"} if e.cargo.is_empty() else {"kind": "running", "label": "运输中"}
-	if e.type == "reactor" and not recipe_available(e.recipe_id) and e.output.is_empty():
+	if e.type in process_types and not recipe_available(e.recipe_id) and e.output.is_empty():
 		production = {"kind": "ready", "label": "试制已完成，请切换常规配方"}
 	if not DiscoveryRules.POWER.has(e.type):
 		return production
@@ -270,8 +277,8 @@ func recipe_available(id: String) -> bool:
 
 func work_spec(e: Dictionary) -> Dictionary:
 	if e.type == "collector":
-		return {"ready": Items.count(e.buffer) < 50, "seconds": 1.0, "kw": 20.0}
-	var recipe: Dictionary = DiscoveryRules.RECIPES[e.recipe_id]
+		return {"ready": Items.count(e.buffer) < 50, "seconds": collector_cycle(e), "kw": 20.0}
+	var recipe: Dictionary = recipes[e.recipe_id]
 	return {"ready": e.processing or (recipe_available(e.recipe_id) and e.output.is_empty() and Items.contains(e.input, recipe.input)), "seconds": recipe.seconds, "kw": recipe.kw}
 
 
@@ -285,9 +292,9 @@ func near_entity(e: Dictionary) -> bool:
 
 func change_recipe(id: int, recipe_id: String) -> Dictionary:
 	var e := by_id(id)
-	if e.get("type", "") != "reactor" or not near_entity(e):
+	if e.get("type", "") not in process_types or not near_entity(e):
 		return failure("请走到反应器两格内操作")
-	if not recipe_available(recipe_id):
+	if not recipe_available(recipe_id) or recipes[recipe_id].get("machine", "reactor") != e.type:
 		return failure("配方尚未掌握，或唯一试制已经完成")
 	if e.processing:
 		return failure("仍有在制，请先完成或取消本批")
@@ -302,7 +309,7 @@ func change_recipe(id: int, recipe_id: String) -> Dictionary:
 
 func cancel_batch(id: int) -> Dictionary:
 	var e := by_id(id)
-	if e.get("type", "") != "reactor" or not near_entity(e):
+	if e.get("type", "") not in process_types or not near_entity(e):
 		return failure("请走到反应器两格内取消")
 	if not e.processing:
 		return failure("没有在制批次")
@@ -318,15 +325,15 @@ func cancel_batch(id: int) -> Dictionary:
 
 
 func input_room(e: Dictionary, item: String, manual := false) -> int:
-	if item not in DiscoveryRules.ITEMS or (item == "crust_sample" and not manual):
+	if item not in item_ids or (item == "crust_sample" and not manual):
 		return 0
 	match e.type:
 		"collector":
 			return 50 - Items.count(e.buffer) if item == e.mineral else 0
-		"reactor":
+		"reactor", "crusher", "refinery", "assembler":
 			if not recipe_available(e.recipe_id):
 				return 0
-			return maxi(0, int(DiscoveryRules.RECIPES[e.recipe_id].input.get(item, 0)) - int(e.input.get(item, 0)))
+			return maxi(0, int(recipes[e.recipe_id].input.get(item, 0)) * (input_batches if e.type != "reactor" else 1) - int(e.input.get(item, 0)))
 		"storage": return 200 - Items.count(e.items)
 	return 0
 
@@ -334,11 +341,11 @@ func input_room(e: Dictionary, item: String, manual := false) -> int:
 ## Explicit commands cap to both inventories; failures never partially mutate.
 func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictionary:
 	var e := by_id(id)
-	if item not in DiscoveryRules.ITEMS or not near_entity(e):
+	if item not in item_ids or not near_entity(e):
 		return failure("请走到设备两格内，且位于同一可达区域")
-	if e.type not in ["collector", "reactor", "storage"]:
+	if e.type not in process_types + ["collector", "storage"]:
 		return failure("此构件没有可操作的库存")
-	var inventories: Array = [e.buffer] if e.type == "collector" else [e.input, e.output] if e.type == "reactor" else [e.items]
+	var inventories: Array = [e.buffer] if e.type == "collector" else [e.input, e.output] if e.type in process_types else [e.items]
 	var room := input_room(e, item, true) if putting else 200 - Items.count(bag)
 	var available := int(bag.get(item, 0)) if putting else 0
 	if not putting:
@@ -357,7 +364,7 @@ func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictiona
 			Items.add(inventory, item, -n)
 			left -= n
 		Items.add(bag, item, amount)
-		if e.type == "reactor" and e.output.is_empty():
+		if e.type in process_types and e.output.is_empty():
 			e.output_batch = 0
 	revision += 1
 	return success({"amount": amount})
@@ -424,20 +431,20 @@ func _sink_accepts(e: Dictionary, source: Dictionary, item: String) -> bool:
 
 
 func _receive_item(e: Dictionary, item: String) -> void:
-	Items.add(e.input if e.type == "reactor" else e.items, item, 1)
+	Items.add(e.input if e.type in process_types else e.items, item, 1)
 
 
 func _output_item(e: Dictionary) -> String:
 	if e.type == "collector" and not e.buffer.is_empty():
 		return e.mineral
-	if e.type == "reactor" and not e.output.is_empty():
+	if e.type in process_types and not e.output.is_empty():
 		return e.output.keys()[0]
 	return ""
 
 
 func _take_output(e: Dictionary, item: String) -> void:
 	Items.add(e.buffer if e.type == "collector" else e.output, item, -1)
-	if e.type == "reactor" and e.output.is_empty():
+	if e.type in process_types and e.output.is_empty():
 		e.output_batch = 0
 
 
@@ -449,3 +456,19 @@ func material_balance() -> Dictionary:
 	for item in held:
 		equivalent += held[item] * DiscoveryRules.WEIGHTS[item]
 	return {"held": held, "equivalent": equivalent, "crystal": held.get("crystal", 0), "catalyst": held.get("catalyst", 0), "generated": generated}
+
+
+func collector_cycle(_e: Dictionary) -> float:
+	return 1.0
+
+
+func _collected(_item: String) -> void:
+	pass
+
+
+func _batch_started(_e: Dictionary) -> void:
+	pass
+
+
+func _batch_completed(_e: Dictionary) -> void:
+	pass

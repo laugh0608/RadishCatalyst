@@ -8,6 +8,7 @@
 ## 子文档
 
 - [Factory World State And Save V1](factory-world-state-and-save-v1.md)：正式三维工厂入口、权威状态与独立 schema 1；保留旧二维世界，当前未实现多人。
+- [E1 内容存档合同](../features/factory-production-expansion-e1.md#内容存档与守恒合同)：已实现独立 schema 6、制造账、逐物料守恒及主副产出活批校验；默认基础与旧 V5 保持，不做跨身份升级。
 
 - [联机模型](multiplayer-model.md)：最终联机方向、形态分层、核心玩法边界和房间模型。
 - [存档归属模型](save-ownership-model.md)：世界、角色、基地、队伍和版本兼容的存档归属。

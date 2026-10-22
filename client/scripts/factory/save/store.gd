@@ -79,7 +79,7 @@ func list_worlds() -> Array[Dictionary]:
 		if candidate.ok:
 			entry.name = candidate.document.name
 			entry.schema = int(candidate.document.save_schema_version)
-			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -292,7 +292,7 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
 	if supply == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("工程规模验证只能从隔离检查入口创建。", true)
-	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID]:
+	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID]:
 		return _error("范围供电仅适用于勘探工厂。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
@@ -318,7 +318,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic
 func _create_locked(title: String, supply: String, automatic_power: bool) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
-	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID]:
+	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID]:
 		return _error("未知供给版本。")
 	var id := Crypto.new().generate_random_bytes(16).hex_encode()
 	if DirAccess.make_dir_absolute(root.path_join(id)) != OK:
@@ -332,7 +332,9 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	expected_main_hash = ""
 	loaded = true
 	var model: RefCounted
-	if supply == Engineering.SUPPLY_ID:
+	if supply == Codec.V6.Expansion.SUPPLY_ID:
+		model = Codec.V6.ExpansionModel.new()
+	elif supply == Engineering.SUPPLY_ID:
 		model = Codec.V5.EngineeringModel.new()
 	elif supply == Codec.V2.Config.ADMISSION_SUPPLY_ID:
 		model = Codec.V5.AdmissionModel.new()
@@ -369,8 +371,8 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 	if _hash(path("autosave.json")) != expected_main_hash:
 		return _error("主档被外部修改，停止覆盖；当前进度仍在内存。")
 	var document := Codec.snapshot(model, world_id, world_name, sequence + 1)
-	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID) and _identity(document) != session_identity:
-		return Codec.failure("不能转换普通与工程世界身份。", true)
+	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id == Codec.V6.Expansion.SUPPLY_ID or session_identity[3] == Codec.V6.Expansion.SUPPLY_ID) and _identity(document) != session_identity:
+		return Codec.failure("不能转换普通、工程与 E1 世界身份。", true)
 	var valid := Codec.decode(document, world_id)
 	if _fail("validation") or not valid.ok:
 		return _error("保存校验失败：" + valid.get("reason", "校验故障"))

@@ -48,6 +48,7 @@ func _ready() -> void:
 	layout.add_child(notice)
 	world_type.add_item("基础工厂 · 原预供电规则")
 	world_type.add_item("勘探工厂 · 分流汇合、范围供电与矿道开拓")
+	world_type.add_item("生产扩建 E1 · 制造第二台炉与混料回用")
 	layout.add_child(world_type)
 	title_input.placeholder_text = "新工厂名称（最多 48 字）"
 	title_input.max_length = 48
@@ -92,7 +93,8 @@ func _selection() -> void:
 
 func _create() -> void:
 	var store := Store.new(save_root, engineering_context)
-	var result := store.create(title_input.text, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID if world_type.selected == 1 else Store.Codec.Rules.NORMAL_SUPPLY, world_type.selected == 1)
+	var supply: String = [Store.Codec.Rules.NORMAL_SUPPLY, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID, Store.Codec.V6.Expansion.SUPPLY_ID][world_type.selected]
+	var result := store.create(title_input.text, supply, world_type.selected != 0)
 	if not result.ok:
 		notice.text = result.reason
 		return

@@ -53,9 +53,13 @@ var cyan_mat := Parts.material("5bd6c8", 0, 0.32)
 var dark_mat := Parts.material("273b40", 0.5, 0.42)
 var status_mesh := SphereMesh.new()
 var status_materials := {}
+var cargo_materials := {}
 
 
 func _ready() -> void:
+	cargo_materials = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}
+	for item in Model.DiscoveryRules.Expansion.NAMES:
+		cargo_materials[item] = Parts.material(preload("res://scripts/factory/item_slot.gd").ACCENTS[item], 0.3, 0.5)
 	status_mesh.radius = 0.5
 	status_mesh.height = 1.0
 	for kind in STATUS:
@@ -91,14 +95,22 @@ func _ready() -> void:
 			if not assets.admission_gate is PackedScene:
 				resource_error = "缺少物品准入口模型"
 				return
+		if world_model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+			for kind in ["crusher", "refinery", "assembler", "iron-ore", "carbon-ore"]:
+				assets[kind] = load(ASSET_ROOT + "expansion/" + kind + ".glb")
+				if not assets[kind] is PackedScene:
+					resource_error = "缺少生产扩建模型：" + kind
+					return
 		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()
 	var sites: Array[Vector2i] = world_model.ore_sites() if world_model != null else Model.Rules.ore_sites()
 	for cell in sites:
-		var ore: Node3D = assets.ore.instantiate()
+		var mineral: String = world_model.mineral_at(cell) if world_model.has_method("mineral_at") else "crystal"
+		var new_ore: bool = mineral in ["iron_ore", "carbon_ore"]
+		var ore: Node3D = assets[mineral.replace("_", "-")].instantiate() if new_ore else assets.ore.instantiate()
 		add_child(ore)
-		ore.position = Vector3(cell.x + 8, 0, cell.y + 1)
+		ore.position = Vector3(cell.x + (1 if new_ore else 8), 0, cell.y + 1)
 		if world_model != null and world_model.has_method("power_state") and world_model.mineral_at(cell) == "rich_crystal":
 			ore.scale = Vector3(1, 1.7, 1)
 			for part in ore.find_children("*", "MeshInstance3D", true, false):
@@ -333,7 +345,7 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 			root.add_child(cargo)
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
-		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
+		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
 		result.lamp.scale = Vector3.ONE * 0.21
 		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -503,7 +515,7 @@ func _sync_production(model: RefCounted) -> void:
 		if e.type == "belt":
 			v.cargo.visible = not e.cargo.is_empty()
 			if v.cargo.visible:
-				v.cargo_mesh.material_override = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}[e.cargo]
+				v.cargo_mesh.material_override = cargo_materials[e.cargo]
 				var p := travel_position(e.entry, e.dir, e.progress)
 				v.cargo.position = Vector3(p.x, 0.53, p.y)
 				v.cargo.rotation.y = model.time * 0.4
@@ -515,14 +527,14 @@ func _sync_production(model: RefCounted) -> void:
 					var p: Vector2 = Vector2(e.entry) * (0.5 - e.progress)
 					v.cargo.position = Vector3(p.x, 0.28, p.y)
 					v.cargo.scale = Vector3.ONE * 0.45
-					v.cargo_mesh.material_override = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}[e.cargo]
+					v.cargo_mesh.material_override = cargo_materials[e.cargo]
 			var f: Dictionary = model.feedback(e)
 			v.lamp_mat = status_materials[f.kind]
 			v.lamp.material_override = v.lamp_mat
 			var progress := 0.0
 			if model.has_method("power_state"):
 				match e.type:
-					"reactor": progress = e.progress / model.DiscoveryRules.RECIPES[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
+					"reactor", "crusher", "refinery", "assembler": progress = e.progress / model.recipes[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
 					"splitter", "merger", "admission_gate": progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
@@ -539,7 +551,7 @@ func _build_mineral_barriers() -> void:
 	clear_node(barriers)
 	terrain_key = str(world_model.discovery)
 	# Imported ore clusters follow the same permanent passage facts as collision.
-	for start_x in ([4, 20] if world_model.map_id == Model.DiscoveryRules.MAP_ID else []):
+	for start_x in ([4, 20] if world_model.map_id in [Model.DiscoveryRules.MAP_ID, Model.DiscoveryRules.Expansion.MAP_ID] else []):
 		for z in range(-32, 32, 2):
 			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
 				continue

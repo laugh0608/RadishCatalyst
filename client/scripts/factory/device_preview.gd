@@ -46,7 +46,9 @@ func show_device(kind: String, direction := 0) -> void:
 		scene.remove_child(asset)
 		asset.queue_free()
 	var path := "res://assets/factory/" + kind + ".glb"
-	if kind in ["power_source", "power_junction"]:
+	if kind in ["crusher", "refinery", "assembler"]:
+		path = "res://assets/factory/expansion/" + kind + ".glb"
+	elif kind in ["power_source", "power_junction"]:
 		path = "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
 	elif kind == "admission_gate":
 		path = "res://assets/factory/admission/admission-gate.glb"

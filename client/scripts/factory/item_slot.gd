@@ -1,15 +1,25 @@
 extends Button
 
 ## One aggregated material stack. Selecting a slot never transfers stock.
+const Items := preload("res://scripts/factory/items.gd")
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const TEXTURES := {
+	"iron_ore": preload("res://assets/icons/factory_iron_ore.svg"),
+	"carbon_ore": preload("res://assets/icons/factory_carbon_ore.svg"),
+	"iron_powder": preload("res://assets/icons/factory_iron_powder.svg"),
+	"carbon_powder": preload("res://assets/icons/factory_carbon_powder.svg"),
+	"metal_plate": preload("res://assets/icons/factory_metal_plate.svg"),
+	"mineral_slag": preload("res://assets/icons/factory_mineral_slag.svg"),
+	"porous_carrier": preload("res://assets/icons/factory_porous_carrier.svg"),
+	"construction_pack": preload("res://assets/icons/factory_construction_pack.svg"),
+
 	"crystal": preload("res://assets/icons/factory_crystal.svg"),
 	"catalyst": preload("res://assets/icons/factory_catalyst.svg"),
 	"crust_sample": preload("res://assets/icons/factory_crust_sample.svg"),
 	"crust_solvent": preload("res://assets/icons/factory_crust_solvent.svg"),
 	"rich_crystal": preload("res://assets/icons/factory_rich_crystal.svg"),
 }
-const ACCENTS := {"crystal": "7cd7c6", "catalyst": "edc97e", "crust_sample": "bed4b3", "crust_solvent": "eba960", "rich_crystal": "bda0df"}
+const ACCENTS := {"iron_ore": "b77b57", "carbon_ore": "87909c", "iron_powder": "d39b79", "carbon_powder": "a1abb4", "metal_plate": "a5cfda", "mineral_slag": "a9ae88", "porous_carrier": "d8c999", "construction_pack": "7cd7c6", "crystal": "7cd7c6", "catalyst": "edc97e", "crust_sample": "bed4b3", "crust_solvent": "eba960", "rich_crystal": "bda0df"}
 var item_id := ""
 var amount := 0
 var artwork := TextureRect.new()
@@ -51,7 +61,7 @@ func _ready() -> void:
 	quantity.offset_top = -50
 	quantity.offset_bottom = -22
 	quantity.offset_right = -8
-	caption.text = Rules.NAMES[item_id]
+	caption.text = Items.NAMES[item_id]
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size", 14)
 	caption.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -70,7 +80,7 @@ func update_amount(value: int, required := 0) -> void:
 	amount = value
 	quantity.text = str(value) if required == 0 else "%d / %d" % [value, required]
 	artwork.modulate.a = 1.0 if value > 0 else 0.35
-	tooltip_text = "%s：%d 件" % [Rules.NAMES[item_id], value]
+	tooltip_text = "%s：%d 件" % [Items.NAMES[item_id], value]
 	if required > 0:
 		tooltip_text += "；每批需 %d 件" % required
 

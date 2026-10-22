@@ -2,7 +2,8 @@ extends VBoxContainer
 
 signal applied(result: Dictionary)
 const Admission := preload("res://scripts/factory/admission.gd")
-const Rules := Admission.Rules
+const Items := preload("res://scripts/factory/items.gd")
+var allowed_items := Admission.ALLOWED_ITEMS.duplicate()
 var model: RefCounted
 var selected := -1
 var config_key := ""
@@ -24,8 +25,8 @@ func _ready() -> void:
 	caption.text = "允许物品"
 	row.add_child(caption)
 	item.add_item("选择允许物品")
-	for id in Admission.ALLOWED_ITEMS:
-		item.add_icon_item(load("res://assets/icons/factory_" + id + ".svg"), Rules.NAMES[id])
+	for id in allowed_items:
+		item.add_icon_item(load("res://assets/icons/factory_" + id + ".svg"), Items.NAMES[id])
 	item.add_theme_constant_override("icon_max_width", 22)
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(item)
@@ -57,16 +58,23 @@ func _ready() -> void:
 
 
 func _item() -> String:
-	return Admission.ALLOWED_ITEMS[item.selected - 1] if item.selected > 0 else ""
+	return allowed_items[item.selected - 1] if item.selected > 0 else ""
 
 
 func refresh(world: RefCounted, e: Dictionary) -> void:
 	model = world
+	if allowed_items != model.admission_items:
+		allowed_items = model.admission_items.duplicate()
+		item.clear()
+		item.add_item("选择允许物品")
+		for id in allowed_items:
+			item.add_icon_item(load("res://assets/icons/factory_" + id + ".svg"), Items.NAMES[id])
+		config_key = ""
 	selected = e.id
 	var key := str([e.id, e.filter_item, e.quota_mode, e.quota_limit])
 	if key != config_key:
 		config_key = key
-		item.select(Admission.ALLOWED_ITEMS.find(e.filter_item) + 1)
+		item.select(allowed_items.find(e.filter_item) + 1)
 		mode.select(1 if e.quota_mode == "quota" else 0)
 		limit.set_value_no_signal(e.quota_limit if e.quota_mode == "quota" else 1)
 	accepting_button.text = "停止接收并排空" if e.accepting else "允许新来料"

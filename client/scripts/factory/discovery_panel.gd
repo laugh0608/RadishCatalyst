@@ -77,7 +77,11 @@ func _ready() -> void:
 	bag_frame.custom_minimum_size.x = 348
 	bag_frame.add_theme_stylebox_override("panel", _style("1c3231", 16))
 	body.add_child(bag_frame)
-	bag_frame.add_child(bag_content)
+	var bag_scroll := ScrollContainer.new()
+	bag_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	bag_frame.add_child(bag_scroll)
+	bag_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bag_scroll.add_child(bag_content)
 	bag_content.add_theme_constant_override("separation", 12)
 	bag_content.add_child(inventory)
 	inventory.add_theme_font_size_override("font_size", 20)
@@ -86,7 +90,7 @@ func _ready() -> void:
 	bag_grid.add_theme_constant_override("h_separation", 10)
 	bag_grid.add_theme_constant_override("v_separation", 10)
 	bag_content.add_child(bag_grid)
-	for item in Rules.ITEMS:
+	for item in Items.NAMES:
 		var slot := ItemSlot.new()
 		slot.item_id = item
 		bag_grid.add_child(slot)
@@ -140,7 +144,7 @@ func _ready() -> void:
 		if recipe.selected >= 0:
 			apply(model.change_recipe(selected, recipe_ids[recipe.selected])))
 	button(recipe_row, "cancel_batch", "取消本批并返料", func(): apply(model.cancel_batch(selected)))
-	for item in Rules.ITEMS:
+	for item in Items.NAMES:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		device_content.add_child(row)
@@ -302,7 +306,7 @@ func refresh() -> void:
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
-	var stores_items: bool = device_only and e.type in ["collector", "reactor", "storage"]
+	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage"]
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
@@ -310,15 +314,15 @@ func refresh() -> void:
 		device_summary.refresh(model, e)
 	if stores_items and not device_item.is_empty() and item_button(device_item, false) == null:
 		device_item = ""
-	recipe_row.visible = device_only and e.type == "reactor"
+	recipe_row.visible = device_only and e.type in model.process_types
 	if recipe_row.visible:
 		_sync_recipes(e)
 		buttons.recipe.disabled = e.processing or not e.input.is_empty() or not e.output.is_empty()
 		buttons.recipe.tooltip_text = "切换前须结束本批，并取空输入和输出。"
 		buttons.cancel_batch.disabled = not e.processing
 	var contents := Items.contents(e) if stores_items else {}
-	for item in Rules.ITEMS:
-		var known: bool = item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed
+	for item in Items.NAMES:
+		var known: bool = item in model.item_ids and (item in Rules.Expansion.NAMES or item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed)
 		var available: int = contents.get(item, 0) - e.get("invested", {}).get(item, 0)
 		if bag_item.is_empty() and known:
 			bag_item = item
@@ -326,7 +330,7 @@ func refresh() -> void:
 		bag_slots[item].update_amount(model.bag.get(item, 0))
 		bag_slots[item].mark_selected(bag_item == item)
 		bag_rows[item].visible = known and bag_item == item
-		bag_labels[item].text = "%s   ×%d" % [Rules.NAMES[item], model.bag.get(item, 0)]
+		bag_labels[item].text = "%s   ×%d" % [Items.NAMES[item], model.bag.get(item, 0)]
 		for action in ["put_one", "put_all"]:
 			buttons[item + "_" + action].visible = stores_items
 			buttons[item + "_" + action].disabled = not stores_items or model.bag.get(item, 0) == 0 or model.input_room(e, item, true) <= 0
@@ -334,7 +338,7 @@ func refresh() -> void:
 		if device_item.is_empty() and has_slot:
 			device_item = item
 		rows[item].visible = has_slot and device_item == item
-		item_labels[item].text = "%s · 可取 %d" % [Rules.NAMES[item], available]
+		item_labels[item].text = "%s · 可取 %d" % [Items.NAMES[item], available]
 		for action in ["take_one", "take_all"]:
 			buttons[item + "_" + action].disabled = available <= 0 or Items.count(model.bag) >= 200
 	device_summary.select_item(device_item)
@@ -350,8 +354,8 @@ func refresh() -> void:
 
 func _sync_recipes(e: Dictionary) -> void:
 	var available: Array[String] = []
-	for id in Rules.RECIPES:
-		if model.recipe_available(id):
+	for id in model.recipes:
+		if model.recipe_available(id) and model.recipes[id].get("machine", "reactor") == e.type:
 			available.append(id)
 	var key := str([available, e.recipe_id])
 	if key == recipe_key:
@@ -361,7 +365,7 @@ func _sync_recipes(e: Dictionary) -> void:
 	recipe_ids = available
 	recipe.clear()
 	for id in recipe_ids:
-		var r: Dictionary = Rules.RECIPES[id]
+		var r: Dictionary = model.recipes[id]
 		recipe.add_item("%s · %.0fs / %.0fkW" % [r.name, r.seconds, r.kw])
 		if e.recipe_id == id:
 			recipe.select(recipe_ids.find(id))

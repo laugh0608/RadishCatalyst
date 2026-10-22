@@ -224,6 +224,7 @@ run_godot_checked "factory-first-journey" --script "${client_root}/scripts/check
 run_godot_checked "factory-statistics" --script "${client_root}/scripts/checks/factory_statistics_check.gd" --no-header
 run_godot_checked "factory-routing" --script "${client_root}/scripts/checks/factory_routing_check.gd" --no-header
 run_godot_checked "factory-admission" --script "${client_root}/scripts/checks/factory_admission_check.gd" --no-header
+run_godot_checked "factory-expansion" --script "${client_root}/scripts/checks/factory_expansion_check.gd" --no-header
 run_godot_checked "factory-device-interaction" --script "${client_root}/scripts/checks/factory_device_interaction_check.gd" --no-header
 run_godot_checked "factory-discovery" --script "${client_root}/scripts/checks/factory_discovery_check.gd" --no-header
 run_godot_checked "factory-clock" --script "${client_root}/scripts/checks/factory_clock_check.gd" --no-header

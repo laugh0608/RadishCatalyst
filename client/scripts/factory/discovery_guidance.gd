@@ -6,6 +6,7 @@ const Items := preload("res://scripts/factory/items.gd")
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
 static func current(model: RefCounted) -> Dictionary:
+	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion(model)
 	var d: Dictionary = model.discovery
 	var produced: int = model.statistics.totals.produced.get("catalyst", 0)
 	if d.passages.inner:
@@ -201,6 +202,7 @@ static func describe(step: Dictionary) -> String:
 
 
 static func overview(model: RefCounted) -> String:
+	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion_overview(model)
 	var d: Dictionary = model.discovery
 	var basic: bool = d.trial_completed or d.passages.outer or d.passages.inner or model.statistics.totals.produced.get("catalyst", 0) >= 2
 	var rich: bool = model.statistics.totals.consumed.get("rich_crystal", 0) > 0
@@ -215,4 +217,42 @@ static func overview(model: RefCounted) -> String:
 	var lines := PackedStringArray(["首程步骤 · 当前：" + current(model).title])
 	for step in steps:
 		lines.append(("✓ " if step[0] else "○ ") + step[1])
+	return "\n".join(lines)
+
+
+static func _expansion(model: RefCounted) -> Dictionary:
+	if model.first_expansion_placed:
+		return _step("expansion_complete", "第二台精炼炉已落位", "首次扩建完成", "可继续直接工艺；也可用混料回用做两包，决定下一次扩建或停线。", _action("discovery", "比较两种工艺", "4 铁矿 + 1 炭矿 + 1 晶体可做两包；共用粉碎机需换料，精炼炉的矿渣副口要接通。"))
+	if model.assembly_counts.refinery > 0:
+		return _step("place_second_refinery", "放下第二台精炼炉", "已装配 · 精炼炉库存 %d" % model.kits.refinery, "装配只增加构件库存；实际放下两台炉才完成扩建。", _build("refinery", "第二炉可专做载体，第一炉保留板材；两台均需接入范围电网。"))
+	var packs: int = model.material_balance().held.get("construction_pack", 0)
+	var carried: int = model.bag.get("construction_pack", 0)
+	if carried >= 2:
+		return _step("assemble_refinery", "装配第二台精炼炉", "背包 %d / 2 构件包" % carried, "建造栏选择精炼炉，消耗两包增加一个构件，再选择格位放置。", _build("refinery", "在底部装配栏选「精炼炉」并点「装配一批」，然后放置。"))
+	if packs >= 2:
+		return _step("collect_packs", "取回两包构件", "总持有 %d · 背包 %d / 2" % [packs, carried], "构件装配只使用背包材料。", _stock(model, "construction_pack", "走近取到背包；"))
+	var advice: Dictionary
+	if _entities(model, "collector").is_empty():
+		advice = _build("collector", "铁矿在 (-28, -12)，普通晶体在 (-20, -1)；采集器需接电。")
+	elif _entities(model, "refinery").is_empty():
+		advice = _build("refinery", "先用直接冶炼做 4 金属板，再取空设备切直接烧结做 2 载体。")
+	elif _entities(model, "assembler").is_empty():
+		advice = _build("assembler", "每包需 2 金属板 + 1 多孔载体；各入口都接受这两种物料。")
+	else:
+		var e: Dictionary = _entities(model, "assembler")[0]
+		advice = _power(model, e)
+		if advice.is_empty(): advice = _device(e, "先备 4 板 + 2 载体做两包。直接工艺共需 8 铁矿、6 晶体；准入口配额可控制备料。")
+	return _step("first_packs", "做出两包，制造第二台炉", "构件包持有 %d / 2" % packs, "铁矿 → 板材；晶体 → 载体；板材 + 载体 → 构件包。", advice)
+
+
+static func _expansion_overview(model: RefCounted) -> String:
+	var lines := PackedStringArray(["生产扩建 · " + current(model).title,
+		"直接路线：两包需 8 铁矿 + 6 晶体，单炉先板材后载体。",
+		"混料回用：两包需 4 铁矿 + 1 炭矿 + 1 晶体；占用炭粉并产矿渣，共用粉碎机需切换。",
+		"两包可装配一台设备；封装电源不可制造。回收返构件和物料，不返包。",
+		"下列为满供电单机批次，实际产线受物流、缺料和供电约束："])
+	for recipe_id in Rules.Expansion.RECIPES:
+		var recipe: Dictionary = Rules.Expansion.RECIPES[recipe_id]
+		lines.append("%s · %s\n%s → %s · %.0f 秒 / %.0f kW" % [Rules.CATALOG[recipe.machine].name, recipe.name, Items.describe(recipe.input), Items.describe(recipe.output), recipe.seconds, recipe.kw])
+	lines.append("直接冶炼 / 烧结适合起步和省操作；混料提高板材产量，矿渣烧结回用副产物、节省晶体。")
 	return "\n".join(lines)

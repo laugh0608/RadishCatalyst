@@ -24,6 +24,9 @@ var inspector_scroll := ScrollContainer.new()
 var placement_reason := Label.new()
 var connection_preview := Label.new()
 var connection_preview_slot := VBoxContainer.new()
+var assembly_row := HBoxContainer.new()
+var assembly_target := OptionButton.new()
+var assembly_info := Label.new()
 var tool_row := HFlowContainer.new()
 var placement_row := HBoxContainer.new()
 var build_help := Label.new()
@@ -215,13 +218,24 @@ func _build_footer(parent: Node) -> void:
 	_button(first, "return", "保存并返回")
 	tool_row.add_theme_constant_override("separation", 10)
 	rows.add_child(tool_row)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
+	for type in Model.CATALOG.keys():
 		var button := _button(tool_row, type, Model.CATALOG[type].name)
 		if type in ["splitter", "merger", "admission_gate"]:
 			button.icon = load("res://assets/icons/factory_" + type + ".svg")
 			button.add_theme_constant_override("icon_max_width", 22)
 			button.tooltip_text = "单物品筛选 · 不限量或本轮总配额；配置后允许来料" if type == "admission_gate" else "一入三出，跳过堵塞出口；单件行程 1 秒" if type == "splitter" else "三入一出，轮流接收；单件行程 1 秒"
 
+	rows.add_child(assembly_row)
+	assembly_row.add_child(assembly_target)
+	for type in Model.DiscoveryRules.Expansion.ASSEMBLY_COST:
+		assembly_target.add_item("装配：" + Model.CATALOG[type].name)
+		assembly_target.set_item_metadata(assembly_target.item_count - 1, type)
+		if type == "refinery": assembly_target.select(assembly_target.item_count - 1)
+	assembly_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	assembly_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	assembly_row.add_child(assembly_info)
+	_button(assembly_row, "assemble", "装配一批")
+	assembly_row.hide()
 	rows.add_child(placement_row)
 	placement_row.add_theme_constant_override("separation", 10)
 	_label(placement_row, "落位 X")
@@ -315,13 +329,24 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
+	assembly_row.visible = ui.build and model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID
+	if assembly_row.visible:
+		var type: String = assembly_target.get_selected_metadata()
+		var cost: int = Model.DiscoveryRules.Expansion.ASSEMBLY_COST[type]
+		var quantity: int = Model.DiscoveryRules.Expansion.yield_for(type)
+		var remaining: int = Model.DiscoveryRules.Expansion.MAX_OWNED - model.owned_count()
+		assembly_info.text = "%d 包 → %d 件 · 背包 %d 包 · 总额 %d/326（已放 %d / 库存 %d）" % [cost, quantity, model.bag.get("construction_pack", 0), model.owned_count(), model.entities.size(), Items.count(model.kits)]
+		buttons.assemble.disabled = model.bag.get("construction_pack", 0) < cost or remaining < quantity
+		buttons.assemble.tooltip_text = "还缺 %d 包、%d 个预算空位；只从背包扣包，整批发放。" % [maxi(0, cost - model.bag.get("construction_pack", 0)), maxi(0, quantity - remaining)]
+	if model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+		totals.text = "构件包已产 %d · 第二炉%s  %02d:%02d" % [model.completed_by_recipe.construction_assembly, "已落位" if model.first_expansion_placed else "待扩建", int(model.time) / 60, int(model.time) % 60]
 	placement_row.visible = not ui.tool.is_empty()
 	connection_preview.hide()
 	connection_preview_slot.hide()
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
+	for type in Model.CATALOG.keys():
 		buttons[type].visible = model.kits.has(type)
 		if not model.kits.has(type):
 			continue

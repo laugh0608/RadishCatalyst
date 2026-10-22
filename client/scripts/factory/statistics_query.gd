@@ -6,6 +6,8 @@ const Items := preload("res://scripts/factory/items.gd")
 
 static func known_items(model: RefCounted) -> Array:
 	var result := ["crystal", "catalyst"]
+	if model.supply_id == Rules.Expansion.SUPPLY_ID:
+		result.append_array(Rules.Expansion.NAMES.keys())
 	if model.discovery.sample_taken:
 		result.append("crust_sample")
 	if model.discovery.trial_completed:
@@ -30,13 +32,13 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 		match e.type:
 			"collector":
 				locations.buffer = e.buffer
-				produces[e.mineral] = 60.0
-			"reactor":
+				produces[e.mineral] = 60.0 / model.collector_cycle(e)
+			"reactor", "crusher", "refinery", "assembler":
 				locations.buffer = e.input.duplicate()
 				Items.merge(locations.buffer, e.output)
 				locations.invested = e.invested
 				if e.recipe_id != "solvent_trial" and model.recipe_available(e.recipe_id):
-					var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
+					var recipe: Dictionary = model.recipes[e.recipe_id]
 					for item in recipe.output:
 						produces[item] = recipe.output[item] * 60.0 / recipe.seconds
 					for item in recipe.input:
@@ -53,8 +55,8 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 			row.theory_produced += produces.get(item, 0.0)
 			row.theory_consumed += consumes.get(item, 0.0)
 			var related: bool = produces.has(item) or consumes.has(item)
-			if e.type == "reactor":
-				var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
+			if e.type in model.process_types:
+				var recipe: Dictionary = model.recipes[e.recipe_id]
 				related = related or recipe.input.has(item) or recipe.output.has(item)
 			if present or related:
 				row.devices.append(e.id)

@@ -562,3 +562,7 @@ func move_actor(actor: Dictionary, dx: float, dz: float, dt: float) -> void:
 	if actor.moving:
 		actor.angle = atan2(dx, dz)
 		actor.walk += distance
+
+
+func _output_item_at(e: Dictionary, _port: Dictionary) -> String:
+	return _output_item(e)

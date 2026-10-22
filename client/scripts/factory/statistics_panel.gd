@@ -4,6 +4,7 @@ signal locate_requested(id: int)
 signal pause_requested
 const Query := preload("res://scripts/factory/statistics_query.gd")
 const Chart := preload("res://scripts/factory/statistics_chart.gd")
+const Items := preload("res://scripts/factory/items.gd")
 const Rules := Query.Rules
 var model: RefCounted
 var elapsed := 0.0
@@ -172,7 +173,7 @@ func create_row(item: String) -> Dictionary:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)
 	box.add_child(line)
-	var name_button := button(line, item, Rules.NAMES[item], func():
+	var name_button := button(line, item, Items.NAMES[item], func():
 		selected_item = item
 		detail_ids = [-1]
 		refresh())
@@ -204,7 +205,7 @@ func refresh_materials(result: Dictionary) -> void:
 			return left.net < right.net
 		if sort_choice.selected == 2 and left.storage != right.storage:
 			return left.storage < right.storage
-		return Rules.NAMES[a] < Rules.NAMES[b])
+		return Items.NAMES[a] < Items.NAMES[b])
 	for item in ids:
 		if not rows.has(item):
 			rows[item] = create_row(item)
@@ -220,7 +221,7 @@ func refresh_materials(result: Dictionary) -> void:
 	if selected_item.is_empty():
 		return
 	var r: Dictionary = result.rows[selected_item]
-	detail_summary.text = "%s · 库存分解（件）\n仓库 %d　背包 %d　设备可取缓冲 %d　在途 %d　在制原投入 %d　合计 %d\n本窗口外部取得 %d 件；工业生产 / 消耗见青实线 / 金虚线。以下为当前设备状态。" % [Rules.NAMES[selected_item], r.storage, r.bag, r.buffer, r.transit, r.invested, r.held, r.acquired]
+	detail_summary.text = "%s · 库存分解（件）\n仓库 %d　背包 %d　设备可取缓冲 %d　在途 %d　在制原投入 %d　合计 %d\n本窗口外部取得 %d 件；工业生产 / 消耗见青实线 / 金虚线。以下为当前设备状态。" % [Items.NAMES[selected_item], r.storage, r.bag, r.buffer, r.transit, r.invested, r.held, r.acquired]
 	if detail_ids != r.devices:
 		detail_ids = r.devices.duplicate()
 		clear_children(device_list)

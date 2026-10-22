@@ -1,6 +1,7 @@
 extends "res://scripts/factory/routing_model.gd"
 
 const Admission := preload("res://scripts/factory/admission.gd")
+var admission_items := Admission.ALLOWED_ITEMS.duplicate()
 
 
 func _init() -> void:
@@ -42,7 +43,7 @@ func _admission_target(id: int) -> Dictionary:
 func configure_admission(id: int, item: Variant, mode: Variant, limit: Variant) -> Dictionary:
 	var target := _admission_target(id)
 	if not target.ok: return target
-	if item not in Admission.ALLOWED_ITEMS or mode not in ["unlimited", "quota"]:
+	if item not in admission_items or mode not in ["unlimited", "quota"]:
 		return failure("请选择有效允许物品与数量模式，样本不能自动运输")
 	if not limit is int or (mode == "unlimited" and limit != 0) or (mode == "quota" and (limit < 1 or limit > Admission.MAX_QUOTA)):
 		return failure("本轮配额须为 1–1,000,000 的整数；不限量不设置配额")

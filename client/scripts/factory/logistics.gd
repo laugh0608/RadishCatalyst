@@ -4,6 +4,7 @@ extends RefCounted
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const OUTPUT_NAMES := ["前", "左", "右"]
 const INPUT_NAMES := ["后", "左", "右"]
+const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Admission := preload("res://scripts/factory/admission.gd")
 
 
@@ -13,6 +14,10 @@ static func transport(e: Dictionary) -> bool:
 
 static func ports(model: RefCounted, e: Dictionary, role: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
+	if Expansion.PORTS.has(e.type):
+		for coordinates in Expansion.PORTS[e.type][role]:
+			result.append({"x": e.x + coordinates[0], "z": e.z + coordinates[1], "dx": coordinates[2], "dz": coordinates[3], "index": result.size(), "name": "副" if role == "output" and result.size() == 1 else "主" if role == "output" else str(result.size() + 1)})
+		return result
 	var dir: int = e.get("dir", 0)
 	var sides: Array = []
 	if e.type == "admission_gate":
@@ -56,7 +61,7 @@ static func input_connection(model: RefCounted, target: Dictionary, input: Dicti
 		return {"ok": false, "reason": "未连接"}
 	for output in ports(model, source, "output"):
 		if receiving_port(model, target, output) == input:
-			return {"ok": true, "reason": "已接通", "source": source}
+			return {"ok": true, "reason": "已接通", "source": source, "output": output}
 	return {"ok": false, "reason": "方向不匹配"}
 
 
@@ -74,7 +79,7 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 		if not target.cargo.is_empty():
 			return {"ok": false, "reason": "目标已满"}
 	elif not item.is_empty() and model.input_room(target, item) <= 0:
-		var accepts: bool = target.type == "storage" or (target.type == "reactor" and model.recipe_available(target.recipe_id) and model.DiscoveryRules.RECIPES[target.recipe_id].input.has(item))
+		var accepts: bool = target.type == "storage" or (target.type in model.process_types and model.recipe_available(target.recipe_id) and model.recipes[target.recipe_id].input.has(item))
 		return {"ok": false, "reason": "目标已满" if accepts else "目标不收该物品"}
 	return connection.merged({"reason": "可接收", "source": source}, true)
 
@@ -101,9 +106,11 @@ static func step(model: RefCounted, dt: float) -> void:
 		var cursor: int = source.get("output_cursor", 0)
 		for offset in outputs.size():
 			var output: Dictionary = outputs[(cursor + offset) % outputs.size()]
-			var option := output_status(model, source, output, item)
+			var output_item: String = item if transport(source) else model._output_item_at(source, output)
+			if output_item.is_empty() or output_item == "crust_sample": continue
+			var option := output_status(model, source, output, output_item)
 			if option.ok:
-				option.item = item
+				option.item = output_item
 				option.batch = source.get("batch", 0) if transport(source) else source.get("output_batch", 0)
 				options.append(option)
 		if not options.is_empty():
@@ -164,6 +171,8 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 			source.output_cursor = (move.output.index + 1) % 3
 	else:
 		model._take_output(source, move.item)
+		if source.type in Expansion.PROCESSORS:
+			source.output_cursor = (move.output.index + 1) % ports(model, source, "output").size()
 	if transport(target):
 		target.cargo = move.item
 		target.batch = move.batch
@@ -188,7 +197,9 @@ static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 			var input: Dictionary = ports(model, e, "input")[0]
 			var connection := input_connection(model, e, input)
 			var incoming: Dictionary = connection.source if connection.ok else {}
-			var item: String = incoming.get("cargo", model._output_item(incoming)) if not incoming.is_empty() else ""
+			var item: String = ""
+			if not incoming.is_empty():
+				item = incoming.cargo if transport(incoming) else model._output_item_at(incoming, connection.output)
 			var reason := Admission.receive_reason(e, item)
 			if not reason.is_empty(): return {"kind": "waiting" if reason == "已停止接收" else "blocked", "label": reason}
 			if not connection.ok: return {"kind": "blocked" if connection.reason == "方向不匹配" else "waiting", "label": connection.reason}
@@ -212,7 +223,7 @@ static func port_text(model: RefCounted, e: Dictionary) -> String:
 		for p in ports(model, e, role):
 			var message := "未连接"
 			if role == "output":
-				message = output_status(model, e, p, item).reason
+				message = output_status(model, e, p, item if transport(e) else model._output_item_at(e, p)).reason
 			else:
 				var connection := input_connection(model, e, p)
 				message = "已连接 #%d" % connection.source.id if connection.ok else connection.reason

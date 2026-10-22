@@ -68,7 +68,7 @@ func _ready() -> void:
 			stack.add_child(grid)
 			grids[role] = grid
 			slots[role] = {}
-			for item in Rules.ITEMS:
+			for item in Items.NAMES:
 				var slot := ItemSlot.new()
 				slot.item_id = item
 				grid.add_child(slot)
@@ -101,9 +101,12 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	production.text = ""
 	power.text = ""
 	match e.type:
-		"reactor":
-			var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
-			_card("input", "01  输入 · 下一批" if e.processing else "01  输入", _quantities(e.input, recipe.input))
+		"reactor", "crusher", "refinery", "assembler":
+			var recipe: Dictionary = model.recipes[e.recipe_id]
+			var capacity: Dictionary = recipe.input.duplicate()
+			if e.type != "reactor":
+				for item in capacity: capacity[item] *= 2
+			_card("input", "01  输入 · 两批缓存" if e.type != "reactor" else "01  输入", _quantities(e.input, capacity))
 			_card("process", "02  加工 →", "%s\n%.1f / %.0f 秒" % [recipe.name, e.progress, recipe.seconds])
 			_card("output", "03  输出 →", _quantities(e.output, recipe.output))
 			progress.show()
@@ -117,28 +120,28 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 				if not missing.is_empty():
 					production.text = "还需：" + Items.describe(missing)
 			elif not e.output.is_empty():
-				production.text = "输出尚未清空；取出或接带送走后才能开下一批。"
+				production.text = "副口矿渣积压；主口可继续排出，全部清空后再开批。" if e.type == "refinery" and e.output.has("mineral_slag") else "输出尚未清空；取出或接带送走后才能开下一批。"
 		"collector":
 			_card("output", "采集缓冲 →", "%s\n%d / 50 件" % [Items.describe(e.buffer), Items.count(e.buffer)])
-			production.text = "采集：%s · 满供电 1 件 / 秒" % Rules.NAMES[e.mineral]
+			production.text = "采集：%s · 满供电 1 件 / %.0f 秒" % [Items.NAMES[e.mineral], model.collector_cycle(e)]
 		"storage":
 			_card("input", "库存", "%s\n%d / 200 件" % [Items.describe(e.items), Items.count(e.items)])
 			production.text = "终端仓库 · 只接收物流，可近身取放。"
 		"belt":
-			_card("process", "运输 →", "%s\n带上：%s" % [["东 →", "南 ↓", "西 ←", "北 ↑"][e.dir], Rules.NAMES.get(e.cargo, "空")])
+			_card("process", "运输 →", "%s\n带上：%s" % [["东 →", "南 ↓", "西 ←", "北 ↑"][e.dir], Items.NAMES.get(e.cargo, "空")])
 	if e.type == "admission_gate":
-		_card("process", "物品准入", "只允许：%s\n单件行程 1 秒 · 容量 1" % Rules.NAMES.get(e.filter_item, "未配置"))
-		_card("output", "在途物料", Rules.NAMES.get(e.cargo, "空"))
+		_card("process", "物品准入", "只允许：%s\n单件行程 1 秒 · 容量 1" % Items.NAMES.get(e.filter_item, "未配置"))
+		_card("output", "在途物料", Items.NAMES.get(e.cargo, "空"))
 		progress.show()
 		progress.value = e.progress * 100
 		production.text = model.Admission.quantities(e)
 	elif e.type in ["splitter", "merger"]:
-		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Rules.NAMES.get(e.cargo, "空"))
+		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Items.NAMES.get(e.cargo, "空"))
 		_card("output", "在途物料", "")
 		progress.show()
 		progress.value = e.progress * 100
 		production.text = "下一次先尝试%s%s" % [(model.Logistics.OUTPUT_NAMES[e.output_cursor] if e.type == "splitter" else model.Logistics.INPUT_NAMES[e.input_cursor]), "出口" if e.type == "splitter" else "入口"]
-	if e.type in ["collector", "reactor"]:
+	if e.type in model.process_types + ["collector"]:
 		var device: Dictionary = model.power_state().devices[e.id]
 		power.text = "供电：%s\n请求 %.1f / 获供 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
 		if e.power_node_id != 0:
@@ -166,9 +169,9 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 			var stock := {}
 			var required := {}
 			match e.type:
-				"reactor":
+				"reactor", "crusher", "refinery", "assembler":
 					stock = e[role]
-					required = Rules.RECIPES[e.recipe_id][role]
+					required = model.recipes[e.recipe_id][role]
 				"splitter", "merger", "admission_gate":
 					if role == "output" and not e.cargo.is_empty():
 						stock = {e.cargo: 1}
@@ -179,12 +182,12 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"storage":
 					if role == "input":
 						stock = e.items
-						for known in Rules.ITEMS:
-							if known in ["crystal", "catalyst"] or model.discovery.trial_completed or (known == "crust_sample" and model.discovery.sample_taken):
+						for known in model.item_ids:
+							if known in Rules.Expansion.NAMES or known in ["crystal", "catalyst"] or model.discovery.trial_completed or (known == "crust_sample" and model.discovery.sample_taken):
 								required[known] = 0
 			var slot: Button = slots[role][item]
 			slot.visible = stock.has(item) or required.has(item)
-			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type == "reactor" else 0)
+			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type in model.process_types else 0)
 		values[role].visible = false
 		if e.type == "storage" and role == "input":
 			values[role].text = "%d / 200 件" % Items.count(e.items)
@@ -193,7 +196,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 			values[role].text = "%d / 50 件" % Items.count(e.buffer)
 			values[role].show()
 	if e.type == "collector":
-		_card("process", "晶体采集器", "采集缓冲")
+		_card("process", "矿物采集器", "采集缓冲")
 
 
 func select_item(item: String) -> void:
@@ -211,7 +214,7 @@ func _card(role: String, caption: String, value: String) -> void:
 static func _quantities(stock: Dictionary, batch: Dictionary) -> String:
 	var lines := PackedStringArray()
 	for item in batch:
-		lines.append("%s  %d / %d" % [Rules.NAMES[item], int(stock.get(item, 0)), batch[item]])
+		lines.append("%s  %d / %d" % [Items.NAMES[item], int(stock.get(item, 0)), batch[item]])
 	return "\n".join(lines)
 
 

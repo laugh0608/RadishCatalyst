@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**Demo 生产内容扩展与快速玩法验证。** 萝卜SAMA已明确要求扩大物品、设备和合成链，以更丰富的生产关系验证玩法；本轮先完成关系方案，再分批实现可玩的完整链条。当前活跃专题为[生产内容扩展 V1](../features/factory-production-expansion-v1.md)，具体内容与数值仍属提案，不写成已经实现。
+**Demo 生产内容扩展与快速玩法验证。** 萝卜SAMA已明确要求扩大物品、设备和合成链，以更丰富的生产关系验证玩法；本轮先完成关系方案，再分批实现可玩的完整链条。当前活跃专题为[生产内容扩展 V1](../features/factory-production-expansion-v1.md)，其中 E1 已实现并通过定向工程验证，进入短试玩；E2 / E3 仍属提案。
 
 原发现 / 电力 / 统计联合包 D3 工程退出已获批准，D4-P / S 开发机工程验证已完成；旧 D4-U / X 与其他保留项继续登记，**不作为内容扩展设计或开发的前置门槛**。Windows 验证继续暂缓，不将暂缓或本轮优先级变化记为验收通过。
 
@@ -13,7 +13,7 @@
 ## 当前主线与下一步
 
 1. **关系方案**：[生产内容扩展 V1](../features/factory-production-expansion-v1.md)提出 15 种物品、14 个加工配方、3 类新增加工设备与电芯发电机；成品分别用于制造构件、供电和开拓高产矿点。[六款游戏对照](../reference/factory-game-production-study.md)已补官方资料与 Wiki，修正副产物出口、一次性需求和高产矿价值的推断；具体供给 / 消费仍待试玩。
-2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)已完成设计及纸面核对，待整体确认后实现。首目标仍为实际扩建第二台炉；共用粉碎机的操作代价、326 总拥有量预算与独立 schema 6 均明确列为提议。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
+2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)10 月 22 日已按确认合同实现，直接路线自然制造并放下第二炉，独立恢复后混料回用再产两包；三设备、165 起步构件、326 总拥有量和独立 schema 6 已落地。当前交付短试玩，操作代价与节材感受待反馈。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
 3. **E2 能源循环**：生产电芯并用其支持新增负载，能处理断料和恢复。
 4. **E3 开拓回报**：生产开拓用品、打开固定支路，把更高产的原料接回既有工厂。
 
@@ -24,14 +24,14 @@
 - [分流 / 汇合](../features/factory-conveyor-routing-v1.md)、[准入口](../features/factory-item-admission-v1.md)、[C 组合](../features/factory-conveyor-combination-v1.md)：三类附件、共同物流、定量放行、双原料与两次开路的工程证据已具备。附件原位替换及取消带货两格限制已完成，萝卜SAMA随后亲测反馈无明显问题；只关闭本次整改，不扩大为旧 D4 全部通过。
 - [设备交互](../features/factory-device-interaction-v1.md)、[首程引导](../features/factory-first-journey-guidance-v1.md)：手动拾样、近身 F / Tab、I 背包、物品格 / 模型面板和目标提示已有实现；作为新内容复用基础，后续按真实反馈整改。
 - [发现生产](../features/factory-discovery-and-production-v1.md)、[电力](../features/factory-power-and-grid-v1.md)、[范围供电](../features/factory-range-power-and-pickup-v1.md)、[统计](../features/factory-production-statistics-v1.md)：现有四配方、样本 / 两次开路、实际同网供能、物料 / 电量事件和趋势继续承担基础能力。
-- [V5 存档](../architecture/factory-admission-save-v5.md)与[工厂状态](../architecture/factory-world-state-and-save-v1.md)：当前新勘探世界仍为 V5，旧 2 / 3 / 4 原规则继续及显式升级保持，基础 schema 1 和旧二维 schema 10 独立。
+- [V5 存档](../architecture/factory-admission-save-v5.md)与[工厂状态](../architecture/factory-world-state-and-save-v1.md)：当前新勘探世界仍为 V5，旧 2 / 3 / 4 原规则继续及显式升级保持，基础 schema 1 和旧二维 schema 10 独立；E1 是第三个显式入口及独立 schema 6，不迁移旧档。
 - [工程规模](../architecture/factory-engineering-scale-v1.md)：独立 1,280 实体工程身份、S0 与 S1 已完成 Apple M5 验证；普通世界与工程供给不混用，现成绩不自动覆盖未来新设备负载。
 
 ## 本轮边界
 
-- 10 月 22 日授权完成两份布局、成本 / 吞吐比较和 E1 实施合同，**确认后再写代码**。本轮设计已交付，尚未获得具体配方、制造经济或地图 / 存档的实施确认；不需要先补完旧 D4。
-- 设计范围包括新固体原料 / 中间品 / 成品、专用加工设备、构件制造、消耗电芯供电和固定开拓回报；这些从原“新增设备 / 经济另包”进入当前设计讨论范围，但不是运行时已解冻实现的事实。
-- 现行默认新世界、供给、存档与 6 / 12 格供电规则保持。E1 提议另加内容世界入口与 schema 6，只保存当批内容；旧世界不静默换配方、矿点或供给。165 起步构件、326 总拥有量及制造来源详见待确认合同。
+- 10 月 22 日设计交付后，萝卜SAMA已明确批准按 E1 合同实施与验证，包含 165 起步构件、326 总拥有量和独立 schema 6；先提交设计文档，再完成直接扩建与混料回用。不需要先补完旧 D4。
+- 设计范围包括新固体原料 / 中间品 / 成品、专用加工设备、构件制造、消耗电芯供电和固定开拓回报；这些从原“新增设备 / 经济另包”进入当前设计讨论范围，其中 E1 已实现，能源与开拓仍待各批合同。
+- 现行默认新世界、供给、存档与 6 / 12 格供电规则保持。E1 已新增内容世界入口与 schema 6，只保存当批内容；旧世界不静默换配方、矿点或供给。165 起步构件、326 总拥有量及制造来源详见已确认合同。
 - 沿现有 Godot 3D、导入 GLB、既有风格和自有图标，资产随内容批次做够用版本。精细美术不作为本轮前置，不以程序几何代替正式设备画面。
 - 液气管网、种植 / 交易、通用科技树、仓库自动出料、物流桥、自动蓝图、战斗扩展、多人、随机地图、多星球、离线收益及 1,000 台 / 10,000 带仍在本包外；不因参考资料包含就自动纳入。
 - 不自动安装依赖、下载资产包、打包、发布或推送。外部参考只作设计研究，不迁入整仓代码或游戏资产。

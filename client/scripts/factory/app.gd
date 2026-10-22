@@ -311,10 +311,15 @@ func _turn() -> void:
 
 
 func _action(name: String, value: Variant) -> void:
-	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
+	if Model.CATALOG.has(name) and model.kits.has(name):
 		_choose(name)
 	else:
 		match name:
+			"assemble":
+				if model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+					var result: Dictionary = model.assemble(hud.assembly_target.get_selected_metadata())
+					if result.ok: _choose(result.type)
+					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
 			"guide_action": _guide_action()
 			"inventory":
 				if model.has_method("power_state"):

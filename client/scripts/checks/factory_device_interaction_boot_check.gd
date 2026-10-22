@@ -4,6 +4,8 @@ var preview_only := false
 var evidence_topic := "factory-device-interaction-v1"
 var screenshot_topic := "2026-10-08-factory-device-interaction-preview"
 var input_description_override := ""
+var new_world_type := 1
+var new_world_title := "设备面板与接口 · 正式复核"
 
 ## Reuse the existing focus-aware walking/input and snapshot helpers, with this package's path.
 func run() -> void:
@@ -58,10 +60,10 @@ func run() -> void:
 		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
 		if not preview_only:
-			boot.factory_menu.world_type.select(1)
+			boot.factory_menu.world_type.select(new_world_type)
 		else:
 			driver.expect(boot.factory_menu.world_type.selected == 0, "preview check starts with default foundation world")
-		boot.factory_menu.title_input.text = "设备面板与接口 · 正式复核"
+		boot.factory_menu.title_input.text = new_world_title
 		await press(boot.factory_menu.create_button)
 	world = boot.factory_world
 	driver.world = world

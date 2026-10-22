@@ -27,6 +27,13 @@
 
 | 入口 | 模式与用途 |
 | --- | --- |
+| `sh tools/check-factory-expansion.sh state <新 batch>` | E1 11 配方、原子装配 / 326 总预算、主副产物、逐物料账、独立 schema 6 与真实文件故障；模型显式步。状态脚本已登记默认 Godot 检查 |
+| `sh tools/check-factory-expansion.sh process-read <新 batch> <state 父 batch>` | 炭矿半周期、混料半批、矿渣持货、制造未放置与第二炉完成，独立进程完整恢复和续跑 |
+| `sh tools/check-factory-expansion.sh menu <新 batch>` | 正式 Boot 默认基础、旧 V5 与第三个显式 E1 世界的创建 / 继续及身份隔离 |
+| `sh tools/check-factory-expansion.sh background-write <新 batch>` | 正式 Boot 零物料按 A 直接工艺自然制造两包，装配并放下第二炉；无窗口 |
+| `sh tools/check-factory-expansion.sh background-read <新 batch> <write 父 batch>` | 独立恢复 A，实际改建 B 回用线，保存 R08 混料半批 |
+| `sh tools/check-factory-expansion.sh background-complete-read <新 batch> <read 父 batch>` | 再次独立恢复，回用产出两包并取入背包供玩家选择下一次扩建 |
+| `sh tools/check-factory-expansion.sh review <新 batch> <write 或 read 父 batch>` | 短窗口：自然半批副本、真实主副口拆带 / 修复、三设备两种窗口、背包与装配栏；窗口关闭即停 |
 | `sh tools/check-factory-engineering.sh identity/identity-read <新 batch> [父 batch]` | [D4-S0 工程合同](../docs/architecture/factory-engineering-scale-v1.md)的严格身份、地图与隔离；identity-read 必须指定成功 identity 父批次 |
 | `sh tools/check-factory-engineering.sh prepare/prepare-read <新 batch> [父 batch]` | 零库存合法前置、20 单元全量构建、服务路线和真实 600 秒历史；prepare-read 从成功 prepare 副本独立比对首态与 20 步轨迹 |
 | `sh tools/check-factory-engineering.sh capacity/density/repair/competition <新 batch> <prepare 父 batch>` | 分别为 2,500 秒总容量、900–1,000 件高密度、拆带 / 停复电、真实竞争 / 配额；全为模型显式步，不计前台性能 |
@@ -145,3 +152,5 @@ python3 -m venv .venv-art
 ```
 
 发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。
+
+E1 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。
