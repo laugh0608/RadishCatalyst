@@ -11,19 +11,26 @@ var grid := Grid.new()
 var power := {}
 var power_revision := -1
 var power_time := -1.0
+var automatic_power := false
+var map_id := DiscoveryRules.MAP_ID
 
 
 ## Schema 2 uses the same item maps in simulation and persistence.
 
 
-func _init() -> void:
+func _init(auto_power := false) -> void:
+	automatic_power = auto_power
 	supply_id = DiscoveryRules.SUPPLY_ID
 	kits = DiscoveryRules.SUPPLY.duplicate()
 	bag = {}
 
 
 func ore_sites() -> Array[Vector2i]:
-	return DiscoveryRules.ore_sites()
+	return DiscoveryRules.ore_sites(map_id)
+
+
+func mineral_at(cell: Vector2i) -> String:
+	return DiscoveryRules.mineral_at(cell, map_id)
 
 
 func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
@@ -32,7 +39,7 @@ func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictiona
 		return valid
 	for x in range(cell.x, cell.x + CATALOG[type].w):
 		for z in range(cell.y, cell.y + CATALOG[type].d):
-			if not DiscoveryRules.open_cell(Vector2i(x, z), discovery.passages):
+			if not DiscoveryRules.open_cell(Vector2i(x, z), discovery.passages, map_id):
 				return failure("矿区尚未开放，不能穿过矿壳建设")
 	return success()
 
@@ -43,7 +50,7 @@ func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Di
 		var e: Dictionary = result.entity
 		match type:
 			"collector":
-				e.mineral = "crystal" if cell.x < 4 else "rich_crystal"
+				e.mineral = mineral_at(cell)
 				e.buffer = {}
 			"reactor":
 				e.recipe_id = "basic_catalyst"
@@ -58,10 +65,13 @@ func place(type: String, cell: Vector2i, dir := 0, player: Variant = null) -> Di
 			result.entity.power_node_id = 0
 		if type == "power_source":
 			result.entity.enabled = true
+		_refresh_automatic_power()
 	return result
 
 
 func connect_power(node_id: int, target_id: int) -> Dictionary:
+	if automatic_power:
+		return failure("范围内自动接电，无需手动接线")
 	var valid := Grid.connection(self, node_id, target_id)
 	if not valid.ok:
 		return valid
@@ -81,6 +91,8 @@ func connect_power(node_id: int, target_id: int) -> Dictionary:
 
 
 func disconnect_power(a_id: int, b_id: int) -> Dictionary:
+	if automatic_power:
+		return failure("范围电网按布局连接；可关闭电源或调整节点位置")
 	var a := by_id(a_id)
 	var b := by_id(b_id)
 	if a.is_empty() or b.is_empty():
@@ -106,7 +118,14 @@ func set_source_enabled(id: int, enabled: bool) -> Dictionary:
 		return failure("电源已经处于所选状态")
 	e.enabled = enabled
 	revision += 1
+	_refresh_automatic_power()
 	return success()
+
+
+func _refresh_automatic_power() -> void:
+	if automatic_power:
+		grid.reconnect_automatic(self)
+		power_revision = -1
 
 
 func connections(id: int) -> Array:
@@ -140,6 +159,7 @@ func salvage(id: int, confirmed := false) -> Dictionary:
 	for device in entities:
 		if device.get("power_node_id", 0) == id:
 			device.power_node_id = 0
+	_refresh_automatic_power()
 	return success({"items": items, "type": e.type})
 
 
@@ -151,11 +171,15 @@ func power_state() -> Dictionary:
 	return power
 
 
+func _production_entities() -> Array[Dictionary]:
+	return entities
+
+
 func _step(dt: float) -> void:
 	var allocation := grid.allocate(self, dt)
 	statistics.begin_step(allocation, dt)
 	time = statistics.ticks * STEP
-	for e in entities:
+	for e in _production_entities():
 		var work: float = allocation.work.get(e.id, 0.0)
 		if work <= 0:
 			continue
@@ -219,7 +243,8 @@ func feedback(e: Dictionary) -> Dictionary:
 	if not DiscoveryRules.POWER.has(e.type):
 		return production
 	var device: Dictionary = state.devices[e.id]
-	var label := "未接线" if e.power_node_id == 0 else "无启用电源" if grid.groups[device.network].capacity_kw == 0 else "待机" if device.request_kw == 0 else "供电不足 · %.1f%%" % (device.fraction * 100) if device.fraction < 1 else "充分供电"
+	var disconnected := "不在供电覆盖内" if automatic_power else "未接线"
+	var label := disconnected if e.power_node_id == 0 else "无启用电源" if grid.groups[device.network].capacity_kw == 0 else "待机" if device.request_kw == 0 else "供电不足 · %.1f%%" % (device.fraction * 100) if device.fraction < 1 else "充分供电"
 	var result: Dictionary = production.merged({"production": production.label, "power": label})
 	if device.request_kw > 0 and device.fraction < 1:
 		result.kind = "waiting"
@@ -230,7 +255,7 @@ func feedback(e: Dictionary) -> Dictionary:
 func blocked_for_actor(x: float, z: float) -> bool:
 	for dx in [-0.29, 0.29]:
 		for dz in [-0.29, 0.29]:
-			if not DiscoveryRules.open_cell(Vector2i(floori(x + dx), floori(z + dz)), discovery.passages):
+			if not DiscoveryRules.open_cell(Vector2i(floori(x + dx), floori(z + dz)), discovery.passages, map_id):
 				return true
 	return super.blocked_for_actor(x, z)
 
@@ -255,7 +280,7 @@ func near_entity(e: Dictionary) -> bool:
 		return false
 	var point := Vector2(actor.x, actor.z)
 	var nearest := Vector2(clampf(point.x, e.x + 0.001, e.x + CATALOG[e.type].w - 0.001), clampf(point.y, e.z + 0.001, e.z + CATALOG[e.type].d - 0.001))
-	return point.distance_to(nearest) <= 2 and Grid.line_open(point, nearest, discovery.passages)
+	return point.distance_to(nearest) <= 2 and Grid.line_open(point, nearest, discovery.passages, map_id)
 
 
 func change_recipe(id: int, recipe_id: String) -> Dictionary:
@@ -342,9 +367,13 @@ func deposit(_id: int) -> Dictionary:
 	return failure("勘探工厂请按物品明确取放")
 
 
-func survey_sample(pickup := false) -> Dictionary:
+func near_sample() -> bool:
 	var point := Vector2(actor.x, actor.z)
-	if point.distance_to(DiscoveryRules.SAMPLE) > 2 or not Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages):
+	return point.distance_to(DiscoveryRules.SAMPLE) <= 2 and Grid.line_open(point, DiscoveryRules.SAMPLE, discovery.passages, map_id)
+
+
+func survey_sample(pickup := false) -> Dictionary:
+	if not near_sample():
 		return failure("请走到外矿道样本两格内调查")
 	if pickup and discovery.sample_taken:
 		return failure("唯一样本已经拾取")
@@ -362,6 +391,13 @@ func survey_sample(pickup := false) -> Dictionary:
 	return success()
 
 
+func near_passage(id: String) -> bool:
+	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
+	var point := Vector2(actor.x, actor.z)
+	var target := Vector2(rule.x - 0.001, clampf(point.y, -1.999, 1.999))
+	return point.x < rule.x and point.distance_to(target) <= 2 and Grid.line_open(point, target, discovery.passages, map_id)
+
+
 func open_passage(id: String) -> Dictionary:
 	if not DiscoveryRules.PASSAGES.has(id):
 		return failure("矿道不存在")
@@ -370,9 +406,7 @@ func open_passage(id: String) -> Dictionary:
 	if id == "inner" and not discovery.passages.outer:
 		return failure("请先打通外矿道")
 	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
-	var point := Vector2(actor.x, actor.z)
-	var target := Vector2(rule.x - 0.001, clampf(point.y, -1.999, 1.999))
-	if point.x >= rule.x or point.distance_to(target) > 2 or not Grid.line_open(point, target, discovery.passages):
+	if not near_passage(id):
 		return failure("请靠近矿道西侧入口两格内使用")
 	if not discovery.trial_completed or bag.get("crust_solvent", 0) < rule.cost:
 		return failure("背包需要 %d 份解壳剂" % rule.cost)
@@ -380,6 +414,7 @@ func open_passage(id: String) -> Dictionary:
 	statistics.event("consumed", "crust_solvent", rule.cost)
 	discovery.passages[id] = true
 	revision += 1
+	_refresh_automatic_power()
 	return success()
 
 

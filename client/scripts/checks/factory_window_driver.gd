@@ -4,6 +4,8 @@ var world: Control
 var failures: Array[String] = []
 var assertions := 0
 var shot_root := ""
+var capture_screenshots := true
+var skipped_screenshots: Array[String] = []
 # Optional gate for resumable functional checks; continuous performance checks leave it unset.
 var input_ready: Callable
 
@@ -18,7 +20,8 @@ func expect(condition: bool, label: String) -> void:
 func settle(frames := 5) -> void:
 	for i in frames:
 		await get_tree().process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
 
 
 func click(button: Button) -> void:
@@ -31,9 +34,24 @@ func click(button: Button) -> void:
 	if input_ready.is_valid():
 		button.pressed.connect(observed)
 	var at := button.get_global_rect().get_center()
-	await motion(at)
-	await mouse(at, true)
-	await mouse(at, false)
+	# Keep a click in one dispatch, as in the verified native-dialog helper, so desktop
+	# pointer events cannot interleave with the synthetic motion/down/up gesture.
+	var window := button.get_window()
+	var viewport: Viewport = window.get_parent().get_viewport() if window.is_embedded() else window
+	if window.is_embedded():
+		at += Vector2(window.position)
+	var movement := InputEventMouseMotion.new()
+	movement.position = at
+	movement.window_id = window.get_window_id()
+	viewport.push_input(movement, true)
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.position = at
+		event.window_id = window.get_window_id()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		event.pressed = down
+		viewport.push_input(event, true)
 	await settle()
 	if input_ready.is_valid() and is_instance_valid(button):
 		button.pressed.disconnect(observed)
@@ -101,6 +119,13 @@ func shot(name: String) -> void:
 	if input_ready.is_valid():
 		await input_ready.call()
 	await settle()
-	var picture := get_viewport().get_texture().get_image()
+	save_shot(name, get_viewport())
+
+
+func save_shot(name: String, viewport: Viewport) -> void:
+	if not capture_screenshots:
+		skipped_screenshots.append(name)
+		return
+	var picture := viewport.get_texture().get_image()
 	expect(picture.save_png(shot_root.path_join(name + ".png")) == OK, "screenshot " + name)
 	print("Factory screenshot: " + name)

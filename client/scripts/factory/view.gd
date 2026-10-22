@@ -23,13 +23,22 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
+var port_hints := Node3D.new()
+var port_key := ""
+var build_model := Node3D.new()
+var build_model_type := ""
+var device_affordances := true
+var input_hint_mat := Parts.material("73ddd0")
+var output_hint_mat := Parts.material("f0c16b")
 var barriers: Node3D
 var terrain_key := ""
 var sample: Node3D
+var sample_icon: Sprite3D
 var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
 var solvent_mat := Parts.material("91d970", 0.3, 0.3)
 var wiring := Node3D.new()
 var wiring_key := ""
+var power_range := preload("res://scripts/factory/power_range.gd").new()
 var last_revision := -1
 var visual_revision := -1
 var visual_time := -1.0
@@ -71,6 +80,17 @@ func _ready() -> void:
 			if not assets[type] is PackedScene:
 				resource_error = "缺少电力模型：" + type
 				return
+		if Model.DiscoveryRules.routing_world(world_model.supply_id):
+			for kind in ["splitter", "merger"]:
+				assets[kind] = load(ASSET_ROOT + "routing/" + kind + ".glb")
+				if not assets[kind] is PackedScene:
+					resource_error = "缺少物流附件模型：" + kind
+					return
+		if world_model.kits.has("admission_gate"):
+			assets.admission_gate = load(ASSET_ROOT + "admission/admission-gate.glb")
+			if not assets.admission_gate is PackedScene:
+				resource_error = "缺少物品准入口模型"
+				return
 		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()
@@ -79,7 +99,7 @@ func _ready() -> void:
 		var ore: Node3D = assets.ore.instantiate()
 		add_child(ore)
 		ore.position = Vector3(cell.x + 8, 0, cell.y + 1)
-		if world_model != null and world_model.has_method("power_state") and cell.x > 4:
+		if world_model != null and world_model.has_method("power_state") and world_model.mineral_at(cell) == "rich_crystal":
 			ore.scale = Vector3(1, 1.7, 1)
 			for part in ore.find_children("*", "MeshInstance3D", true, false):
 				part.material_override = rich_mat
@@ -99,7 +119,7 @@ func _ready() -> void:
 	camera.far = 120
 	get_viewport().size_changed.connect(sync_camera)
 	sync_camera()
-	for node in [grid, ghost, selection, wiring]:
+	for node in [grid, ghost, selection, wiring, port_hints, build_model, power_range]:
 		add_child(node)
 	var grid_mat := Parts.material("89958a", 0, 1)
 	for x in range(-32, 33):
@@ -177,6 +197,19 @@ func project(point: Vector3) -> Vector2:
 	return camera.unproject_position(point)
 
 
+func sample_screen() -> Vector2:
+	return project(Vector3(Model.DiscoveryRules.SAMPLE.x, 0.85, Model.DiscoveryRules.SAMPLE.y))
+
+
+func hit_sample(screen: Vector2) -> bool:
+	if not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
+		return false
+	if screen.distance_to(sample_screen()) <= 18:
+		return true
+	var at = ground(screen)
+	return at != null and Vector2(at.x, at.z).distance_to(Model.DiscoveryRules.SAMPLE) <= 0.65
+
+
 ## Broad-phase bounds followed by triangles, so empty model corners do not steal clicks.
 func hit(screen: Vector2) -> int:
 	var origin := camera.project_ray_origin(screen)
@@ -186,6 +219,9 @@ func hit(screen: Vector2) -> int:
 	var ground_point = ground(screen)
 	if ground_point == null or world_model == null:
 		return -1
+	# Commands may request a focus target before the next draw synchronizes new entities.
+	if last_revision != world_model.revision:
+		_rebuild(world_model)
 	var candidates := {}
 	# Tall machines project toward the camera, bounded by maximum model height.
 	for x in range(floori(ground_point.x) - 5, floori(ground_point.x) + 6):
@@ -241,7 +277,7 @@ static func footprint(parent: Node3D, cell: Vector2i, def: Dictionary, mat: Mate
 	_overlay_box(parent, Vector3(x + def.w, 0.075, z + def.d * 0.5), Vector3(0.04, 0.025, def.d), mat)
 
 
-static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> void:
+static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> Node3D:
 	var root := Node3D.new()
 	parent.add_child(root)
 	root.position = Vector3(cell.x + 0.5, 0.15, cell.y + 0.5)
@@ -250,6 +286,7 @@ static func arrow(parent: Node3D, cell: Vector2i, dir: int, mat: Material) -> vo
 	for sign_value in [-1, 1]:
 		var branch := _overlay_box(root, Vector3(0.16, 0, sign_value * 0.07), Vector3(0.22, 0.035, 0.065), mat)
 		branch.rotation.y = sign_value * PI / 4
+	return root
 
 
 func clear_node(node: Node) -> void:
@@ -268,6 +305,9 @@ func invalidate() -> void:
 	visual_time = -1.0
 	ghost_key = ""
 	selection_key = ""
+	port_key = ""
+	build_model_type = ""
+	clear_node(build_model)
 
 
 func _build(e: Dictionary, mask: int) -> Dictionary:
@@ -285,8 +325,15 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 		result.cargo = cargo
 		result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 	else:
-		root.add_child(assets[e.type].instantiate())
-		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
+		var asset: Node3D = assets[e.type].instantiate()
+		root.add_child(asset)
+		if e.type in ["splitter", "merger", "admission_gate"]:
+			asset.rotation.y = -e.dir * PI / 2
+			var cargo: Node3D = assets.cargo.instantiate()
+			root.add_child(cargo)
+			result.cargo = cargo
+			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
+		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1, def.d * 0.5 - 0.2), status_materials.waiting)
 		result.lamp.scale = Vector3.ONE * 0.21
 		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -346,8 +393,12 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
 	grid.visible = ui.build
 	_sync_wiring(model, ui)
+	power_range.sync(model, actor, ui, device_affordances)
+	_sync_device_affordances(model, ui)
 	if model.has_method("power_state") and terrain_key != str(model.discovery):
 		_build_mineral_barriers()
+	if is_instance_valid(sample_icon):
+		sample_icon.scale = Vector3.ONE / zoom
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
 	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, ui.stroke])
 	if next_ghost != ghost_key:
@@ -365,11 +416,12 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 			_overlay_box(ghost, Vector3(ui.cell.x + def.w * 0.5, 0.065, ui.cell.y + def.d * 0.5), Vector3(def.w, 0.035, def.d), mat)
 			if ui.tool == "belt":
 				arrow(ghost, ui.cell, ui.dir, mat)
-	var next_selection := str([ui.selected, model.revision])
+	var selected_id: int = ui.get("focus_device", -1) if ui.get("focus_device", -1) != -1 else ui.selected
+	var next_selection := str([selected_id, model.revision])
 	if next_selection != selection_key:
 		clear_node(selection)
 		selection_key = next_selection
-		var e: Dictionary = model.by_id(ui.selected)
+		var e: Dictionary = model.by_id(selected_id)
 		if not e.is_empty():
 			footprint(selection, Vector2i(e.x, e.z), Model.CATALOG[e.type], select_mat)
 	# 生产视觉只在固定步或建造 / 投入命令改变状态后更新；人物、相机与预览仍逐帧处理。
@@ -378,6 +430,70 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	visual_revision = model.revision
 	visual_time = model.time
 	_sync_production(model)
+
+
+func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
+	# Both formal 3D worlds share device geometry and logistics ports, independent of power rules.
+	var enabled := device_affordances
+	port_hints.visible = enabled
+	build_model.visible = enabled and not ui.tool.is_empty() and ui.tool != "belt"
+	if not enabled:
+		return
+	if build_model.visible:
+		if build_model_type != ui.tool:
+			clear_node(build_model)
+			build_model_type = ui.tool
+			var asset: Node3D = assets[ui.tool].instantiate()
+			build_model.add_child(asset)
+			for mesh in asset.find_children("*", "MeshInstance3D", true, false):
+				mesh.transparency = 0.45
+				mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var shape: Dictionary = Model.CATALOG[ui.tool]
+		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ["splitter", "merger", "admission_gate"] else 0.0
+		build_model.position = Vector3(ui.cell.x + shape.w * 0.5, 0.06, ui.cell.y + shape.d * 0.5)
+	var key := str([model.revision, ui.tool, ui.cell, ui.dir, ui.selected])
+	if key == port_key:
+		return
+	port_key = key
+	clear_node(port_hints)
+	for e in model.entities:
+		var shape: Dictionary = Model.CATALOG[e.type]
+		var center := Vector2(e.x + shape.w * 0.5, e.z + shape.d * 0.5)
+		if e.id == ui.selected or (not ui.tool.is_empty() and center.distance_to(Vector2(ui.cell)) <= 9):
+			_port_hint(model, e, not ui.tool.is_empty())
+	if not ui.tool.is_empty():
+		_port_hint(model, {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}, true)
+
+
+func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
+	if e.type == "belt":
+		return
+	for role in ["input", "output"]:
+		var ports: Array = []
+		if Model.DiscoveryRules.routing_world(model.supply_id):
+			ports = model.Logistics.ports(model, e, role)
+		else:
+			var p := Model.port(e, role)
+			if not p.is_empty(): ports.append(p)
+		for port in ports:
+			var cell := Vector2i(port.x + port.dx, port.z + port.dz)
+			var hint := Node3D.new()
+			hint.set_meta("cell", cell)
+			hint.set_meta("role", role)
+			hint.set_meta("entity_id", e.get("id", -1))
+			port_hints.add_child(hint)
+			var mat := input_hint_mat if role == "input" else output_hint_mat
+			var outward := Vector2i(port.dx, port.dz)
+			var direction: int = Model.DIRS.find(-outward if role == "input" else outward)
+			var marker := arrow(hint, cell, direction, mat)
+			if show_dock:
+				hint.position.y = 0.55 if not model.entity_at(cell).is_empty() else 0.02
+				footprint(hint, cell, {"w": 1, "d": 1}, mat)
+			else:
+				marker.scale = Vector3(0.7, 1, 0.7)
+				marker.position.x -= port.dx * 0.27
+				marker.position.z -= port.dz * 0.27
+				marker.position.y = 0.6
 
 
 func _sync_production(model: RefCounted) -> void:
@@ -393,6 +509,13 @@ func _sync_production(model: RefCounted) -> void:
 				v.cargo.rotation.y = model.time * 0.4
 				v.cargo.scale = Vector3.ONE * (0.9 if e.cargo == "catalyst" else 1.0)
 		else:
+			if e.type in ["splitter", "merger", "admission_gate"]:
+				v.cargo.visible = not e.cargo.is_empty() and e.progress < 0.28
+				if v.cargo.visible:
+					var p: Vector2 = Vector2(e.entry) * (0.5 - e.progress)
+					v.cargo.position = Vector3(p.x, 0.28, p.y)
+					v.cargo.scale = Vector3.ONE * 0.45
+					v.cargo_mesh.material_override = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}[e.cargo]
 			var f: Dictionary = model.feedback(e)
 			v.lamp_mat = status_materials[f.kind]
 			v.lamp.material_override = v.lamp_mat
@@ -400,6 +523,7 @@ func _sync_production(model: RefCounted) -> void:
 			if model.has_method("power_state"):
 				match e.type:
 					"reactor": progress = e.progress / model.DiscoveryRules.RECIPES[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
+					"splitter", "merger", "admission_gate": progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
 			else:
@@ -415,7 +539,7 @@ func _build_mineral_barriers() -> void:
 	clear_node(barriers)
 	terrain_key = str(world_model.discovery)
 	# Imported ore clusters follow the same permanent passage facts as collision.
-	for start_x in [4, 20]:
+	for start_x in ([4, 20] if world_model.map_id == Model.DiscoveryRules.MAP_ID else []):
 		for z in range(-32, 32, 2):
 			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
 				continue
@@ -429,13 +553,14 @@ func _build_mineral_barriers() -> void:
 		barriers.add_child(sample)
 		sample.scale = Vector3.ONE * 0.3
 		sample.position = Vector3(2.5 + 7 * 0.3, 0.04, 2.5)
-		var label := Label3D.new()
-		label.text = "矿壳样本 · 调查 / 拾取"
-		label.font_size = 40
-		label.pixel_size = 0.014
-		label.position = Vector3(2.5, 1.0, 2.5)
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		barriers.add_child(label)
+		sample_icon = Sprite3D.new()
+		sample_icon.texture = preload("res://assets/icons/factory_crust_sample.svg")
+		sample_icon.pixel_size = 0.014
+		sample_icon.position = Vector3(Model.DiscoveryRules.SAMPLE.x, 0.85, Model.DiscoveryRules.SAMPLE.y)
+		sample_icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		sample_icon.shaded = false
+		sample_icon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		barriers.add_child(sample_icon)
 
 
 func _wire(a: Vector2, b: Vector2, material: Material) -> void:

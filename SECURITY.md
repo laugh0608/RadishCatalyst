@@ -4,7 +4,7 @@ RadishCatalyst 当前处于预发布 Demo 开发阶段，尚未承诺长期支�
 
 ## 私下报告
 
-远程仓库已启用 [GitHub Private Vulnerability Reporting](https://github.com/laugh0608/RadishCatalyst/security/advisories/new)，请使用该私密入口提交安全漏洞。若该入口不可用，可发送邮件至 `laugh0608@foxmail.com`，主题包含 `[RadishCatalyst Security]`。
+远程仓库已启用 [GitHub Private Vulnerability Reporting](https://github.com/laugh0608/RadishCatalyst/security/advisories/new)，请使用该私密入口提交安全漏洞。若该入口不可用，可发送邮件至 `luobo@radishx.com`，主题包含 `[RadishCatalyst Security]`。
 
 不要为未修复漏洞创建公开 Issue 或 Pull Request，也不要在报告中附带真实凭据、个人数据、未脱敏存档或未经授权取得的第三方内容。
 

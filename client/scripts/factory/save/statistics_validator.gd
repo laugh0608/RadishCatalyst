@@ -17,7 +17,7 @@ static func items(value: Variant, limit := MAX_NUMBER) -> bool:
 	return true
 
 
-static func valid_record(r: Variant, duration: float) -> bool:
+static func valid_record(r: Variant, duration: float, installed_kw := 240.0, request_kw := 1440.0) -> bool:
 	if not fields(r, Stats.ENERGY + Stats.MATERIAL):
 		return false
 	for key in Stats.ENERGY:
@@ -26,13 +26,16 @@ static func valid_record(r: Variant, duration: float) -> bool:
 	for key in Stats.MATERIAL:
 		if not items(r[key]):
 			return false
-	return near(r.supplied_kj, r.used_kj) and near(r.requested_kj, r.used_kj + r.deficit_kj) and r.used_kj <= r.available_kj + 1e-7 and r.available_kj <= r.installed_kj + 1e-7 and r.installed_kj <= 240 * duration + 1e-7 and r.requested_kj <= 1440 * duration + 1e-7
+	return near(r.supplied_kj, r.used_kj) and near(r.requested_kj, r.used_kj + r.deficit_kj) and r.used_kj <= r.available_kj + 1e-7 and r.available_kj <= r.installed_kj + 1e-7 and r.installed_kj <= installed_kw * duration + 1e-7 and r.requested_kj <= request_kw * duration + 1e-7
 
 
 static func validate(value: Variant, time: float, model: RefCounted) -> Dictionary:
+	var engineering: bool = model.supply_id == Config.Engineering.SUPPLY_ID
+	var installed_kw: float = Config.Engineering.INSTALLED_KW if engineering else 240.0
+	var request_kw: float = Config.Engineering.REQUEST_KW if engineering else 1440.0
 	if not fields(value, ["ticks", "totals", "buckets", "current"]) or not integer(value.ticks, 0, 20000000000000):
 		return failure("统计字段或模拟步计数无效。")
-	if absf(time - value.ticks * 0.05) > 1e-6 or not valid_record(value.totals, time):
+	if absf(time - value.ticks * 0.05) > 1e-6 or not valid_record(value.totals, time, installed_kw, request_kw):
 		return failure("统计累计量与时钟或能量不一致。")
 	if not value.buckets is Array or value.buckets.size() != mini(600, int(value.ticks) / 20):
 		return failure("近期统计完整秒数量不一致。")
@@ -48,7 +51,7 @@ static func validate(value: Variant, time: float, model: RefCounted) -> Dictiona
 		var r: Dictionary = b.duplicate(true)
 		r.erase("start_tick")
 		r.erase("ticks")
-		if not valid_record(r, count * 0.05):
+		if not valid_record(r, count * 0.05, installed_kw, request_kw):
 			return failure("统计桶数值或能量不守恒。")
 		for kind in Stats.MATERIAL:
 			for item in r[kind]:

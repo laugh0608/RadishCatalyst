@@ -57,6 +57,9 @@ func reject_unchanged(m: RefCounted, operation: Callable, label: String) -> void
 
 func run() -> void:
 	evidence_root = ProjectSettings.globalize_path("res://../tools/runtime-intake/check-runs/factory-discovery-v1/d2-b-20260925")
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--evidence="):
+			evidence_root = arg.trim_prefix("--evidence=")
 	DirAccess.make_dir_recursive_absolute(evidence_root)
 	if "--read-multi" in OS.get_cmdline_user_args():
 		var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(evidence_root.path_join("multi-output.json")))

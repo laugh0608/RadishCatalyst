@@ -136,10 +136,12 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		"world_pixels": [world.hud.subviewport.size.x, world.hud.subviewport.size.y], "zoom": world.view.zoom}
 	world.sample_enabled = true
 	world.model.measure_steps = true
+	_sample_started(label)
 	if interruption_check and interrupt_during_sample:
 		_inject_interruption()
 	# 与应用已完成的帧边界对齐，避免把尚未处理的一帧记作丢时。
 	var started: int = world.production_clock.last_usec
+	sampling_context.start_usec = started
 	var previous := started
 	var active := 0.0
 	var focus_lost := 0.0
@@ -178,6 +180,7 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 			break
 	world.sample_enabled = false
 	world.model.measure_steps = false
+	_sample_finished(label)
 	var simulation_seconds: float = world.model.time - started_simulation
 	var remainder_change: float = world.model.remainder - started_remainder
 	var timing_error: float = simulation_seconds + remainder_change - active
@@ -208,6 +211,14 @@ func _phase(label: String, maximized: bool, zoom: float) -> bool:
 		driver.expect(stats.delivered_during_phase > 0, "actual sustained production " + label)
 	print("Factory performance phase: ", JSON.stringify(stats))
 	return driver.failures.is_empty()
+
+
+func _sample_started(_label: String) -> void:
+	pass
+
+
+func _sample_finished(_label: String) -> void:
+	pass
 
 
 func _delivery_count() -> int:

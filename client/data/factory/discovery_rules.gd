@@ -1,9 +1,15 @@
 extends RefCounted
 
+const Engineering := preload("res://data/factory/engineering_rules.gd")
 const Foundation := preload("res://data/factory/rules.gd")
 const RULESET_ID := "factory_discovery_v1"
+const AUTO_RULESET_ID := "factory_discovery_auto_power_v1"
 const MAP_ID := "factory_discovery_yard_64_v1"
 const SUPPLY_ID := "factory_discovery_starter_v1"
+const ROUTING_RULESET_ID := "factory_discovery_routing_v1"
+const ROUTING_SUPPLY_ID := "factory_discovery_routing_starter_v1"
+const ADMISSION_RULESET_ID := "factory_discovery_admission_v1"
+const ADMISSION_SUPPLY_ID := "factory_discovery_admission_starter_v1"
 const SUPPLY := {"collector": 8, "reactor": 16, "storage": 8, "belt": 256, "power_source": 2, "power_junction": 12}
 const CATALOG := {
 	"collector": Foundation.CATALOG.collector,
@@ -12,7 +18,24 @@ const CATALOG := {
 	"belt": Foundation.CATALOG.belt,
 	"power_source": {"name": "封装电源", "w": 3, "d": 3},
 	"power_junction": {"name": "配电节点", "w": 1, "d": 1},
+	"splitter": {"name": "分流器", "w": 1, "d": 1},
+	"merger": {"name": "汇合器", "w": 1, "d": 1},
+	"admission_gate": {"name": "物品准入口", "w": 1, "d": 1},
 }
+const ROUTING_CATALOG := {"splitter": CATALOG.splitter, "merger": CATALOG.merger}
+
+static func routing_supply() -> Dictionary:
+	return SUPPLY.merged({"splitter": 8, "merger": 8})
+
+static func admission_supply() -> Dictionary:
+	return routing_supply().merged({"admission_gate": 8})
+
+static func routing_world(supply: String) -> bool:
+	return supply == ROUTING_SUPPLY_ID or admission_world(supply)
+
+static func admission_world(supply: String) -> bool:
+	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID]
+
 const ITEMS := ["crystal", "catalyst", "crust_sample", "crust_solvent", "rich_crystal"]
 const NAMES := {"crystal": "晶体", "catalyst": "催化剂", "crust_sample": "矿壳样本", "crust_solvent": "解壳剂", "rich_crystal": "富集晶体"}
 const WEIGHTS := {"crystal": 1, "catalyst": 2, "crust_sample": 0, "crust_solvent": 4, "rich_crystal": 6}
@@ -30,12 +53,27 @@ const CONSUMER_RANGE := 6.0
 const POWER := {"collector": 20.0, "reactor": 40.0}
 const CYCLE := {"collector": 1.0, "reactor": 10.0}
 
-static func ore_sites() -> Array[Vector2i]:
+static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
+	if map_id == Engineering.MAP_ID:
+		return Engineering.ore_sites()
+	if map_id != MAP_ID:
+		return []
 	return [Vector2i(-20, -13), Vector2i(-20, -1), Vector2i(-20, 11), Vector2i(10, -1), Vector2i(26, -13), Vector2i(26, 11)]
 
-static func open_cell(cell: Vector2i, passages: Dictionary) -> bool:
+static func mineral_at(cell: Vector2i, map_id: String = MAP_ID) -> String:
+	if map_id == Engineering.MAP_ID:
+		return Engineering.mineral_at(cell)
+	if map_id != MAP_ID or cell not in ore_sites():
+		return ""
+	return "crystal" if cell.x < 4 else "rich_crystal"
+
+static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP_ID) -> bool:
+	if map_id not in [MAP_ID, Engineering.MAP_ID]:
+		return false
 	if cell.x < -32 or cell.x >= 32 or cell.y < -32 or cell.y >= 32:
 		return false
+	if map_id == Engineering.MAP_ID:
+		return true
 	if cell.x < 4:
 		return true
 	if not passages.outer:

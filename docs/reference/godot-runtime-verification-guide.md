@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-09-29
+更新时间：2026-10-08
 
 ## 用途与定位
 
@@ -15,9 +15,13 @@
 ## 焦点与用户桌面
 
 - 有窗口验证不得循环调用 `grab_focus()`、强制置顶或在失焦后自动切回。萝卜SAMA切换窗口时停止采样或中断检查，不能抢占桌面来凑前台时长。
-- 普通功能流程可在失焦时停止输入并等待萝卜SAMA手动切回，再继续同一进程、同一世界；游戏自身失焦暂停不变。记录实际经过、活动时间与失焦区间，功能等待超时不计失焦时间。不能用设置 focused=true、后台加速或重新载入夹具冒充自然继续。D3 统计路径按 2026-09-29 授权采用此规则；其他检查不自动改变。
-- 连续前台性能采样仍在失焦时中断，不将功能路径允许暂停解释为性能采样允许拼接。
+- 按 2026-10-08 确认，正式三维工厂失焦后继续生产与保存，只取消未完成输入。前台功能驱动仍可停止输入并等待手动切回，但世界会自然推进；其操作超时按驱动活动区间计算，不将后台生产误记为前台测试时长。设备功能默认优先选显式 `background-write` / `background-read` 无窗口入口，不等待原生焦点或注入 focused=true；其他检查的模式与局限以脚本为准。
+- 连续前台性能采样仍在失焦时中断，不将功能路径允许后台运行或等待解释为性能采样允许拼接。
 - 用户关闭测试窗口后不自动重开；需要连续前台占用的长测，应在用户方便的时段另行安排。中断结果保持未完成，不能把后台时间或短测拼成连续前台通过。
+
+无窗口功能模式只证明真实主循环、权威状态、合成输入路由和独立存读，不渲染截图。结果必须记录 `execution_mode`、实际计时和 `skipped_screenshots`；原生焦点、窗口系统和性能另验。不要简单把 `--headless` 加到依赖 `frame_post_draw` / 原生焦点的旧脚本上，也不把省略截图记为截图通过。新设备入口复用同一 Boot 与输入助手，只在无窗口下跳过绘制等待、截图和原生焦点门禁，固定 60 FPS 限制测试空转占用，不加速模拟。
+
+macOS 的 `open -g` 与运行时 `Window.unfocusable` 组合尚不能作为本项目可靠的不抢焦点渲染入口：10 月 8 日短探针仍记录 98 个有焦点帧，已退出并保留失败。不能仅凭启动参数宣称背景运行成功；要核对实际窗口焦点与画面，未经验证不反复启动此路线。截图复核可保留为单独短时任务，批次事实见 W41。
 
 ## 核心机制
 
@@ -170,3 +174,31 @@ await super._run() # 仅在派生诊断脚本中进入原检查流程。
 - 同日 `menu-review-20260925-a` 已补备份 / 坏档 / 未来版本、独立持锁进程阻断与显式恢复、旧二维载入界面：55 项通过、11 张原图已审阅，合成输入与原生 / 用户亲测分列。独立亲测入口及路径见[首包亲测交付](../features/factory-foundation-and-persistence-v1.md#用户亲测交付)，本机证据齐备不替代体验确认或 Windows 验收。
 
 - D2-A / D2-B 已增加 `tools/check-factory-power.sh` 和 `tools/check-factory-discovery.sh`，模式、固定夹具目录和跨进程顺序见 [Tools](../../tools/README.md#正式工厂定向检查)。发现窗口使用加速生产的分段夹具与合成输入，不能拼成自然玩家全路径；完整统计页、自然发现循环和窗口尺寸全覆盖仍属 D3。上述 74 入口全套与四档长测发生于 D1–D2 代码变更前，适用于当时的基础工厂，不代表最新 schema 2 全量或性能通过。
+
+## 统计性能准备与对照
+
+统计性能的 V5 准备与恢复入口见 [Tools](../../tools/README.md#正式工厂定向检查)和 [D4 方案](../planning/factory-d3-exit-and-d4-validation.md)。`prepare-v5` 从成功 C 完成态的只读副本开始，以真实碰撞行走和近身空载配置开放 G4，再显式推进 600 秒填满历史；`verify-v5` 在正式 Boot 三份独立双根中冻结首帧、比较全快照，按相同 900 步比对终点。它们是准备 / 状态证据，不是自然玩家路径或性能验收。
+
+工程规模使用独立的 `tools/check-factory-engineering.sh` / `.ps1`，模式与参数见 Tools，边界见 [工程合同](../architecture/factory-engineering-scale-v1.md)。批次根为 `tools/runtime-intake/check-runs/factory-engineering-scale-v1/<new-batch>/`，窗口原图在 `assets/art-intake/<date>-factory-engineering-preview/<batch>/`。全部子检查消费成功父批次的哈希副本，核对完整父目录未变；运行代码指纹与状态兼容指纹分开记录，后者严格核对正式 factory / data / boot 脚本及固定布局，增加独立读检查不会使旧世界被改写。旧负载批次缺少产物完成时哈希时，只允许明确标记消费时补采，不能伪称原批次已记录。`prepare` 的全局放置、碰撞行走与显式模型时间属于工程准备；`short-window` 才使用真实前台时钟，手动开始、四档各 12 秒且失焦停止，不替代 S1 四档各 450 秒。`sustained` 是 S1 原四档入口，仍须提前告知并手动开始；`workload-check` / `sustained-preflight` / `sustained-interrupt` 分别核对计数、真实自动保存与中断，不作前台成绩。`workload.json` 保留逐设备事件所在步区间、保守最大无事件间隔、每秒加工状态及带 / 附件占用；`result.json` 逐档列自动保存与设备计数。原始样本的 `sampling_context.start_usec` 与自动保存 `at_usec` 可对齐保存慢帧；不删尖峰。
+
+`interrupt-v5` 注入失焦 / 关闭信号，验证采样中断与后续阶段终止，不声明原生切窗覆盖。`window-v5` 才承担三段各 45 秒的前台对照，准备页须手动开始、失焦即停止；保存尖峰计入帧统计，并检查样本内自动保存和两类产品实际入仓。父批次 / 准备产物 / 代码哈希一致才可派生，每次新 batch；不复用消耗后的恢复目录。启动前告知，不自动重开。PowerShell 入口已补齐但尚未实跑，不能以本机 Shell 通过代签平台验收。
+
+## 分流 / 汇合定向入口
+
+A 专题使用 `sh tools/check-factory-routing.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 检查状态、文件与菜单；`background-write/background-read` 经正式 Boot 从当前新勘探普通零库存世界自然建线（A 原证据为 V4，B 后新建为 V5），真实主循环与合成控件输入，不注入生产时间或物料，无截图。`review` 从成功 write 的哈希核对副本启动短窗口，补最小面板、模型、旋转预览及自然行走证据；不能用状态断言代替原图。
+
+批次根为 `tools/runtime-intake/check-runs/factory-conveyor-routing-v1/`，原图根为 `assets/art-intake/2026-10-08-factory-conveyor-routing-preview/`；亲测根另用 `tools/runtime-intake/review-worlds/factory-conveyor-routing-v1/`。旧 schema 2 / 3 可以原规则继续，升级为独立显式操作。恢复会继续生产并保存，只消费一次；需重试时保留失败报告，用可追溯、哈希一致的未消费起点建立新批。
+
+10 月 12 日增加 `background-preview/preview <新 batch>`：从正式 Boot 新建普通世界（当时为 schema 4，B 后新建为 V5），通过精确坐标 / 放置按钮信号构建相邻拓扑，合成鼠标、R / Esc 验证诊断与弯道拖铺取消。暂停下检查几何与布局，无生产 / 行走 / F / Tab 通过声明；结果单列实际输入范围。窗口原图在 `assets/art-intake/2026-10-12-factory-routing-connections-preview/`。只读前后快照固定同一 sequence 比较，自动保存实际发布序号另外记录，不能把文件序号推进误判为预览修改世界。
+
+## 准入口定向入口
+
+B 使用 `sh tools/check-factory-admission.sh`，模式及参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`state/process-read/menu` 验证 V5 权威配额、坏档 / 原档保护及 4→5 菜单；`background-write/background-read` 由正式 Boot 普通零库存世界自然筛料、拾样 / 试制、定量 4 件。第三件送出 / 第四件半程且停止接收时保存，独立 read 只再送一件，再启用不重置，显式重置后续产。合成输入、精确放置 / 下拉候选与真实主循环计时分列，不注入物料 / 解锁 / 人物位置或加速。
+
+`review` 从哈希核对的未消费起点副本启动短窗口：暂停恢复、F / Tab、普通 / 最小面板、模型与 R 预览原图；不声明执行自然生产或配置提交。结果的 input 按模式填写，不能沿用完整驱动能力表冒充执行证据。运行根 `tools/runtime-intake/check-runs/factory-item-admission-v1/`，原图 `assets/art-intake/2026-10-12-factory-item-admission-preview/`，用户副本另放 `tools/runtime-intake/review-worlds/factory-item-admission-v1/`。新建默认 V5，旧 2 / 3 / 4 原规则继续与各级升级分别选择；已消费 read 保留，不重复作为原 write 检查点。亲测入口及待验范围见[准入口专题](../features/factory-item-admission-v1.md#playtest)。
+
+## 两原料组合定向入口
+
+C 使用 `sh tools/check-factory-combination.sh`；完整模式 / 参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`geometry` 为构造几何；`state/process-read` 为声明来源的严格快照与显式固定步重放。`background-write` 才承担普通空世界的自然 C0–C3，`background-read` 和 `background-complete-read` 分别承担两次独立 Boot 继续；不以状态夹具补签自然路径。检查只读跟踪连续固定步上的富集 batch、制剂整批投入及 G4 放行，采样跨步时清除未完成来源链，不从稀疏库存统计猜测来源。
+
+每个模式都使用新 batch。恢复 / 故障 / review 指定成功父批次，由 runner 复制输入并记录 SHA-256；禁止覆盖、消费原父档或以失败父结果继续验收，子结束后复核父目录未变。运行根为 `tools/runtime-intake/check-runs/factory-conveyor-combination-v1/`，原图为 `assets/art-intake/2026-10-17-factory-conveyor-combination-preview/`，亲测另用同专题 `review-worlds/`。`review` 先证明暂停下镜头 / 面板只读，再在独立子档中用真实回收、返料和短时自然推进演示末件堵塞 / 修复 / 8/8；该短段不是重新完成全程。Godot 日志使用绝对仓库路径，退出码、脚本断言与日志错误共同决定通过；不忽略字体或脚本错误。

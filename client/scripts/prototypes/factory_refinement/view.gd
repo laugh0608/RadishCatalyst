@@ -8,6 +8,7 @@ var output_mat := Parts.material("f0c16b", 0, 0.7)
 
 
 func _ready() -> void:
+	device_affordances = false
 	super._ready()
 	assets.reactor = preload("res://assets/factory/refinement/reactor.glb")
 	assets.power_junction = preload("res://assets/factory/refinement/power-junction.glb")

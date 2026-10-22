@@ -5,6 +5,7 @@ const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Query := preload("res://scripts/factory/statistics_query.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const Check := preload("res://scripts/checks/factory_discovery_check.gd")
+const LegacyStore := preload("res://scripts/factory/save/store.gd")
 var boot: Node
 var world: Control
 var driver: Node
@@ -20,9 +21,18 @@ var focus_pause := {}
 var foreground_seconds := 0.0
 var last_observed_usec := 0
 var ui_only := false
+var background_mode := false
+var functional_seconds := 0.0
 
 
 func _init() -> void:
+	background_mode = "--background" in OS.get_cmdline_user_args()
+	if background_mode:
+		if DisplayServer.get_name() != "headless":
+			push_error("Background functional checks require --headless; they do not capture screenshots.")
+			quit(1)
+			return
+		Engine.max_fps = 60
 	call_deferred("run")
 
 
@@ -38,6 +48,7 @@ func run() -> void:
 	run_root = repo.path_join("tools/runtime-intake/check-runs/factory-statistics-v1").path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
 	driver = Driver.new()
+	driver.capture_screenshots = not background_mode
 	driver.input_ready = wait_for_focus
 	started = Time.get_ticks_usec()
 	last_observed_usec = started
@@ -64,14 +75,26 @@ func run() -> void:
 	if read_mode:
 		boot.factory_menu.list.select(0)
 		boot.factory_menu.list.item_selected.emit(0)
-		boot.factory_menu.continue_button.pressed.emit()
+		var store := LegacyStore.new(run_root.path_join("factory"))
+		var candidate := store.prepare(boot.factory_menu.worlds[0].id)
+		driver.expect(candidate.ok, "legacy statistics candidate remains readable")
+		if not candidate.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, candidate.model, candidate)
 		# Freeze the restored session before its first simulation frame; retain saved remainder.
 		boot.factory_world.ui.paused = true
 		boot.factory_world.production_clock.start(Time.get_ticks_usec(), false)
 	else:
-		boot.factory_menu.world_type.select(1)
-		boot.factory_menu.title_input.text = "D3 自然生产路径"
-		await driver.click(boot.factory_menu.create_button)
+		# Keep the historical D3 manual-power baseline reproducible. Automatic
+		# power menu creation and migration use factory_range_power_boot_check.gd.
+		var store := LegacyStore.new(run_root.path_join("factory"))
+		var created := store.create("D3 旧接线自然生产路径", Codec.V2.Config.SUPPLY_ID)
+		driver.expect(created.ok, "isolated legacy empty world prepared through Store")
+		if not created.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, created.model, {})
 	world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal Boot world initialized")
@@ -98,6 +121,11 @@ func run() -> void:
 			driver.expect(not world.statistics_panel.visible, "escape closes overlay")
 		finish()
 		return
+	await full_journey()
+	finish()
+
+
+func full_journey() -> void:
 	# Construction uses the same HUD precision fields and placement actions as a player.
 	await place("collector", -20, -1, "collector")
 	await place("reactor", -13, -2, "basic")
@@ -109,18 +137,18 @@ func run() -> void:
 	await connect_devices("source", "node")
 	await connect_devices("source", "collector")
 	await connect_devices("node", "basic")
-	stage("first-line", "empty-world construction and explicit connections")
+	stage("first-line", "empty-world construction and established power network")
 	await walk(Vector2(2.3, 3.5))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.sample)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	driver.expect(world.model.discovery.sample_taken, "sample obtained by actual proximity")
 	await driver.shot("02-sample-guidance")
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("catalyst", 0) >= 2, 70, "ordinary catalyst preparation")
 	await walk(Vector2(-5.0, 3.0))
 	await panel(ids.warehouse)
 	await press(world.discovery_panel.buttons.catalyst_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	# Remove the terminal through the existing action; goods stay in the bag.
 	world.ui.selected = ids.warehouse
 	world._action("salvage", null)
@@ -138,7 +166,7 @@ func run() -> void:
 	if world.model.by_id(ids.solvent).input.get("catalyst", 0) < 2 and world.model.bag.get("catalyst", 0) > 0:
 		await press(world.discovery_panel.buttons.catalyst_put_all)
 	await native_shot("03-trial")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await wait_for(func(): return world.model.discovery.trial_completed, 45, "real-time trial")
 	stage("trial", "one unique sample consumed; continuous recipes unlocked")
 	await wait_for(func(): return world.model.by_id(ids.solvent).output.is_empty(), 10, "trial product leaves on belt")
@@ -148,17 +176,17 @@ func run() -> void:
 	await recipe("crust_solvent")
 	if world.model.bag.get("catalyst", 0) > 0:
 		await press(world.discovery_panel.buttons.catalyst_put_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await statistics_checks()
 	await wait_for(func(): return world.model.by_id(ids.warehouse).items.get("crust_solvent", 0) >= 4, 150, "automatic solvent production for first opening")
 	await walk(Vector2(1.0, 2.0))
 	await panel(ids.warehouse)
 	await press(world.discovery_panel.buttons.crust_solvent_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(2.7, 0.3))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.outer)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(8.6, 0.3))
 	stage("outer", "four real solvent units spent; actual collision traversal")
 	await driver.shot("07-outer-open")
@@ -179,7 +207,7 @@ func run() -> void:
 	await walk(Vector2(15.0, 2.0))
 	await panel(ids.rich)
 	await recipe("rich_catalyst")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await place("reactor", 10, 10, "inner_solvent")
 	await place("storage", 14, 11, "inner_warehouse")
 	await place("power_junction", 14, 4, "mid_node")
@@ -203,7 +231,7 @@ func run() -> void:
 	await walk(Vector2(14.0, 9.0))
 	await panel(ids.inner_solvent)
 	await recipe("crust_solvent")
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await wait_for(func(): return world.model.statistics.totals.produced.get("rich_crystal", 0) > 0, 30, "new resource really produced")
 	await driver.click(world.hud.buttons.statistics)
 	world.statistics_panel.window_choice.select(0)
@@ -234,14 +262,14 @@ func run() -> void:
 	await walk(Vector2(15.0, 9.8))
 	await panel(ids.inner_warehouse)
 	await press(world.discovery_panel.buttons.crust_solvent_take_all)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(16.0, 9.0))
 	await walk(Vector2(16.0, 2.2))
 	await walk(Vector2(19.0, 2.2))
 	await walk(Vector2(19.0, 0.4))
 	await panel(-1)
 	await press(world.discovery_panel.buttons.inner)
-	await press(world.discovery_panel.get_ok_button())
+	await press(world.discovery_panel.buttons.close)
 	await walk(Vector2(24.6, 0.4))
 	driver.expect(world.model.discovery.passages.inner, "second permanent opening")
 	stage("inner", "eight rich-fed solvent spent; actual second crossing")
@@ -251,7 +279,6 @@ func run() -> void:
 	write_json("expected.json", Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence))
 	await driver.click(world.hud.buttons.return)
 	driver.expect(boot.factory_world == null, "saved return releases world")
-	finish()
 
 
 func place(type: String, x: int, z: int, name := "", dir := 0) -> void:
@@ -290,7 +317,7 @@ func walk(to: Vector2) -> void:
 	var owner := root.gui_get_focus_owner()
 	if owner:
 		owner.release_focus()
-	var until: float = world.production_clock.active_usec + 20000000
+	var until := functional_seconds + 20.0
 	while Vector2(world.actor.x, world.actor.z).distance_to(to) > 0.22:
 		await wait_for_focus()
 		var delta := to - Vector2(world.actor.x, world.actor.z)
@@ -309,7 +336,7 @@ func walk(to: Vector2) -> void:
 				push_key(code, true)
 		held_keys = desired
 		await process_frame
-		if world.production_clock.active_usec > until:
+		if functional_seconds > until:
 			driver.expect(false, "walking blocked at %s toward %s" % [Vector2(world.actor.x, world.actor.z), to])
 			finish()
 			return
@@ -332,13 +359,20 @@ func panel(id: int) -> void:
 	world.ui.selected = id # Stable ID selection; location/proximity remains natural walking.
 	world._refresh()
 	await driver.settle()
-	await driver.click(world.hud.buttons.discovery)
-	driver.expect(world.discovery_panel.visible, "native process panel opens")
+	world._action("device" if id > 0 else "discovery", null)
+	driver.expect(world.discovery_panel.visible, "selected device or process panel opens after proximity check")
 
 
 func press(control: Button) -> void:
+	if control.has_meta("item_id") and not control.is_visible_in_tree():
+		var slot: Button = world.discovery_panel.item_button(control.get_meta("item_id"), control.get_meta("bag_side"))
+		driver.expect(slot != null, "material action has a visible slot")
+		if slot == null:
+			check_failures()
+			return
+		await driver.click(slot)
 	await wait_for_focus(control.get_window())
-	driver.expect(control.is_visible_in_tree() and not control.disabled and control.get_window().has_focus(), "native command available " + control.text)
+	driver.expect(control.is_visible_in_tree() and not control.disabled and (background_mode or control.get_window().has_focus()), "routed command available " + control.text)
 	check_failures()
 	control.grab_focus()
 	for held in [true, false]:
@@ -352,7 +386,7 @@ func press(control: Button) -> void:
 
 
 func recipe(id: String) -> void:
-	await wait_for_focus(world.discovery_panel)
+	await wait_for_focus(world.discovery_panel.get_window())
 	var index: int = world.discovery_panel.recipe_ids.find(id)
 	driver.expect(index >= 0, "recipe known " + id)
 	check_failures()
@@ -363,11 +397,11 @@ func recipe(id: String) -> void:
 
 
 func wait_for(condition: Callable, timeout: float, reason: String) -> void:
-	var start: int = world.production_clock.active_usec
+	var start := functional_seconds
 	while not condition.call():
 		await wait_for_focus()
 		await process_frame
-		if (world.production_clock.active_usec - start) / 1000000.0 > timeout:
+		if functional_seconds - start > timeout:
 			driver.expect(false, "waiting timed out: " + reason)
 			finish()
 			return
@@ -380,6 +414,8 @@ func active(seconds: float, reason: String) -> void:
 
 
 func wait_for_focus(window: Window = null) -> void:
+	if background_mode:
+		return
 	var target: Window = root if window == null else window
 	while not target.has_focus() and not finished:
 		await process_frame
@@ -389,9 +425,17 @@ func _process(_delta: float) -> bool:
 	if driver == null or finished or last_observed_usec == 0:
 		return false
 	var now := Time.get_ticks_usec()
-	var window: Window = world.discovery_panel if is_instance_valid(world) and world.discovery_panel.visible else root
+	if background_mode:
+		functional_seconds += (now - last_observed_usec) / 1000000.0
+		last_observed_usec = now
+		if functional_seconds > 1200:
+			driver.expect(false, "background functional budget exceeded")
+			finish()
+		return false
+	var window: Window = world.discovery_panel.get_window() if is_instance_valid(world) and world.discovery_panel.visible else root
 	if window.has_focus():
 		foreground_seconds += (now - last_observed_usec) / 1000000.0
+		functional_seconds += (now - last_observed_usec) / 1000000.0
 		if not focus_pause.is_empty():
 			focus_pause.end_elapsed_seconds = (now - started) / 1000000.0
 			focus_pause.duration_seconds = focus_pause.end_elapsed_seconds - focus_pause.start_elapsed_seconds
@@ -426,9 +470,9 @@ func stage(name: String, reason: String) -> void:
 
 
 func native_shot(name: String) -> void:
-	await wait_for_focus(world.discovery_panel)
+	await wait_for_focus(world.discovery_panel.get_window())
 	await driver.settle()
-	world.discovery_panel.get_texture().get_image().save_png(driver.shot_root.path_join(name + ".png"))
+	driver.save_shot(name, world.discovery_panel.get_viewport())
 
 
 func statistics_checks() -> void:
@@ -457,7 +501,7 @@ func statistics_checks() -> void:
 	world._focus_lost() # Inject focus transition without switching the user's foreground app.
 	before = world.model.time
 	await create_timer(0.2).timeout
-	driver.expect(world.model.time == before, "statistics obeys focus pause without zero buckets")
+	driver.expect(world.model.time > before, "statistics continues production and sampling without focus")
 	world._focus_gained()
 	await driver.shot("04-material-statistics")
 	await driver.click(panel.buttons.pause)
@@ -548,11 +592,17 @@ func write_json(name: String, value: Variant) -> void:
 	file.store_string(JSON.stringify(value, "\t", false, true))
 
 
+func execution_evidence() -> Dictionary:
+	return {"execution_mode": "headless-functional" if background_mode else "window-functional",
+		"functional_seconds": functional_seconds, "screenshots_captured": driver.capture_screenshots,
+		"skipped_screenshots": driver.skipped_screenshots}
+
+
 func finish() -> void:
 	if finished:
 		return
 	finished = true
 	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "stages": stages, "foreground_seconds": foreground_seconds, "focus_pauses": focus_pauses, "pending_focus_pause": focus_pause,
-		"input": "Boot synthetic mouse; build HUD precision fields/button signal; legal wiring commands; stable-ID selection; native buttons synthetic Enter; walking synthetic WASD; no inventory/unlock/actor-position injection or accelerated time"})
+		"input": "Boot synthetic mouse; build HUD precision fields/button signal; legal wiring commands; stable-ID selection; native buttons synthetic Enter; walking synthetic WASD; no inventory/unlock/actor-position injection or accelerated time"}.merged(execution_evidence()))
 	print("D3 Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)

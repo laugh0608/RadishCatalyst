@@ -1,11 +1,19 @@
 extends "res://scripts/checks/factory_performance_check.gd"
 
 # Reuse the established foreground sampler and budgets without changing its scale fixture.
+const V5Fixture := preload("res://scripts/checks/factory_statistics_performance_fixture.gd")
 var source_path := ""
 var source_sha256 := ""
 var prepared := {}
 var fixture_counts := {}
 var prepare_only := false
+var mode := "window"
+var source_schema := 2
+var preparation := {}
+var verification := []
+var expected_continuation := {}
+var interrupt_at := "before"
+var phase_material_start := {}
 
 
 func _run() -> void:
@@ -16,6 +24,11 @@ func _run() -> void:
 		if arg.begins_with("--source="):
 			source_path = arg.trim_prefix("--source=")
 		prepare_only = prepare_only or arg == "--prepare-only"
+		if arg.begins_with("--mode="): mode = arg.trim_prefix("--mode=")
+		if arg.begins_with("--interrupt-at="): interrupt_at = arg.trim_prefix("--interrupt-at=")
+	if prepare_only: mode = "prepare"
+	prepare_only = mode in ["prepare", "prepare-v5"]
+	source_schema = 5 if mode.ends_with("-v5") else 2
 	assert(batch.is_valid_filename() and not ".." in batch)
 	run_root = SliceCheckPaths.repository_root().path_join("tools/runtime-intake/check-runs/factory-statistics-v1").path_join(batch)
 	DirAccess.make_dir_recursive_absolute(run_root)
@@ -29,9 +42,12 @@ func _run() -> void:
 		return
 	source_sha256 = FileAccess.get_sha256(source_path)
 	var source: Variant = JSON.parse_string(FileAccess.get_file_as_string(source_path))
-	if not source is Dictionary or source.get("save_schema_version") != 2:
-		driver.expect(false, "source is a schema 2 snapshot")
+	if not source is Dictionary or source.get("save_schema_version") != source_schema or not source.get("world_id") is String:
+		driver.expect(false, "source is an explicit schema %d snapshot" % source_schema)
 		finish()
+		return
+	if source_schema == 5:
+		await run_v5(source)
 		return
 	var decoded := Codec.decode(source, source.world_id)
 	driver.expect(decoded.ok, "source passes unchanged save contract")
@@ -76,6 +92,120 @@ func _run() -> void:
 	finish()
 
 
+func run_v5(source: Dictionary) -> void:
+	if mode == "prepare-v5":
+		var result := V5Fixture.prepare(source, driver)
+		if not result.is_empty():
+			prepared = result.snapshot
+			preparation = result.report
+			fixture_counts = preparation.prepared.entities
+			V5Fixture.check_rejections(source, prepared, driver)
+			preparation.ready = driver.failures.is_empty()
+			write_json("prepared.json", prepared)
+			write_json("continuation.json", result.continuation)
+			write_json("preparation.json", preparation)
+		finish()
+		return
+	var decoded := V5Fixture.decode_source(source, true)
+	driver.expect(decoded.ok, "strict prepared V5 snapshot: " + decoded.get("reason", ""))
+	if not decoded.ok:
+		finish()
+		return
+	prepared = source
+	fixture_counts = V5Fixture.describe(decoded.model).entities
+	expected_continuation = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("continuation.json")))
+	driver.expect(Codec.decode(expected_continuation, prepared.world_id).ok, "prepared continuation is strictly readable")
+	if not driver.failures.is_empty():
+		finish()
+		return
+	if mode == "verify-v5":
+		await verify_prepared()
+		finish()
+		return
+	if mode == "interrupt-v5":
+		interruption_check = true
+		Engine.max_fps = 60
+		root.focus_exited.connect(_interrupt.bind("focus_lost"))
+		root.close_requested.connect(_interrupt.bind("window_closed"))
+		await verify_interruption()
+		finish()
+		return
+	driver.shot_root = SliceCheckPaths.repository_root().path_join("assets/art-intake/" + Time.get_date_string_from_system() + "-factory-statistics-preview").path_join(run_root.get_file())
+	DirAccess.make_dir_recursive_absolute(driver.shot_root)
+	var gate := preload("res://scripts/checks/factory_diagnostic_gate.gd")
+	# The preparation window is not a sampled phase; connect focus termination after start.
+	if not await gate.wait_for_start(self, "异星催化 · V5 统计对照准备", "V5 普通供给同状态：关闭 / 物料 / 电力各 45 秒。\n点击开始后保持前台；失焦或关闭终止全部后续阶段。"):
+		_interrupt("start_not_confirmed")
+		finish()
+		return
+	root.focus_exited.connect(_interrupt.bind("focus_lost"))
+	root.close_requested.connect(_interrupt.bind("window_closed"))
+	for label in ["closed", "materials", "power"]:
+		if not await load_phase(label):
+			finish()
+			return
+		world._set_paused(false)
+		if not await _phase(label, false, 1.0):
+			finish()
+			return
+		await close_phase()
+		if not driver.failures.is_empty(): break
+	finish()
+
+
+func verify_prepared() -> void:
+	for label in ["closed", "materials", "power"]:
+		if not await load_phase(label): return
+		var conserved := V5Fixture.balance(world.model)
+		var observation := V5Fixture.observe(world.model, 900)
+		V5Fixture.assert_work(driver, observation, label)
+		var actual := Codec.snapshot(world.model, prepared.world_id, prepared.name, 1)
+		driver.expect(V5Fixture.Compare.equivalent(actual, expected_continuation), label + " independent Boot fixed-step endpoint matches prepared probe")
+		driver.expect(V5Fixture.balance(world.model) == conserved, label + " material conservation after restore")
+		verification.append({"label": label, "scope": "Paused formal Boot; 900 explicit fixed steps, not a performance sample", "observation": observation})
+		write_json(label + "-verified.json", actual)
+		await close_phase()
+		if not driver.failures.is_empty(): return
+
+
+func verify_interruption() -> void:
+	if not await load_phase("interruption"): return
+	if interrupt_at == "before":
+		root.focus_exited.emit()
+	else:
+		root.focus_entered.emit()
+		world._set_paused(false)
+		interrupt_during_sample = true
+	var completed := await _phase("interruption", false, 1.0)
+	driver.expect(not completed and interrupted and phases.is_empty(), "interruption never completes a performance phase")
+	driver.expect(not world.sample_enabled and not world.model.measure_steps, "interruption disables all sampling")
+	driver.expect(attempted_phases == ([] if interrupt_at == "before" else ["interruption"]), "interruption stops at expected boundary")
+	var attempted := attempted_phases.duplicate()
+	driver.expect(not await _phase("must-not-run", false, 1.0) and attempted_phases == attempted, "interruption prevents every later phase")
+	# Keep the interrupted world alive until finish() captures its partial samples.
+
+
+func _inject_interruption() -> void:
+	await process_frame
+	await process_frame
+	var began := Time.get_ticks_usec()
+	while world.model.step_samples.is_empty() and Time.get_ticks_usec() - began < 2000000:
+		await process_frame
+	driver.expect(not world.model.step_samples.is_empty(), "real step precedes injected interruption")
+	driver.expect(world._save_now(), "actual save before injected interruption")
+	if interrupt_at == "close": root.close_requested.emit()
+	else: root.focus_exited.emit()
+
+
+func close_phase() -> void:
+	world._set_paused(true)
+	world._request_exit("return")
+	driver.expect(boot.factory_world == null, "phase saves and releases its world")
+	await _settle()
+	boot.queue_free()
+	await _settle()
+
+
 func load_phase(label: String) -> bool:
 	var isolated := run_root.path_join(label)
 	var world_root := isolated.path_join("factory").path_join(prepared.world_id)
@@ -101,23 +231,49 @@ func load_phase(label: String) -> bool:
 	driver.expect(world != null and world.initialized, "formal Boot restores paired state " + label)
 	if world == null:
 		return false
+	if source_schema == 5:
+		# No await between menu continuation and freezing the first restored frame.
+		world.ui.paused = true
+		world.production_clock.start(Time.get_ticks_usec(), false)
+		var restored := Codec.snapshot(world.model, prepared.world_id, prepared.name, prepared.sequence)
+		driver.expect(V5Fixture.Compare.equivalent(restored, prepared), "exact same prepared first frame " + label)
+		load_metrics[label].restored_sequence = world.store.sequence
+		load_metrics[label].prepared_sha256 = source_sha256
 	world.ui.mission = false
 	world.ui.build = false
 	world._refresh()
-	if label != "closed":
+	if label in ["materials", "power"]:
 		world._action("statistics", null)
 		world.statistics_panel.page.select(0 if label == "materials" else 1)
 		world.statistics_panel.selected_item = "catalyst"
 		world.statistics_panel.refresh()
-	driver.expect(world.statistics_panel.visible == (label != "closed"), "expected overlay state " + label)
+	driver.expect(world.statistics_panel.visible == (label in ["materials", "power"]), "expected overlay state " + label)
 	return not interrupted and driver.failures.is_empty()
 
 
 func _delivery_count() -> int:
+	if source_schema == 5 and world.sample_enabled and phase_material_start.is_empty():
+		phase_material_start = world.model.statistics.totals.duplicate(true)
 	var count := 0
 	for amount in world.model.statistics.totals.delivered.values():
 		count += int(amount)
 	return count
+
+
+func _phase(label: String, maximized: bool, zoom: float) -> bool:
+	phase_material_start = {}
+	var passed := await super._phase(label, maximized, zoom)
+	if not passed or source_schema != 5: return passed
+	var changes := {}
+	for kind in ["produced", "consumed", "delivered"]:
+		changes[kind] = {}
+		for item in V5Fixture.Rules.ITEMS:
+			changes[kind][item] = world.model.statistics.totals[kind].get(item, 0) - phase_material_start[kind].get(item, 0)
+	phases.back().material_changes = changes
+	driver.expect(changes.delivered.catalyst > 0 and changes.delivered.crust_solvent > 0, "both products delivered within sampled phase " + label)
+	driver.expect(not world.save_samples.is_empty(), "sample contains automatic saves " + label)
+	for saved in world.save_samples: driver.expect(saved.ok, "sample automatic save succeeded " + label)
+	return driver.failures.is_empty()
 
 
 func write_json(name: String, data: Variant) -> void:
@@ -131,12 +287,25 @@ func finish() -> void:
 	# The inherited sampler preserves all raw samples, saves and interruptions.
 	super.finish()
 	var report: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_root.path_join("result.json")))
-	report.scope = "Schema 2 ordinary supply; paired identical starting snapshot; NOT 100 machines / 1000 belts or sustained acceptance"
+	report.scope = "Schema %d ordinary supply; paired identical starting snapshot; NOT 100 machines / 1000 belts or sustained acceptance" % source_schema
 	report.source = {"path": source_path, "sha256": source_sha256}
 	report.fixture_counts = fixture_counts
 	report.preparation = "600 simulated seconds before sampling; all 600 history buckets retained; foreground phases run at real time"
 	report.prepare_only = prepare_only
+	report.mode = mode
+	report.preparation_details = preparation
+	report.verification = verification
+	report.performance_acceptance = mode in ["window", "window-v5"] and not interrupted and phases.size() == 3 and driver.failures.is_empty()
 	report.phase_seconds = duration
-	report.delivery_metric = "All materials actually delivered into storage; schema 2 authoritative statistics.totals.delivered"
+	report.delivery_metric = "All materials actually delivered into storage; authoritative statistics.totals.delivered"
 	report.input = "Formal Boot menu signals; statistics action and page selection; camera fixed; no manual playtest claim"
+	if prepare_only:
+		report.input = "No Boot or user input. Explicit real model preparation; V5 movement/configuration operations are listed in preparation_details."
+		report.sampling = "No performance samples; explicit model steps prepare full history and a separate continuation probe."
+	elif mode == "verify-v5":
+		report.input = "Formal Boot/menu signals and statistics selection; first frame frozen; 900 explicit model steps per independent copy. No natural-time or user-playtest claim."
+		report.sampling = "No performance samples; full snapshot comparison and fixed-step continuation only."
+	elif mode == "interrupt-v5":
+		report.input = "Headless formal Boot; synthetic focus/close signals; real clock steps and explicit save before sampling interruption. No window or user-playtest claim."
+		report.sampling = "Partial headless clock samples test interruption only, never performance acceptance."
 	write_json("result.json", report)

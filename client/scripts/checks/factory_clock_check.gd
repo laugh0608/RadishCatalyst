@@ -54,8 +54,8 @@ func _run() -> void:
 	world = boot.factory_world
 	expect(world != null and world.initialized, "clock check enters through formal Boot")
 	if world != null:
-		# 无窗口中用生命周期信号注入焦点；这不是原生窗口证据。
-		root.focus_entered.emit()
+		# Production starts without a real or injected foreground focus.
+		expect(world._producing(), "headless Boot starts production without focus injection")
 		await _frames(4)
 		var start := _sample()
 		OS.delay_msec(1174)
@@ -77,15 +77,22 @@ func _run() -> void:
 		start = _sample()
 		OS.delay_msec(180)
 		await _frames(3)
-		expect(absf(_sample().accounted - start.accounted) < 1e-9, "focus loss excludes time")
+		end = _sample()
+		expect(end.accounted > start.accounted + 0.18, "focus loss continues production")
+		expect(absf(end.accounted - start.accounted - (end.usec - start.usec) / 1000000.0) < 0.00001, "background interval is counted exactly once")
 		root.focus_entered.emit()
 		await _frames(3)
-		expect(_sample().accounted - start.accounted < 0.1, "focus return does not catch up inactive time")
+		end = _sample()
+		expect(absf(end.accounted - start.accounted - (end.usec - start.usec) / 1000000.0) < 0.00001, "focus return does not add duplicate catch-up time")
+		root.focus_exited.emit()
 		var saved_sequence: int = world.store.sequence
 		expect(world.model.place("belt", Vector2i(0, 0)).ok, "dirty command before long frame")
+		world.hud.announce("交互提示应保留")
 		OS.delay_msec(2050)
 		await _frames(8)
-		expect(world.store.sequence > saved_sequence, "dirty save uses actual elapsed time across long frame")
+		expect(not world.focused and world.store.sequence > saved_sequence, "background dirty save uses elapsed time across long frame")
+		expect(world.hud.notice.text == "交互提示应保留", "successful autosave preserves interaction feedback")
+		root.focus_entered.emit()
 		world.store.fault = func(stage):
 			if stage == "publish":
 				OS.delay_msec(220)
@@ -135,6 +142,7 @@ func _run() -> void:
 			world.unsaved_dialog.get_ok_button().pressed.emit()
 			expect(boot.factory_world == null, "confirmed discard returns without writing")
 			expect(FileAccess.get_sha256(main_path) == main_hash, "discard preserves last committed save")
+	await _device_clock(boot)
 	boot.free()
 	var file := FileAccess.open(run_root.path_join("result.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify({"assertions": checks, "failures": failures, "observations": observations,
@@ -154,3 +162,81 @@ func _sample() -> Dictionary:
 func _frames(count: int) -> void:
 	for i in count:
 		await process_frame
+
+
+func _device_clock(boot: Node) -> void:
+	boot.factory_menu.world_type.select(1)
+	boot.factory_menu.title_input.text = "统一面板时钟检查"
+	boot.factory_menu.create_button.pressed.emit()
+	world = boot.factory_world
+	var placed: Dictionary = world.model.place("storage", Vector2i(-2, 3))
+	expect(placed.ok, "device clock fixture places empty storage")
+	world.ui.selected = placed.entity.id
+	world._action("device", null)
+	expect(world.discovery_panel.visible and world._producing(), "device panel leaves active clock running")
+	# Synthetic full-bag rejection fixture, restored before any elapsed step or save.
+	world.model.bag = {"crystal": 200}
+	placed.entity.items = {"catalyst": 1}
+	world._device_action("salvage", placed.entity.id)
+	expect(world.discovery_panel.visible and "背包容量不足" in world.discovery_panel.result_label.text, "device command failure stays visible inside unified panel")
+	world.model.bag = {}
+	placed.entity.items = {}
+	var start := _sample()
+	await create_timer(0.2).timeout
+	await _frames(3)
+	expect(_sample().accounted > start.accounted + 0.15, "open panel receives actual elapsed production time")
+	root.focus_exited.emit()
+	start = _sample()
+	await create_timer(0.2).timeout
+	expect(_sample().accounted > start.accounted + 0.15, "open device panel continues producing without focus")
+	world._refresh()
+	expect(world.discovery_panel.runtime.text == "后台生产中" and world.hud.buttons.pause.text == "暂停", "background labels match running production")
+	world._set_paused(true)
+	start = _sample()
+	await create_timer(0.2).timeout
+	expect(absf(_sample().accounted - start.accounted) < 1e-9, "explicit pause dominates live device panel")
+	root.focus_entered.emit()
+	await _frames(3)
+	expect(world.ui.paused and absf(_sample().accounted - start.accounted) < 1e-9, "regaining focus cannot undo explicit pause")
+	world.discovery_panel.close_panel()
+	expect(world.ui.paused and not world._producing(), "closing device panel preserves explicit pause")
+	world._set_paused(false)
+	world._action("discovery", null)
+	expect(not world._producing(), "global process review retains its pause contract")
+	world.discovery_panel.close_panel()
+	world._action("inventory", null)
+	start = _sample()
+	await create_timer(0.2).timeout
+	await _frames(3)
+	expect(world.discovery_panel.inventory_only and _sample().accounted > start.accounted + 0.15, "standalone inventory advances natural active time")
+	world.discovery_panel.close_panel()
+	# Lifecycle input fixtures: focus loss cancels uncommitted movement/drag, not production.
+	world.keys[KEY_W] = true
+	world.actor.target = Vector2(-5, 3)
+	world.actor.moving = true
+	world.pointer = true
+	world.ui.stroke.assign([Vector2i(0, 0), Vector2i(1, 0)])
+	var actor_before := Vector2(world.actor.x, world.actor.z)
+	var entities_before: int = world.model.entities.size()
+	root.focus_exited.emit()
+	expect(world.keys.is_empty() and world.actor.target == null and not world.actor.moving and not world.pointer and world.ui.stroke.is_empty(), "focus loss clears held input and uncommitted drag immediately")
+	await create_timer(0.2).timeout
+	expect(Vector2(world.actor.x, world.actor.z) == actor_before and world.model.entities.size() == entities_before, "background production neither moves the actor nor commits a drag")
+	root.focus_entered.emit()
+	# Explicit approach fixtures exercise intent cancellation and arrival, not native movement.
+	world._approach_sample()
+	expect(world.pending_sample and not world.model.discovery.sample_taken, "distant sample click only starts movement intent")
+	root.focus_exited.emit()
+	expect(not world.pending_sample and world.actor.target == null, "focus loss cancels approach intent")
+	root.focus_entered.emit()
+	world._approach_sample()
+	world.actor.x = 2.5
+	world.actor.z = 3.5
+	world._movement(0)
+	expect(not world.pending_sample and world.actor.target == null and not world.model.discovery.sample_taken, "arrival stops movement without taking sample")
+	world._movement(0.1)
+	expect(world.model.bag.get("crust_sample", 0) == 0, "waiting nearby does not trigger a deferred pickup")
+	world._pick_sample()
+	expect(world.model.discovery.sample_taken and world.model.bag.crust_sample == 1, "explicit pickup still acquires exactly one sample")
+	world.discovery_panel.close_panel()
+	world._action("return", null)

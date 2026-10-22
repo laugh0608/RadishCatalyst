@@ -3,6 +3,7 @@ extends SceneTree
 const Boot := preload("res://scenes/boot/Boot.tscn")
 const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Codec := preload("res://scripts/factory/save/codec.gd")
+const Store := preload("res://scripts/factory/save/store.gd")
 var boot: Node
 var world: Control
 var driver: Node
@@ -46,17 +47,28 @@ func run() -> void:
 	root.size = Vector2i(1440, 900)
 	await driver.settle(30)
 	await driver.click(boot.startup_menu.get_node("ContentRoot/MenuButtons/FactoryButton"))
+	# This historical workflow verifies schema 2 manual wiring. New menu creation
+	# and explicit migration are covered by factory_range_power_boot_check.gd.
+	var store := Store.new(run_root.path_join("factory"))
 	if read_mode:
 		boot.factory_menu.list.select(0)
 		boot.factory_menu.list.item_selected.emit(0)
-		boot.factory_menu.continue_button.pressed.emit()
+		var candidate := store.prepare(boot.factory_menu.worlds[0].id)
+		driver.expect(candidate.ok, "legacy saved candidate remains readable")
+		if not candidate.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, candidate.model, candidate)
 		world = boot.factory_world
 		if world != null:
 			world.ui.paused = true # Compare before the first process step.
 	else:
-		boot.factory_menu.world_type.select(1)
-		boot.factory_menu.title_input.text = "电力首线隔离复核"
-		await driver.click(boot.factory_menu.create_button)
+		var created := store.create("旧接线首线隔离复核", Codec.V2.Config.SUPPLY_ID)
+		driver.expect(created.ok, "isolated legacy empty world prepared through Store")
+		if not created.ok:
+			finish()
+			return
+		boot.factory_menu.world_ready.emit(store, created.model, {})
 		world = boot.factory_world
 	driver.world = world
 	driver.expect(world != null and world.initialized, "formal Boot new/load")
@@ -86,6 +98,8 @@ func place(type: String, x: int, z: int) -> void:
 
 
 func select(id: int) -> void:
+	if world.discovery_panel.visible:
+		world.discovery_panel.close_panel()
 	if dialog_only:
 		world.ui.selected = id # Targeted modal test; world mouse selection covered by write/read paths.
 		world._refresh()
@@ -94,13 +108,15 @@ func select(id: int) -> void:
 	var e: Dictionary = world.model.by_id(id)
 	await driver.world_click(Vector2i(e.x, e.z), 0.4)
 	driver.expect(world.ui.selected == id, "mouse selection #%d" % id)
+	if world.discovery_panel.visible:
+		world.discovery_panel.close_panel()
 
 
 func connect_nodes(a: int, b: int) -> void:
 	await select(a)
 	if not driver.failures.is_empty():
 		return
-	await driver.click(world.hud.buttons.power_connect)
+	await device_command("power_connect")
 	var target: Dictionary = world.model.by_id(b)
 	driver.expect(not target.is_empty(), "connection target exists")
 	if target.is_empty():
@@ -151,7 +167,7 @@ func write_path() -> void:
 	driver.expect(world.model.completed >= 1, "real-time ordinary production")
 	await driver.shot("02-powered-production")
 	await select(4)
-	await driver.click(world.hud.buttons.power_toggle)
+	await device_command("power_toggle")
 	var energy: float = world.model.statistics.totals.used_kj
 	var progress: float = world.model.by_id(2).progress
 	var batch: int = world.model.next_batch
@@ -164,7 +180,7 @@ func write_path() -> void:
 	await select(2)
 	await driver.shot("03-blackout")
 	await select(4)
-	await driver.click(world.hud.buttons.power_toggle)
+	await device_command("power_toggle")
 	if not await active(2):
 		return
 	await driver.click(world.hud.buttons.pause)
@@ -220,7 +236,7 @@ func finish() -> void:
 func overload_path() -> void:
 	await driver.click(world.hud.buttons.pause)
 	await select(1)
-	await driver.click(world.hud.buttons.salvage)
+	await device_command("salvage")
 	driver.expect(world.model.bag.get("crystal", 0) >= 4, "harvested material recovered, no injected inputs")
 	await place("collector", -20, -1)
 	if not driver.failures.is_empty():
@@ -237,9 +253,9 @@ func overload_path() -> void:
 		reactors.append(id)
 		world.actor.x = cell.x - 1.0
 		world.actor.z = cell.y + 0.5
-		await driver.click(world.hud.buttons.discovery)
+		world._action("device", null)
 		await dialog_click(world.discovery_panel.buttons.crystal_put_all, false)
-		await dialog_click(world.discovery_panel.get_ok_button())
+		await dialog_click(world.discovery_panel.buttons.close)
 		driver.expect(world.model.by_id(id).input == {"crystal": 2}, "real recovered crystals feed load")
 		await connect_nodes(junction, id)
 	await driver.click(world.hud.buttons.pause)
@@ -267,12 +283,12 @@ func overload_path() -> void:
 
 func branch_path(junction: int, reactors: Array) -> void:
 	await select(junction)
-	await driver.click(world.hud.buttons.salvage)
+	await device_command("salvage")
 	driver.expect(world.power_dialog.visible, "connected node removal explicit dialog")
 	await dialog_shot("10-node-removal-confirmation")
 	await dialog_click(world.power_dialog.get_cancel_button())
 	driver.expect(not world.model.by_id(junction).is_empty(), "cancel removal leaves node")
-	await driver.click(world.hud.buttons.power_disconnect)
+	await device_command("power_disconnect")
 	driver.expect(world.power_choices.item_count > 0, "disconnect dialog populated")
 	if world.power_choices.item_count == 0:
 		return
@@ -290,7 +306,7 @@ func branch_path(junction: int, reactors: Array) -> void:
 	await driver.click(world.hud.buttons.pause)
 	await connect_nodes(5, junction)
 	await select(junction)
-	await driver.click(world.hud.buttons.salvage)
+	await device_command("salvage")
 	await dialog_click(world.power_dialog.get_ok_button())
 	driver.expect(world.model.by_id(junction).is_empty(), "confirmed node removal")
 	for id in reactors:
@@ -311,7 +327,7 @@ func dialog_click(button: Button, closes := true) -> void:
 		await process_frame
 	await driver.settle()
 	if closes:
-		driver.expect(not button.get_window().visible, "keyboard dialog input closes confirmation")
+		driver.expect(not world.discovery_panel.visible if button == world.discovery_panel.buttons.close else not button.get_window().visible, "keyboard close hides the corresponding panel or confirmation")
 
 
 func dialog_shot(name: String) -> void:
@@ -343,3 +359,16 @@ func equivalent(a: Variant, b: Variant, path := "state") -> bool:
 	if a != b:
 		print("snapshot mismatch ", path, ": ", a, " / ", b)
 	return a == b
+
+
+func device_command(name: String) -> void:
+	# Historical split fixtures already reposition actors; preserve that declared scope.
+	# The natural approach/F path lives in factory_device_interaction_boot_check.gd.
+	var e: Dictionary = world.model.by_id(world.ui.selected)
+	world.actor.x = e.x - 1.0
+	world.actor.z = e.z + 0.5
+	world._action("device", null)
+	driver.expect(world.discovery_panel.visible, "legacy fixture opens nearby device command " + name)
+	await dialog_click(world.discovery_panel.buttons[name], false)
+	if world.discovery_panel.visible:
+		world.discovery_panel.close_panel()

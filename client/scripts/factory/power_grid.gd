@@ -17,10 +17,10 @@ static func center(e: Dictionary) -> Vector2:
 
 
 ## Closed cell rectangles deliberately include edge/corner touches (supercover).
-static func line_open(a: Vector2, b: Vector2, passages: Dictionary) -> bool:
+static func line_open(a: Vector2, b: Vector2, passages: Dictionary, map_id: String = Rules.MAP_ID) -> bool:
 	for x in range(floori(minf(a.x, b.x)) - 1, floori(maxf(a.x, b.x)) + 1):
 		for z in range(floori(minf(a.y, b.y)) - 1, floori(maxf(a.y, b.y)) + 1):
-			if Rules.open_cell(Vector2i(x, z), passages):
+			if Rules.open_cell(Vector2i(x, z), passages, map_id):
 				continue
 			var low := 0.0
 			var high := 1.0
@@ -47,15 +47,50 @@ static func connection(model: RefCounted, a_id: int, b_id: int) -> Dictionary:
 	var b: Dictionary = model.by_id(b_id)
 	if a.is_empty() or b.is_empty() or a_id == b_id or not is_node(a):
 		return {"ok": false, "reason": "先选择电源 / 配电节点，再选择另一节点或用电设备"}
+	return reachability(a, b, model.discovery.passages, model.map_id)
+
+
+## Placement previews share the exact geometry checks without creating a model entity.
+static func reachability(a: Dictionary, b: Dictionary, passages: Dictionary, map_id: String = Rules.MAP_ID) -> Dictionary:
 	if not is_node(b) and not Rules.POWER.has(b.type):
 		return {"ok": false, "reason": "仓库与传送带为被动设施，无需接电"}
 	var distance := center(a).distance_to(center(b))
 	var limit := Rules.NODE_RANGE if is_node(b) else Rules.CONSUMER_RANGE
 	if distance > limit + 1e-9:
 		return {"ok": false, "reason": "距离 %.1f 格，超过 %.0f 格接线范围" % [distance, limit]}
-	if not line_open(center(a), center(b), model.discovery.passages):
+	if not line_open(center(a), center(b), passages, map_id):
 		return {"ok": false, "reason": "连接经过封闭矿区或矿壳"}
 	return {"ok": true, "distance": distance}
+
+
+## Called only after a topology command, or once when loading an automatic world.
+func reconnect_automatic(model: RefCounted) -> void:
+	var nodes: Array = model.entities.filter(is_node)
+	nodes.sort_custom(func(a, b): return a.id < b.id)
+	model.power_links.clear()
+	for i in nodes.size():
+		for j in range(i + 1, nodes.size()):
+			if reachability(nodes[i], nodes[j], model.discovery.passages, model.map_id).ok:
+				model.power_links.append([nodes[i].id, nodes[j].id])
+	revision = -1
+	rebuild(model)
+	for e in model.entities:
+		if not Rules.POWER.has(e.type):
+			continue
+		var best_id := 0
+		var best_powered := false
+		var best_distance := INF
+		for node in nodes:
+			if not reachability(node, e, model.discovery.passages, model.map_id).ok:
+				continue
+			var powered: bool = groups[membership[node.id]].capacity_kw > 0
+			var distance := center(node).distance_squared_to(center(e))
+			if best_id == 0 or (powered and not best_powered) or (powered == best_powered and distance < best_distance):
+				best_id = node.id
+				best_powered = powered
+				best_distance = distance
+		# Sorted node traversal makes exact distance ties deterministic by stable ID.
+		e.power_node_id = best_id
 
 
 func rebuild(model: RefCounted) -> void:

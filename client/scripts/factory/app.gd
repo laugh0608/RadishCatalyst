@@ -7,6 +7,8 @@ const Model := preload("res://scripts/factory/model.gd")
 const View := preload("res://scripts/factory/view.gd")
 const Hud := preload("res://scripts/factory/hud.gd")
 const ActiveClock := preload("res://scripts/factory/active_clock.gd")
+const InteractionTarget := preload("res://scripts/factory/interaction_target.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const MOVE_KEYS := {
 	KEY_A: Vector2(-1, 0), KEY_LEFT: Vector2(-1, 0),
 	KEY_D: Vector2(1, 0), KEY_RIGHT: Vector2(1, 0),
@@ -30,10 +32,13 @@ var unsaved_dialog := ConfirmationDialog.new()
 var original_content_size := Vector2i.ZERO
 var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
+	"focus_device": -1, "focus_ready": false, "blocked": false, "interaction_kind": "",
 	"power_from": 0, "power_hover": 0, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
+var pending_sample := false
+var interaction_choice := -1
 var focused := true
 var ui_elapsed := 0.0
 var initialized := false
@@ -51,6 +56,8 @@ var power_description := Label.new()
 var pending_salvage := -1
 var pending_connections: Array = []
 var save_samples: Array[Dictionary] = []
+var replacement_preview_id := -1
+var replacement_preview_tool := ""
 
 
 func _ready() -> void:
@@ -74,10 +81,14 @@ func _ready() -> void:
 	hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
+	hud.sync_sample(view, model, ui)
 	_build_save_dialogs()
 	_build_power_dialog()
 	discovery_panel.theme = hud.theme
 	add_child(discovery_panel)
+	discovery_panel.visibility_changed.connect(_capture_active_time)
+	discovery_panel.device_action.connect(_device_action)
+	discovery_panel.closed.connect(_refresh)
 	statistics_panel.theme = hud.theme
 	add_child(statistics_panel)
 	statistics_panel.locate_requested.connect(_locate_statistics_device)
@@ -90,6 +101,12 @@ func _ready() -> void:
 			return
 		if accepted.has("recovered_from"):
 			hud.announce("已从备份恢复：" + accepted.recovered_from.get_file())
+		elif accepted.get("upgraded_admission", false):
+			hud.announce("已升级物品准入口，原 V4 存档已独立备份。")
+		elif accepted.get("upgraded_routing", false):
+			hud.announce("已升级分流与汇合，原档已独立备份。")
+		elif accepted.get("upgraded_automatic", false):
+			hud.announce("已启用范围自动供电；升级前进度已独立备份。")
 	if store != null and not store.last_warning.is_empty():
 		hud.announce(store.last_warning)
 	saved_revision = model.revision
@@ -107,17 +124,14 @@ func _process(delta: float) -> void:
 	last_frame_usec = frame_usec
 	_capture_active_time(frame_usec)
 	var dt := delta
-	if focused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible:
-		if not ui.paused:
-			var before := Time.get_ticks_usec()
-			engine_active_seconds += delta
-			model.advance(0, 8)
-			if sample_enabled:
-				simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
-			if not statistics_panel.visible:
-				_movement(minf(dt, 0.06))
-			else:
-				actor.moving = false
+	if _producing():
+		var before := Time.get_ticks_usec()
+		engine_active_seconds += delta
+		model.advance(0, 8)
+		if sample_enabled:
+			simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
+		if not statistics_panel.visible and not discovery_panel.visible:
+			_movement(minf(dt, 0.06))
 		else:
 			actor.moving = false
 	else:
@@ -130,8 +144,9 @@ func _process(delta: float) -> void:
 		_refresh()
 		ui_elapsed = 0
 	if statistics_panel.visible:
-		statistics_panel.status.text = "  已暂停" if ui.paused else "  失焦暂停" if not focused else "  生产继续运行"
+		statistics_panel.status.text = "  已暂停" if ui.paused else "  后台生产中" if not focused else "  生产继续运行"
 	view.draw(model, actor, ui)
+	hud.sync_sample(view, model, ui)
 
 
 func _movement(dt: float) -> void:
@@ -149,8 +164,17 @@ func _movement(dt: float) -> void:
 			actor.target = null
 			direction = Vector2.ZERO
 	model.move_actor(actor, direction.x, direction.y, dt)
+	if pending_sample and model.near_sample():
+		pending_sample = false
+		interaction_choice = 0
+		actor.target = null
+		actor.moving = false
+		hud.announce("已走近矿壳样本；按 F 或点击提示拾取。")
 	if actor.target != null and not actor.moving:
 		actor.target = null
+		if pending_sample:
+			pending_sample = false
+			hud.announce("前方受阻；请走到样本旁按 F 拾取。", true)
 
 
 func _focus_lost() -> void:
@@ -159,6 +183,7 @@ func _focus_lost() -> void:
 	_stop_pointer()
 	keys.clear()
 	actor.target = null
+	actor.moving = false
 
 
 func _focus_gained() -> void:
@@ -167,7 +192,7 @@ func _focus_gained() -> void:
 
 
 func _producing() -> bool:
-	return initialized and focused and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.visible
+	return initialized and not ui.paused and not failure_dialog.visible and not unsaved_dialog.visible and not power_dialog.visible and not discovery_panel.pauses_production()
 
 
 func _capture_active_time(now_usec: int = -1) -> void:
@@ -187,18 +212,41 @@ func _set_paused(paused: bool) -> void:
 		actor.target = null
 
 
+func _sync_replacement_direction() -> void:
+	var replacement := model.placement_replacement(ui.tool, ui.cell)
+	var id: int = replacement.get("id", -1)
+	if id != replacement_preview_id or ui.tool != replacement_preview_tool:
+		if id != -1:
+			ui.dir = model.placement_direction(ui.tool, ui.cell)
+		replacement_preview_id = id
+		replacement_preview_tool = ui.tool
+
+
 func _refresh() -> void:
+	_sync_replacement_direction()
+	ui.blocked = discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
+	var target := _interaction_target()
+	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
+	ui.focus_ready = target.get("ready", false)
+	ui.interaction_kind = target.get("kind", "")
+	ui.interaction_count = target.get("count", 0)
+	ui.interaction_index = target.get("index", -1)
+	discovery_panel.sync_session(ui.paused, focused)
 	hud.refresh(model, actor, ui, focused)
 
 
 func _stop_pointer() -> void:
 	pointer = false
+	if pending_sample:
+		actor.target = null
+	pending_sample = false
 	ui.stroke.clear()
 	ui.power_from = 0
 	ui.power_hover = 0
 
 
 func _choose(type: String) -> void:
+	replacement_preview_id = -1
 	_stop_pointer()
 	ui.build = true
 	ui.tool = type
@@ -213,12 +261,18 @@ func _choose(type: String) -> void:
 func _commit() -> void:
 	if ui.tool.is_empty():
 		return
+	_sync_replacement_direction()
 	var result := model.place(ui.tool, ui.cell, ui.dir, actor)
 	if not result.ok:
 		hud.announce(result.reason, true)
 		return
 	var e: Dictionary = result.entity
-	hud.announce(Model.CATALOG[e.type].name + "已放置。")
+	if result.has("replaced_belt"):
+		var recovered: String = model.Items.describe(result.recovered_items)
+		hud.announce("已替换为%s，返还传送带 ×1%s" % [Model.CATALOG[e.type].name,
+			"。" if result.recovered_items.is_empty() else "；物料已回收至背包：" + recovered])
+	else:
+		hud.announce(Model.CATALOG[e.type].name + "已放置。")
 	if e.type == "belt":
 		ui.cell = Vector2i(e.x, e.z) + Model.DIRS[ui.dir]
 	else:
@@ -227,7 +281,11 @@ func _commit() -> void:
 
 
 func _cancel() -> void:
-	if ui.power_from != 0:
+	if pending_sample:
+		pending_sample = false
+		actor.target = null
+		hud.announce("已取消走近拾取。")
+	elif ui.power_from != 0:
 		_stop_pointer()
 		hud.announce("已取消接线。")
 	elif pointer:
@@ -244,18 +302,29 @@ func _cancel() -> void:
 
 
 func _turn() -> void:
-	if ui.tool == "belt":
+	_sync_replacement_direction()
+	if ui.tool in ["belt", "splitter", "merger", "admission_gate"]:
 		ui.dir = (ui.dir + 1) % 4
 	elif ui.selected != -1:
 		var result := model.rotate(ui.selected)
-		hud.announce("传送带已转向。" if result.ok else result.reason, not result.ok)
+		hud.announce("物流构件已转向。" if result.ok else result.reason, not result.ok)
 
 
 func _action(name: String, value: Variant) -> void:
-	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction"]:
+	if name in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
 		_choose(name)
 	else:
 		match name:
+			"guide_action": _guide_action()
+			"inventory":
+				if model.has_method("power_state"):
+					_stop_pointer()
+					keys.clear()
+					actor.target = null
+					discovery_panel.show_inventory(model)
+					_capture_active_time()
+			"sample": _pick_sample()
+			"interact": _interact()
 			"power_connect":
 				_stop_pointer()
 				ui.tool = ""
@@ -300,7 +369,13 @@ func _action(name: String, value: Variant) -> void:
 				keys.clear()
 				actor.target = null
 				statistics_panel.show_for(model)
-			"discovery": discovery_panel.show_for(model, ui.selected)
+			"device": _open_device(ui.selected)
+			"discovery":
+				_stop_pointer()
+				keys.clear()
+				actor.target = null
+				discovery_panel.show_for(model)
+				_capture_active_time()
 			"deposit":
 				var result := model.deposit(ui.selected)
 				hud.announce("已投入 %d 件回收物品。" % result.amount if result.ok else result.reason, not result.ok)
@@ -310,6 +385,88 @@ func _action(name: String, value: Variant) -> void:
 			"zoom_in": view.zoom = minf(1.5, view.zoom + 0.1)
 	view.sync_camera()
 	_refresh()
+
+
+func _interaction_target() -> Dictionary:
+	if not initialized or not model.has_method("power_state") or ui.blocked or not ui.tool.is_empty() or ui.power_from != 0:
+		return {}
+	var target := InteractionTarget.resolve(model, interaction_choice)
+	if interaction_choice != -1 and target.id != interaction_choice:
+		interaction_choice = -1
+	return target
+
+
+func _cycle_interaction() -> void:
+	var target := _interaction_target()
+	if target.get("count", 0) < 2:
+		return
+	var nearby := InteractionTarget.candidates(model)
+	interaction_choice = nearby[(target.index + 1) % nearby.size()].id
+	_refresh()
+
+
+func _interact() -> void:
+	var target := _interaction_target()
+	if target.get("kind", "") == "device":
+		_open_device(target.id)
+	elif target.get("kind", "") == "sample":
+		_pick_sample()
+	_refresh()
+
+
+func _open_device(id: int) -> void:
+	var e := model.by_id(id)
+	if e.is_empty():
+		return
+	ui.selected = id
+	if not model.near_entity(e):
+		hud.announce("%s #%d：请走到两格内点击，或按 F 操作附近高亮对象；Tab 切换目标。" % [Model.CATALOG[e.type].name, id])
+		return
+	_stop_pointer()
+	ui.tool = ""
+	keys.clear()
+	actor.target = null
+	actor.moving = false
+	discovery_panel.show_device(model, id)
+	_capture_active_time()
+
+
+func _device_action(name: String, id: int) -> void:
+	var e := model.by_id(id)
+	if e.is_empty() or not model.near_entity(e):
+		discovery_panel.close_panel()
+		hud.announce("设备已不可交互，请重新走近。", true)
+		return
+	ui.selected = id
+	if name == "power_connect":
+		discovery_panel.close_panel()
+	_action(name, null)
+	if discovery_panel.visible:
+		if name in ["power_toggle", "rotate_selected", "salvage"] and not power_dialog.visible:
+			discovery_panel.result_label.text = hud.notice.text
+			discovery_panel.result_label.add_theme_color_override("font_color", hud.notice.get_theme_color("font_color"))
+		discovery_panel.refresh()
+
+
+func _pick_sample() -> void:
+	if not model.has_method("near_sample") or not ui.tool.is_empty() or ui.power_from != 0:
+		return
+	pending_sample = false
+	actor.target = null
+	var result: Dictionary = model.survey_sample(true)
+	hud.announce("已拾取矿壳样本，可在反应器中选择矿壳试制。" if result.ok else result.reason, not result.ok)
+	_refresh()
+
+
+func _approach_sample() -> void:
+	if model.near_sample():
+		_pick_sample()
+	elif ui.paused:
+		hud.announce("当前已暂停；继续后可点击样本走近，或在两格内按 F 拾取。", true)
+	else:
+		pending_sample = true
+		actor.target = Model.DiscoveryRules.SAMPLE
+		hud.announce("正在走近样本；到达后按 F 或再次点击拾取。WASD / Esc 可取消走近。")
 
 
 func _preview(cell: Vector2i) -> void:
@@ -324,6 +481,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if not event.pressed:
 			keys.erase(event.physical_keycode)
+		elif not event.echo and event.physical_keycode == KEY_TAB and model.has_method("power_state") and ui.tool.is_empty() and ui.power_from == 0 and not pointer:
+			_cycle_interaction()
+			get_viewport().set_input_as_handled()
 		return
 	if not event is InputEventMouse:
 		return
@@ -393,9 +553,16 @@ func _input(event: InputEvent) -> void:
 					_commit()
 				else:
 					var id := view.hit(screen)
+					if id == -1 and view.hit_sample(screen):
+						ui.selected = -1
+						_approach_sample()
+						_refresh()
+						return
 					var e := model.entity_at(cell)
 					ui.selected = id if id != -1 else e.get("id", -1)
-					if ui.selected == -1:
+					if ui.selected != -1 and model.has_method("power_state"):
+						_open_device(ui.selected)
+					elif ui.selected == -1:
 						view.inspection_target = null
 						actor.target = Vector2(point.x, point.z)
 		_refresh()
@@ -409,11 +576,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_refresh()
 		return
 	if MOVE_KEYS.has(event.physical_keycode):
+		pending_sample = false
 		keys[event.physical_keycode] = true
 		return
 	if pointer:
 		return
 	match event.physical_keycode:
+		KEY_F: _interact()
+		KEY_I: _action("inventory", null)
 		KEY_1: _action("collector", null)
 		KEY_2: _action("reactor", null)
 		KEY_3: _action("storage", null)
@@ -452,10 +622,10 @@ func _tick_save(delta: float) -> void:
 	if dirty:
 		dirty_elapsed += delta
 	if not save_failed and (dirty_elapsed >= 2.0 or periodic_elapsed >= 30.0):
-		_save_now()
+		_save_now(false)
 
 
-func _save_now() -> bool:
+func _save_now(notify_success := true) -> bool:
 	if store == null:
 		return false
 	_capture_active_time()
@@ -476,7 +646,8 @@ func _save_now() -> bool:
 	dirty_elapsed = 0
 	saved_active_usec = production_clock.active_usec
 	saved_revision = model.revision
-	hud.announce("已保存 · " + store.world_name if result.warning.is_empty() else result.warning)
+	if notify_success or not result.warning.is_empty():
+		hud.announce("已保存 · " + store.world_name if result.warning.is_empty() else result.warning)
 	return true
 
 
@@ -577,3 +748,29 @@ func _locate_statistics_device(id: int) -> void:
 	statistics_panel.hide()
 	_refresh()
 	hud.announce("已定位设备 #%d；人物未移动，行走后恢复跟随。" % id)
+
+
+func _guide_action() -> void:
+	if not model.has_method("power_state"):
+		return
+	# Re-evaluate at activation: production or removal may have changed the next step.
+	var step := Guidance.current(model)
+	match step.action:
+		"build":
+			_choose(step.tool)
+			if step.has("cell"):
+				ui.cell = step.cell
+		"device":
+			_locate_statistics_device(step.target_id)
+			var e := model.by_id(step.target_id)
+			if model.near_entity(e):
+				_action("device", null)
+		"location":
+			_stop_pointer()
+			keys.clear()
+			actor.target = null
+			ui.tool = ""
+			ui.selected = -1
+			view.inspection_target = Vector3(step.point.x, 0.25, step.point.y)
+		"statistics", "discovery": _action(step.action, null)
+	hud.announce(step.next)
