@@ -33,11 +33,10 @@ var original_content_size := Vector2i.ZERO
 var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
 	"focus_device": -1, "focus_ready": false, "blocked": false, "interaction_kind": "",
-	"power_from": 0, "power_hover": 0, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
+	"power_from": 0, "power_hover": 0, "show_power_links": true, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
-var pending_sample := false
 var interaction_choice := -1
 var focused := true
 var ui_elapsed := 0.0
@@ -157,24 +156,9 @@ func _movement(dt: float) -> void:
 	var direction := Vector2(input.x * cos(angle) + input.y * sin(angle), -input.x * sin(angle) + input.y * cos(angle))
 	if input != Vector2.ZERO:
 		view.inspection_target = null
-		actor.target = null
-	elif actor.target != null:
-		direction = actor.target - Vector2(actor.x, actor.z)
-		if direction.length() < 0.07:
-			actor.target = null
-			direction = Vector2.ZERO
+	# Mouse selection never supplies a movement destination.
+	actor.target = null
 	model.move_actor(actor, direction.x, direction.y, dt)
-	if pending_sample and model.near_sample():
-		pending_sample = false
-		interaction_choice = 0
-		actor.target = null
-		actor.moving = false
-		hud.announce("已走近矿壳样本；按 F 或点击提示拾取。")
-	if actor.target != null and not actor.moving:
-		actor.target = null
-		if pending_sample:
-			pending_sample = false
-			hud.announce("前方受阻；请走到样本旁按 F 拾取。", true)
 
 
 func _focus_lost() -> void:
@@ -237,9 +221,6 @@ func _refresh() -> void:
 
 func _stop_pointer() -> void:
 	pointer = false
-	if pending_sample:
-		actor.target = null
-	pending_sample = false
 	ui.stroke.clear()
 	ui.power_from = 0
 	ui.power_hover = 0
@@ -281,11 +262,7 @@ func _commit() -> void:
 
 
 func _cancel() -> void:
-	if pending_sample:
-		pending_sample = false
-		actor.target = null
-		hud.announce("已取消走近拾取。")
-	elif ui.power_from != 0:
+	if ui.power_from != 0:
 		_stop_pointer()
 		hud.announce("已取消接线。")
 	elif pointer:
@@ -298,7 +275,7 @@ func _cancel() -> void:
 		ui.selected = -1
 	elif ui.build:
 		ui.build = false
-		hud.announce("观察模式：点击地面移动，点击设备查看。")
+		hud.announce("观察模式：WASD 移动，点击设备查看。")
 
 
 func _turn() -> void:
@@ -321,6 +298,8 @@ func _action(name: String, value: Variant) -> void:
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
 			"guide_action": _guide_action()
+			"power_links": ui.show_power_links = not ui.show_power_links
+			"quota_gate": _locate_statistics_device(int(value))
 			"inventory":
 				if model.has_method("power_state"):
 					_stop_pointer()
@@ -456,22 +435,17 @@ func _device_action(name: String, id: int) -> void:
 func _pick_sample() -> void:
 	if not model.has_method("near_sample") or not ui.tool.is_empty() or ui.power_from != 0:
 		return
-	pending_sample = false
 	actor.target = null
 	var result: Dictionary = model.survey_sample(true)
 	hud.announce("已拾取矿壳样本，可在反应器中选择矿壳试制。" if result.ok else result.reason, not result.ok)
 	_refresh()
 
 
-func _approach_sample() -> void:
+func _click_sample() -> void:
 	if model.near_sample():
 		_pick_sample()
-	elif ui.paused:
-		hud.announce("当前已暂停；继续后可点击样本走近，或在两格内按 F 拾取。", true)
 	else:
-		pending_sample = true
-		actor.target = Model.DiscoveryRules.SAMPLE
-		hud.announce("正在走近样本；到达后按 F 或再次点击拾取。WASD / Esc 可取消走近。")
+		hud.announce("样本在两格外；请用 WASD 走近，再按 F 或点击拾取。", true)
 
 
 func _preview(cell: Vector2i) -> void:
@@ -560,16 +534,13 @@ func _input(event: InputEvent) -> void:
 					var id := view.hit(screen)
 					if id == -1 and view.hit_sample(screen):
 						ui.selected = -1
-						_approach_sample()
+						_click_sample()
 						_refresh()
 						return
 					var e := model.entity_at(cell)
 					ui.selected = id if id != -1 else e.get("id", -1)
 					if ui.selected != -1 and model.has_method("power_state"):
 						_open_device(ui.selected)
-					elif ui.selected == -1:
-						view.inspection_target = null
-						actor.target = Vector2(point.x, point.z)
 		_refresh()
 
 
@@ -581,7 +552,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_refresh()
 		return
 	if MOVE_KEYS.has(event.physical_keycode):
-		pending_sample = false
 		keys[event.physical_keycode] = true
 		return
 	if pointer:

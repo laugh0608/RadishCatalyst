@@ -36,6 +36,7 @@ var cell_z := SpinBox.new()
 var help_panel: PanelContainer
 var sample_button: Button
 var interaction_button: Button
+var quota_notice := preload("res://scripts/factory/quota_notice.gd").new()
 
 
 func _ready() -> void:
@@ -151,6 +152,12 @@ func _build_world_panels() -> void:
 	mission.custom_minimum_size.x = 198
 	mission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_stack.add_child(mission)
+	world_slot.add_child(quota_notice)
+	quota_notice.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	quota_notice.offset_left = 270
+	quota_notice.offset_right = -20
+	quota_notice.offset_top = 22
+	quota_notice.locate.connect(func(id): action.emit("quota_gate", id))
 	_button(mission_stack, "guide_action", "开始首条产线")
 	_button(mission_stack, "mission", "收起目标")
 	_button(mission_stack, "discovery", "工艺、物料与矿道")
@@ -189,7 +196,7 @@ func _build_world_panels() -> void:
 	camera_panel.name = "CameraPanel"
 	help_panel = _panel(world_slot)
 	help_panel.position = Vector2(265, 22)
-	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；后台继续生产")
+	_label(help_panel, "WASD / 方向键移动 · 鼠标只选择 / 操作\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n电力图标：✓ 可用 / × 未接网 / ⊘ 无供电 / ! 不足\n电力可用但缺料时，设备仍会待机\n关闭窗口自动保存；后台继续生产")
 	help_panel.hide()
 	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
 	sample_button.hide()
@@ -213,6 +220,7 @@ func _build_footer(parent: Node) -> void:
 	notice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	first.add_child(notice)
+	_button(first, "power_links", "电网连线：开").tooltip_text = "切换连线，不隐藏电力状态图标。\n✓ 电力可用（含待机） · × 未接网 · ⊘ 无供电 / 电源关闭 · ! 供电不足"
 	_button(first, "help", "操作说明")
 	_button(first, "save", "保存")
 	_button(first, "return", "保存并返回")
@@ -298,7 +306,7 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 func world_point(screen: Vector2) -> Variant:
 	if not world_image.get_global_rect().has_point(screen):
 		return null
-	for panel in [mission_panel, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]:
+	for panel in [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]:
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
 	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
@@ -326,6 +334,9 @@ func announce(message: String, error := false) -> void:
 
 func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: bool) -> void:
 	totals.text = "催化剂入仓  %d    %02d:%02d" % [model.delivered, int(model.time) / 60, int(model.time) % 60]
+	quota_notice.refresh(model)
+	buttons.power_links.visible = model.has_method("power_state")
+	buttons.power_links.text = "电网连线：" + ("开" if ui.get("show_power_links", true) else "关")
 	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build

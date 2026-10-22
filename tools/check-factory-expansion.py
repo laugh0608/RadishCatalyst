@@ -13,10 +13,10 @@ import sys
 
 REPO = Path(__file__).resolve().parents[1]
 RUNS = REPO / "tools/runtime-intake/check-runs/factory-production-expansion-e1"
-MODES = ("state", "process-read", "menu", "background-write", "background-read", "background-complete-read", "review")
+MODES = ("state", "process-read", "menu", "background-write", "background-read", "background-complete-read", "review", "feedback", "feedback-window")
 REPORTS = {"state": "state-result.json", "process-read": "read-result.json", "menu": "menu-result.json",
            "background-write": "write-result.json", "background-read": "read-result.json",
-           "background-complete-read": "complete-read-result.json", "review": "review-result.json"}
+           "background-complete-read": "complete-read-result.json", "review": "review-result.json", "feedback": "review-result.json", "feedback-window": "review-result.json"}
 
 
 def load(path):
@@ -61,14 +61,14 @@ def main():
     destination = batch_path(args.batch)
     if destination.exists():
         raise ValueError("Always use a new batch; failed evidence is retained.")
-    derived = args.mode in ("process-read", "background-read", "background-complete-read", "review")
+    derived = args.mode in ("process-read", "background-read", "background-complete-read", "review", "feedback", "feedback-window")
     if derived != bool(args.source):
         raise ValueError("Recovery/review modes require one parent; new checks take no parent.")
     source = batch_path(args.source) if args.source else None
     before = None
     if source:
         parent_report = "state-result.json" if args.mode == "process-read" else "write-result.json" if args.mode == "background-read" else "read-result.json"
-        if args.mode == "review" and not (source / parent_report).exists():
+        if args.mode in ("review", "feedback", "feedback-window") and not (source / parent_report).exists():
             parent_report = "write-result.json"
         succeeded(source, parent_report)
         runner = load(source / "runner-result.json")
@@ -98,19 +98,20 @@ def main():
         raise ValueError("Set GODOT_EXE to the installed Godot executable.")
     state = args.mode in ("state", "process-read")
     script = "factory_expansion_check.gd" if state else "factory_expansion_menu_check.gd" if args.mode == "menu" else "factory_expansion_boot_check.gd"
+    if args.mode in ("feedback", "feedback-window"): script = "factory_feedback_boot_check.gd"
     log = destination / (args.mode + ".log")
-    command = [godot] + ([] if args.mode == "review" else ["--headless"])
+    command = [godot] + ([] if args.mode in ("review", "feedback-window") else ["--headless"])
     command += ["--path", str(REPO / "client"), "--script", "res://scripts/checks/" + script, "--no-header", "--log-file", str(log), "--"]
     if state or args.mode == "menu":
         command += ["--evidence=" + str(destination)]
         if args.mode == "process-read": command += ["--read"]
     else:
         command += ["--batch=" + args.batch]
-        if args.mode != "review": command += ["--background"]
+        if args.mode not in ("review", "feedback-window"): command += ["--background"]
         if derived: command += ["--read"]
         if args.mode == "background-complete-read": command += ["--complete-read"]
-        if args.mode == "review": command += ["--visual-only"]
-    sources = sorted((REPO / "client/scripts/factory").rglob("*.gd")) + sorted((REPO / "client/data/factory").glob("*.gd")) + sorted((REPO / "client/scripts/checks").glob("factory_expansion_*.gd"))
+        if args.mode in ("review", "feedback", "feedback-window"): command += ["--visual-only"]
+    sources = sorted((REPO / "client/scripts/factory").rglob("*.gd")) + sorted((REPO / "client/data/factory").glob("*.gd")) + sorted((REPO / "client/scripts/checks").glob("factory_expansion_*.gd")) + [REPO / "client/scripts/checks/factory_feedback_boot_check.gd"]
     (destination / "execution-inputs.json").write_text(json.dumps({"command": command, "code_sha256": {str(path.relative_to(REPO)): digest(path) for path in sources}, "runner_sha256": digest(Path(__file__))}, indent=2) + "\n", encoding="utf-8")
     errors = []
     try:

@@ -13,7 +13,7 @@
 ## 当前主线与下一步
 
 1. **关系方案**：[生产内容扩展 V1](../features/factory-production-expansion-v1.md)提出 15 种物品、14 个加工配方、3 类新增加工设备与电芯发电机；成品分别用于制造构件、供电和开拓高产矿点。[六款游戏对照](../reference/factory-game-production-study.md)已补官方资料与 Wiki，修正副产物出口、一次性需求和高产矿价值的推断；具体供给 / 消费仍待试玩。
-2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)10 月 22 日已按确认合同实现，直接路线自然制造并放下第二炉，独立恢复后混料回用再产两包；三设备、165 起步构件、326 总拥有量和独立 schema 6 已落地。当前交付短试玩，操作代价与节材感受待反馈。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
+2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)10 月 22 日已按确认合同实现，直接路线自然制造并放下第二炉，独立恢复后混料回用再产两包；三设备、165 起步构件、326 总拥有量和独立 schema 6 已落地。当前短试玩反馈已定位完成配额导致的停线，并按确认整改电力常显、默认连线开关、仅键盘移动与配额说明；接续混料半批复测，操作代价与节材感受仍待反馈。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
 3. **E2 能源循环**：生产电芯并用其支持新增负载，能处理断料和恢复。
 4. **E3 开拓回报**：生产开拓用品、打开固定支路，把更高产的原料接回既有工厂。
 

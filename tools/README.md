@@ -34,6 +34,7 @@
 | `sh tools/check-factory-expansion.sh background-read <新 batch> <write 父 batch>` | 独立恢复 A，实际改建 B 回用线，保存 R08 混料半批 |
 | `sh tools/check-factory-expansion.sh background-complete-read <新 batch> <read 父 batch>` | 再次独立恢复，回用产出两包并取入背包供玩家选择下一次扩建 |
 | `sh tools/check-factory-expansion.sh review <新 batch> <write 或 read 父 batch>` | 短窗口：自然半批副本、真实主副口拆带 / 修复、三设备两种窗口、背包与装配栏；窗口关闭即停 |
+| `sh tools/check-factory-expansion.sh feedback/feedback-window <新 batch> <read 父 batch>` | 混料半批的电力常显 / 连线开关、配额提示与镜头定位、鼠标不移动 / WASD 行走、自然完成与保存；前者无窗口，后者两种尺寸原图 |
 | `sh tools/check-factory-engineering.sh identity/identity-read <新 batch> [父 batch]` | [D4-S0 工程合同](../docs/architecture/factory-engineering-scale-v1.md)的严格身份、地图与隔离；identity-read 必须指定成功 identity 父批次 |
 | `sh tools/check-factory-engineering.sh prepare/prepare-read <新 batch> [父 batch]` | 零库存合法前置、20 单元全量构建、服务路线和真实 600 秒历史；prepare-read 从成功 prepare 副本独立比对首态与 20 步轨迹 |
 | `sh tools/check-factory-engineering.sh capacity/density/repair/competition <新 batch> <prepare 父 batch>` | 分别为 2,500 秒总容量、900–1,000 件高密度、拆带 / 停复电、真实竞争 / 配额；全为模型显式步，不计前台性能 |

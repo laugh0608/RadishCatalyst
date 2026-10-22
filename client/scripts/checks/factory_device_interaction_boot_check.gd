@@ -230,12 +230,13 @@ func _first_line() -> void:
 	driver.expect(world.ui.tool == "collector" and world.model.entities.is_empty() and world.model.kits == initial_kits, "first goal selects collector without building or spending")
 	driver.expect(world.actor == initial_actor, "first goal leaves actor in place")
 	await driver.key(KEY_ESCAPE)
-	# A distant click requests approach only; arriving and waiting must not acquire anything.
+	# Distant mouse selection must not move; WASD supplies the actual approach.
 	var sample_at: Vector2 = world.hud.viewport_to_screen(world.view.sample_screen())
 	await driver.motion(sample_at)
 	await driver.mouse(sample_at, true)
 	await driver.mouse(sample_at, false)
-	await wait_for(func(): return world.model.near_sample() and not world.pending_sample, 10, "sample approach stops at interaction range")
+	driver.expect(world.actor.target == null, "distant sample click creates no movement destination")
+	await walk(Vector2(2.5, 3.5))
 	await active(0.5, "waiting near sample requires explicit confirmation")
 	driver.expect(not world.model.discovery.sample_taken and world.model.bag.is_empty(), "arrival and nearby waiting never pick up sample")
 	await driver.shot("00-sample-awaits-confirmation")

@@ -109,6 +109,7 @@ func run() -> void:
 	expect(snapshot(model) == before and "取空输入和输出" in panel.result_label.text, "blocked recipe change retains actual state and reason")
 	panel.hide()
 	await _views(model)
+	_feedback_status()
 	await _power_preview()
 	await _ground_sample()
 	var saved := snapshot(model)
@@ -419,3 +420,49 @@ func _nearby_and_slots(panel: Control) -> void:
 	expect(panel.inventory_only and not panel.pauses_production() and not panel.device_content.visible, "standalone inventory is read-only and does not pause production")
 	expect(not panel.buttons.crystal_put_all.is_visible_in_tree() and panel.bag_slots.crystal.amount == 3, "standalone inventory has real quantities and no remote device actions")
 	panel.close_panel()
+
+
+func _feedback_status() -> void:
+	var power := preload("res://scripts/factory/power_status.gd")
+	var quota := preload("res://scripts/factory/quota_notice.gd")
+	var model := PowerCheck.line()
+	expect(power.kind(model, model.by_id(2), model.power_state()) == "disconnected", "empty disconnected reactor keeps electrical warning")
+	model.connect_power(14, 2)
+	var before := snapshot(model)
+	expect(power.kind(model, model.by_id(2), model.power_state()) == "connected", "powered idle reactor is electrically available despite zero demand")
+	expect(snapshot(model) == before, "electrical presentation leaves full snapshot unchanged")
+	model.set_source_enabled(13, false)
+	for id in [2, 13, 14]:
+		expect(power.kind(model, model.by_id(id), model.power_state()) == "no_supply", "disabled source explains connected blackout %d" % id)
+	model.disconnect_power(13, 14)
+	expect(power.kind(model, model.by_id(14), model.power_state()) == "disconnected", "isolated junction distinguished from live network")
+	# Declared arithmetic fixture, independent of natural production/save evidence.
+	model = PowerCheck.Model.new()
+	var source: Dictionary = model.place("power_source", Vector2i(-20, -8)).entity
+	var node: Dictionary = model.place("power_junction", Vector2i(-17, -3)).entity
+	model.connect_power(source.id, node.id)
+	for cell in [Vector2i(-23, -3), Vector2i(-20, 1), Vector2i(-15, -3), Vector2i(-16, 1)]:
+		var e: Dictionary = model.place("reactor", cell).entity
+		e.input = {"crystal": 2}
+		model.connect_power(node.id, e.id)
+	model.advance(0.05)
+	var state: Dictionary = model.power_state()
+	expect(state.request_kw == 160 and state.supplied_kw == 120, "shortage fixture actually exceeds source capacity")
+	for e in model.entities:
+		expect(power.kind(model, e, state) == "shortage", "real limited allocation displays shortage %d" % e.id)
+	var expansion := Codec.V6.ExpansionModel.new()
+	var gate: Dictionary = expansion.place("admission_gate", Vector2i(-10, 0)).entity
+	gate.filter_item = "iron_ore"
+	gate.quota_mode = "quota"
+	gate.quota_limit = 4
+	gate.quota_used = 3
+	expect(quota.summary(expansion).gates.is_empty(), "unfinished quota never claims completion")
+	gate.quota_used = 4
+	var result: Dictionary = quota.summary(expansion)
+	expect(result.gates.size() == 1 and not result.remaining, "completed quota explains idle line")
+	gate.cargo = "iron_ore"
+	expect(quota.summary(expansion).remaining, "completed gate with cargo still reports remaining transport")
+	gate.quota_mode = "unlimited"
+	expect(quota.summary(expansion).gates.is_empty(), "unlimited gate never gets completion warning")
+	for key in power.COLORS:
+		expect(power.texture(key).get_width() == 44, "electrical status icon renders " + key)

@@ -1,6 +1,7 @@
 extends Node3D
 
 const Model := preload("res://scripts/factory/model.gd")
+const PowerStatus := preload("res://scripts/factory/power_status.gd")
 const Parts := preload("res://scripts/factory/overlays.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
@@ -38,6 +39,7 @@ var rich_mat := Parts.material("bb8be8", 0.32, 0.24)
 var solvent_mat := Parts.material("91d970", 0.3, 0.3)
 var wiring := Node3D.new()
 var wiring_key := ""
+var quiet_wire_mat := Parts.material("8c825e")
 var power_range := preload("res://scripts/factory/power_range.gd").new()
 var last_revision := -1
 var visual_revision := -1
@@ -346,6 +348,9 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
+		if world_model.has_method("power_state") and PowerStatus.supports(e):
+			result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
+			result.power_kind = ""
 		result.lamp.scale = Vector3.ONE * 0.21
 		result.lamp_mat = status_materials.waiting
 		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -509,8 +514,15 @@ func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
 
 
 func _sync_production(model: RefCounted) -> void:
+	var power_state: Dictionary = model.power_state() if model.has_method("power_state") else {}
 	for e in model.entities:
 		var v: Dictionary = models[e.id]
+		if v.has("power_icon"):
+			var power_kind := PowerStatus.kind(model, e, power_state)
+			if power_kind != v.power_kind:
+				v.power_icon.texture = PowerStatus.texture(power_kind)
+				v.power_icon.set_meta("power_kind", power_kind)
+				v.power_kind = power_kind
 		var def: Dictionary = Model.CATALOG[e.type]
 		if e.type == "belt":
 			v.cargo.visible = not e.cargo.is_empty()
@@ -585,19 +597,20 @@ func _wire(a: Vector2, b: Vector2, material: Material) -> void:
 func _sync_wiring(model: RefCounted, ui: Dictionary) -> void:
 	if not model.has_method("power_state"):
 		return
-	var key := str([model.revision, ui.get("power_from", 0), ui.get("power_hover", 0), ui.selected])
+	var key := str([model.revision, ui.get("show_power_links", true), ui.get("power_from", 0), ui.get("power_hover", 0), ui.selected])
 	if key == wiring_key:
 		return
 	wiring_key = key
 	clear_node(wiring)
-	if ui.get("power_from", 0) == 0 and ui.selected == -1:
+	if not ui.get("show_power_links", true) and ui.get("power_from", 0) == 0:
 		return
 	var pairs: Array = model.power_links.duplicate(true)
 	for e in model.entities:
 		if e.get("power_node_id", 0) != 0:
 			pairs.append([e.power_node_id, e.id])
-	for pair in pairs:
-		_wire(model.Grid.center(model.by_id(pair[0])), model.Grid.center(model.by_id(pair[1])), select_mat)
+	if ui.get("show_power_links", true):
+		for pair in pairs:
+			_wire(model.Grid.center(model.by_id(pair[0])), model.Grid.center(model.by_id(pair[1])), select_mat if ui.selected in pair else quiet_wire_mat)
 	if ui.get("power_from", 0) != 0 and ui.get("power_hover", 0) != 0 and ui.power_from != ui.power_hover:
 		var a: Dictionary = model.by_id(ui.power_from)
 		var b: Dictionary = model.by_id(ui.power_hover)

@@ -223,19 +223,15 @@ func _device_clock(boot: Node) -> void:
 	await create_timer(0.2).timeout
 	expect(Vector2(world.actor.x, world.actor.z) == actor_before and world.model.entities.size() == entities_before, "background production neither moves the actor nor commits a drag")
 	root.focus_entered.emit()
-	# Explicit approach fixtures exercise intent cancellation and arrival, not native movement.
-	world._approach_sample()
-	expect(world.pending_sample and not world.model.discovery.sample_taken, "distant sample click only starts movement intent")
-	root.focus_exited.emit()
-	expect(not world.pending_sample and world.actor.target == null, "focus loss cancels approach intent")
-	root.focus_entered.emit()
-	world._approach_sample()
+	# Mouse sample selection and walking are separate; these are explicit state fixtures.
+	actor_before = Vector2(world.actor.x, world.actor.z)
+	world._click_sample()
+	world._movement(0.1)
+	expect(world.actor.target == null and Vector2(world.actor.x, world.actor.z) == actor_before and not world.model.discovery.sample_taken, "distant sample click neither moves nor picks up")
 	world.actor.x = 2.5
 	world.actor.z = 3.5
-	world._movement(0)
-	expect(not world.pending_sample and world.actor.target == null and not world.model.discovery.sample_taken, "arrival stops movement without taking sample")
 	world._movement(0.1)
-	expect(world.model.bag.get("crust_sample", 0) == 0, "waiting nearby does not trigger a deferred pickup")
+	expect(world.model.bag.get("crust_sample", 0) == 0, "walking near sample still requires explicit pickup")
 	world._pick_sample()
 	expect(world.model.discovery.sample_taken and world.model.bag.crust_sample == 1, "explicit pickup still acquires exactly one sample")
 	world.discovery_panel.close_panel()
