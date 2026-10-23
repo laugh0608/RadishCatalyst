@@ -18,8 +18,8 @@ RadishCatalyst Godot 客户端工程目录。
 
 `scenes/boot/Boot.tscn` 的启动菜单同时保留旧二维世界，并提供“工厂世界”入口。三维工厂的配置、场景、脚本与资产分别位于各自的 `factory/` 子目录；状态和文件发布见 `scripts/factory/model.gd`、`scripts/factory/save/`。
 
-工厂使用独立 `user://saves/factory/worlds/`：默认基础工厂保留 schema 1 与预供电，另选勘探工厂使用 schema 2，支持显式电网、多配方、拾样试制与矿道开拓。旧二维 schema 10 及其目录保留；三个版本不自动转换。运行检查须注入两个隔离存档根，不能直接使用用户正式档。纯状态 / 存档检查已接入客户端 Godot 模式，窗口和持续负载需按专题单独执行。
+工厂使用独立 `user://saves/factory/worlds/`。正式菜单有四类新建入口：默认基础工厂（schema 1 / 预供电）、勘探工厂（schema 5 / 范围供电与物流附件）、生产扩建 E1（schema 6 / 多原料制造）、能源循环 E2（schema 7 / 电芯与本机启停）。旧 2 / 3 / 4 可继续原规则及显式逐级升级；E1→E2 仅通过“复制为能源世界”生成新世界，保留原 E1。旧二维 schema 10 及其目录保持独立。运行检查须注入两个隔离存档根，不使用用户正式档。
 
-详细结构见 [Godot Project Structure](../docs/architecture/godot-project-structure.md)，当前功能与验收状态见 [Current Plan](../docs/planning/current.md)及其发现生产、电力和统计专题；状态与存档合同见 [Factory World State And Save V1](../docs/architecture/factory-world-state-and-save-v1.md)和 [Factory Discovery Save V2](../docs/architecture/factory-discovery-save-v2.md)。D3 已接入只读统计页和发现 HUD；统计不暂停生产，定位不移动人物。空世界两次开路、富集回流与独立恢复已补齐工程验证；普通供给统计性能短对照通过，完整玩家体验与规模验收仍待完成，见 [W40 周志](../docs/devlogs/2026-W40.md)。
+详细结构见 [Godot Project Structure](../docs/architecture/godot-project-structure.md)，共用文件协议见 [Factory World State And Save V1](../docs/architecture/factory-world-state-and-save-v1.md)，能源字段与复制事务见 [Factory Energy Save V7](../docs/architecture/factory-energy-save-v7.md)。当前功能、验证结果与保留项以 [Current Plan](../docs/planning/current.md)及活跃专题为准；定向运行命令见 [Tools](../tools/README.md)。客户端 Godot 检查不自动代表自然 Boot、窗口、玩家体验或规模性能通过。
 
-`client/scripts/prototypes/factory_refinement/` 与 `assets/factory/refinement/` 承载[低投入交互样板](../docs/features/factory-refinement-demo-v1.md)：通过工具启动双根隔离 Boot 后挂载，复用真实生产模型但仅在内存派生范围供电。它不是正式工厂菜单选项，不接入 Store / codec；设备面板、范围供电与六步引导尚未替换正式玩法，启动方式见 [Factory Content](../tools/factory-content/README.md)。
+`client/scripts/prototypes/factory_refinement/` 与 `assets/factory/refinement/` 承载[低投入交互样板](../docs/features/factory-refinement-demo-v1.md)：通过工具启动双根隔离 Boot 后挂载，复用真实生产模型但仅在内存派生范围供电。它不是正式工厂菜单选项，不接入 Store / codec；样板自身不替换正式玩法；正式设备交互与自动供电以当前专题为准，启动方式见 [Factory Content](../tools/factory-content/README.md)。

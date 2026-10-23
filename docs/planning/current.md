@@ -14,8 +14,8 @@
 
 1. **关系方案**：[生产内容扩展 V1](../features/factory-production-expansion-v1.md)提出 15 种物品、14 个加工配方、3 类新增加工设备与电芯发电机；成品分别用于制造构件、供电和开拓高产矿点。[六款游戏对照](../reference/factory-game-production-study.md)已补官方资料与 Wiki，修正副产物出口、一次性需求和高产矿价值的推断；具体供给 / 消费仍待试玩。
 2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)10 月 22 日已按确认合同实现，直接路线自然制造并放下第二炉，独立恢复后混料回用再产两包；三设备、165 起步构件、326 总拥有量和独立 schema 6 已落地。当前短试玩反馈已定位完成配额导致的停线，并按确认整改电力常显、默认连线开关、仅键盘移动与配额说明；接续混料半批复测，操作代价与节材感受仍待反馈。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
-3. **E2 能源循环**：[实施合同](../features/factory-production-expansion-e2.md)、[C/P/D 布局](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)已按整组确认实现。保留 240 kW，同源自然四包对照从 55.05 秒降到 41.10 秒；双机耗尽、自救、半批 / 余能独立恢复及窗口检查通过。本机启停与 V7 显式复制已落地，下一步短试玩验证逐步扩建收益与操作成本。
-4. **E3 开拓回报**：生产开拓用品、打开固定支路，把更高产的原料接回既有工厂。
+3. **E2 能源循环**：[实施合同](../features/factory-production-expansion-e2.md)、[C/P/D 布局](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)已按整组确认实现。保留 240 kW，同源自然四包对照从 55.05 秒降到 41.10 秒；双机耗尽、自救、半批 / 余能独立恢复及窗口检查通过。本机启停与 V7 显式复制已落地，下一步先准备独立 C / D 亲测副本，再短试玩验证逐步扩建收益与操作成本；具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
+4. **E3 开拓回报（后续提案）**：结合 E2 短试玩再细化生产开拓用品、固定支路与高产原料回流合同，确认后实施；当前不直接进入 E3 编码。
 
 每批按“完整可玩用途 → 短试玩 → 调整”推进；不先堆大量无用途的物品，也不把旧包逐项精细验收排在内容开发之前。物料、存读和关键操作仍做与变更风险匹配的检查；具体范围见专题，不例行重跑历史完整自然流程或四档长测。
 
