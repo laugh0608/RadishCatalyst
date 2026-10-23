@@ -1,5 +1,6 @@
 extends "res://scripts/factory/save/codec_v1.gd"
 
+const Energy := preload("res://data/factory/energy_rules.gd")
 const V2 := preload("res://scripts/factory/save/codec_v2.gd")
 const Stats := preload("res://scripts/factory/save/statistics_validator.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
@@ -15,9 +16,10 @@ static func bounded(value: Variant, limits: Dictionary, model: RefCounted) -> bo
 	return true
 
 
-static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounted) -> Dictionary:
-	if not e is Dictionary or not e.get("type") is String or not Expansion.SUPPLY.has(e.type):
+static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounted, energy := false) -> Dictionary:
+	if not e is Dictionary or not e.get("type") is String or not model.kits.has(e.type):
 		return failure("未知 E1 设备类型。")
+	if e.type == Energy.GENERATOR: return generator(e, next_id, model) if energy else failure("旧世界不能含发电机。")
 	if e.type == "admission_gate": return Admission.validate(e, next_id, next_batch, model.admission_items, MINERALS)
 	if e.type in ["splitter", "merger"]: return Routing.validate(e, next_id, next_batch, model.admission_items, MINERALS)
 	if e.type in ["power_source", "power_junction"]: return V2.validate_power_entity(e, next_id, next_batch, model)
@@ -27,6 +29,9 @@ static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounte
 		if e.type in Expansion.PROCESSORS: extra.append("output_cursor")
 	else:
 		extra = {"collector": ["mineral", "buffer", "progress", "power_node_id"], "storage": ["items"], "belt": ["cargo", "progress", "entry", "cursor", "batch"]}[e.type]
+	if energy and model.DiscoveryRules.POWER.has(e.type):
+		extra.append("enabled")
+		if not e.get("enabled") is bool: return failure("设备启停必须是布尔值。")
 	if not fields(e, ["id", "type", "x", "z", "dir"] + extra) or not integer(e.id, 1, next_id - 1) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 3):
 		return failure("E1 设备字段、身份或位置无效。")
 	if e.type != "belt" and e.dir != 0: return failure("加工设备不支持旋转。")
@@ -61,4 +66,12 @@ static func processor(e: Dictionary, next_batch: int, model: RefCounted) -> Dict
 		if not model.recipe_available(e.recipe_id) or e.active_batch == 0 or not e.output.is_empty() or V2.normalize_items(e.invested) != recipe.input: return failure("在制投入或批次状态矛盾。")
 	elif e.progress != 0 or e.active_batch != 0 or not e.invested.is_empty(): return failure("空闲设备含在制。")
 	if e.output.is_empty() != (e.output_batch == 0): return failure("输出与批次引用矛盾。")
+	return {"ok": true}
+
+
+static func generator(e: Dictionary, next_id: int, model: RefCounted) -> Dictionary:
+	if not fields(e, ["id", "type", "x", "z", "dir", "enabled", "fuel", "remaining_kj"]) or not integer(e.id, 1, next_id - 1) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
+		return failure("发电机字段、身份、位置或方向无效。")
+	if not e.enabled is bool or not bounded(e.fuel, {Energy.CELL: Energy.FUEL_CAPACITY}, model) or not number(e.remaining_kj, 0, Energy.CELL_KJ):
+		return failure("发电机燃料、余能或启停无效。")
 	return {"ok": true}

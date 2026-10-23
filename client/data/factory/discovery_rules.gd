@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Energy := preload("res://data/factory/energy_rules.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 const Foundation := preload("res://data/factory/rules.gd")
@@ -13,6 +14,7 @@ const ADMISSION_RULESET_ID := "factory_discovery_admission_v1"
 const ADMISSION_SUPPLY_ID := "factory_discovery_admission_starter_v1"
 const SUPPLY := {"collector": 8, "reactor": 16, "storage": 8, "belt": 256, "power_source": 2, "power_junction": 12}
 const CATALOG := {
+	"cell_generator": {"name": "电芯发电机", "w": 2, "d": 2, "input": Vector2i(0, 1)},
 	"crusher": {"name": "粉碎机", "w": 2, "d": 2},
 	"refinery": {"name": "精炼炉", "w": 2, "d": 3},
 	"assembler": {"name": "组装机", "w": 3, "d": 2},
@@ -38,7 +40,7 @@ static func routing_world(supply: String) -> bool:
 	return supply == ROUTING_SUPPLY_ID or admission_world(supply)
 
 static func admission_world(supply: String) -> bool:
-	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Expansion.SUPPLY_ID]
+	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Expansion.SUPPLY_ID, Energy.SUPPLY_ID]
 
 const ITEMS := ["crystal", "catalyst", "crust_sample", "crust_solvent", "rich_crystal"]
 const NAMES := {"crystal": "晶体", "catalyst": "催化剂", "crust_sample": "矿壳样本", "crust_solvent": "解壳剂", "rich_crystal": "富集晶体"}

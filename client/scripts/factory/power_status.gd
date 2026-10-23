@@ -7,14 +7,14 @@ static var textures := {}
 
 
 static func supports(e: Dictionary) -> bool:
-	return e.type in ["power_source", "power_junction", "collector", "reactor", "crusher", "refinery", "assembler"]
+	return e.type in ["cell_generator", "power_source", "power_junction", "collector", "reactor", "crusher", "refinery", "assembler"]
 
 
 static func kind(model: RefCounted, e: Dictionary, state: Dictionary) -> String:
 	var node: bool = model.Grid.is_node(e)
 	var network: int = model.grid.membership.get(e.id, -1) if node else state.devices[e.id].network
 	if not node and e.power_node_id == 0: return "disconnected"
-	if e.type == "power_source" and not e.enabled: return "no_supply"
+	if e.type in ["power_source", "cell_generator"] and not e.enabled: return "no_supply"
 	if network < 0: return "disconnected"
 	var group: Dictionary = model.grid.groups[network]
 	if e.type == "power_junction" and group.nodes.size() == 1: return "disconnected"

@@ -28,7 +28,7 @@ func run() -> void:
 	boot.startup_menu.factory_requested.emit()
 	await process_frame
 	var menu: Control = boot.factory_menu
-	expect(menu.world_type.selected == 0 and menu.world_type.item_count == 3, "foundation remains default; E1 is explicit third choice")
+	expect(menu.world_type.selected == 0 and menu.world_type.item_count == 4, "foundation remains default; E1 is explicit third choice")
 	var records := []
 	for option in 3:
 		menu.world_type.select(option)
@@ -57,7 +57,7 @@ func run() -> void:
 		if index < 0: continue
 		menu.list.select(index)
 		menu.list.item_selected.emit(index)
-		expect(menu.worlds[index].schema == record.schema and menu.upgrade_button.disabled, "1/5/6 original-rule continue; no E1 migration action")
+		expect(menu.worlds[index].schema == record.schema and (not menu.upgrade_button.disabled if record.schema == 6 else menu.upgrade_button.disabled), "1/5/6 continue original rules; E1 offers explicit separate copy")
 		if record.schema == 6: expect("生产扩建 E1" in menu.worlds[index].name, "list explicitly labels E1")
 		menu.continue_button.pressed.emit()
 		var world: Control = boot.factory_world

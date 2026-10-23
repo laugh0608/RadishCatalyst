@@ -3,6 +3,7 @@ extends RefCounted
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const DEFAULT_ROOT := "user://saves/factory/worlds"
 const MAX_BYTES := 4 * 1024 * 1024
+const EnergyCopy := preload("res://scripts/factory/save/energy_copy.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 var allow_engineering := false
 var root: String
@@ -79,7 +80,10 @@ func list_worlds() -> Array[Dictionary]:
 		if candidate.ok:
 			entry.name = candidate.document.name
 			entry.schema = int(candidate.document.save_schema_version)
-			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			entry.sequence = int(candidate.document.sequence)
+			entry.hash = candidate.hash
+			entry.title = candidate.document.name
+			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 能源循环 E2" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -292,12 +296,16 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
 	if supply == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("工程规模验证只能从隔离检查入口创建。", true)
-	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID]:
+	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]:
 		return _error("范围供电仅适用于勘探工厂。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
 	if DirAccess.make_dir_recursive_absolute(root) != OK:
 		return _error("无法创建工厂存档目录。")
+	return _creation_transaction(func(): return _create_locked(title.strip_edges(), supply, automatic_power))
+
+
+func _creation_transaction(action: Callable) -> Dictionary:
 	if DirAccess.make_dir_absolute(root.path_join("creation.lock")) != OK:
 		return _error("其他客户端正在创建世界。若原程序异常退出，请取消选中世界后恢复遗留锁。")
 	var owner_path := root.path_join("creation.lock/owner.json")
@@ -307,7 +315,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic
 	if not ownership.ok:
 		DirAccess.remove_absolute(root.path_join("creation.lock"))
 		return ownership
-	var result := _create_locked(title.strip_edges(), supply, automatic_power)
+	var result: Dictionary = action.call()
 	var current_owner = _read_owner(owner_path)
 	if current_owner is Dictionary and current_owner.get("token") == creation_token:
 		DirAccess.remove_absolute(owner_path)
@@ -318,7 +326,7 @@ func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic
 func _create_locked(title: String, supply: String, automatic_power: bool) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
-	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID]:
+	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]:
 		return _error("未知供给版本。")
 	var id := Crypto.new().generate_random_bytes(16).hex_encode()
 	if DirAccess.make_dir_absolute(root.path_join(id)) != OK:
@@ -332,7 +340,9 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	expected_main_hash = ""
 	loaded = true
 	var model: RefCounted
-	if supply == Codec.V6.Expansion.SUPPLY_ID:
+	if supply == Codec.V7.Energy.SUPPLY_ID:
+		model = Codec.V7.EnergyModel.new()
+	elif supply == Codec.V6.Expansion.SUPPLY_ID:
 		model = Codec.V6.ExpansionModel.new()
 	elif supply == Engineering.SUPPLY_ID:
 		model = Codec.V5.EngineeringModel.new()
@@ -371,8 +381,8 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 	if _hash(path("autosave.json")) != expected_main_hash:
 		return _error("主档被外部修改，停止覆盖；当前进度仍在内存。")
 	var document := Codec.snapshot(model, world_id, world_name, sequence + 1)
-	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id == Codec.V6.Expansion.SUPPLY_ID or session_identity[3] == Codec.V6.Expansion.SUPPLY_ID) and _identity(document) != session_identity:
-		return Codec.failure("不能转换普通、工程与 E1 世界身份。", true)
+	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID] or session_identity[3] in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]) and _identity(document) != session_identity:
+		return Codec.failure("不能转换普通、工程与内容世界身份；E1 到 E2 须显式复制。", true)
 	var valid := Codec.decode(document, world_id)
 	if _fail("validation") or not valid.ok:
 		return _error("保存校验失败：" + valid.get("reason", "校验故障"))
@@ -424,3 +434,12 @@ func _backup_main() -> Dictionary:
 	if DirAccess.rename_absolute(path("backups/pending.json"), path("backups/autosave.bak.1.json")) != OK:
 		return _error("恢复副本发布失败。")
 	return {"ok": true}
+
+
+func copy_energy(id: String, expected_sequence: int, expected_hash: String, title: String) -> Dictionary:
+	if not token.is_empty(): return _error("当前已有写入会话，不能创建能源副本。")
+	if not Codec.valid_id(id) or expected_sequence < 1 or expected_hash.length() != 64:
+		return _error("请选择有效 E1 快照后复制。")
+	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
+		return _error("请输入 1–48 个字符的单行世界名称。")
+	return _creation_transaction(func(): return EnergyCopy.create(self, id, expected_sequence, expected_hash, title.strip_edges()))

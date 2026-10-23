@@ -6,6 +6,7 @@ const Items := preload("res://scripts/factory/items.gd")
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
 static func current(model: RefCounted) -> Dictionary:
+	if model.supply_id == Rules.Energy.SUPPLY_ID: return _energy(model)
 	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion(model)
 	var d: Dictionary = model.discovery
 	var produced: int = model.statistics.totals.produced.get("catalyst", 0)
@@ -202,6 +203,8 @@ static func describe(step: Dictionary) -> String:
 
 
 static func overview(model: RefCounted) -> String:
+	if model.supply_id == Rules.Energy.SUPPLY_ID:
+		return _expansion_overview(model) + "\n\n能源循环：先完成第二炉，再用 3 包装配发电机。\n工业电芯：1 板 + 2 炭粉 + 1 催化剂 → 1 电芯，组装机 12 秒 / 40 kW。\n每件供能 7,200 kJ，单机最高 120 kW。基础 240 kW 先供，无缺口不烧料。\n电芯由西侧入口送入，最多存 5 件；已激活余能不能取回。\n停下部分扩建负载，保留采集、板材、炭粉、催化剂和电芯生产，可恢复燃料。"
 	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion_overview(model)
 	var d: Dictionary = model.discovery
 	var basic: bool = d.trial_completed or d.passages.outer or d.passages.inner or model.statistics.totals.produced.get("catalyst", 0) >= 2
@@ -256,3 +259,21 @@ static func _expansion_overview(model: RefCounted) -> String:
 		lines.append("%s · %s\n%s → %s · %.0f 秒 / %.0f kW" % [Rules.CATALOG[recipe.machine].name, recipe.name, Items.describe(recipe.input), Items.describe(recipe.output), recipe.seconds, recipe.kw])
 	lines.append("直接冶炼 / 烧结适合起步和省操作；混料提高板材产量，矿渣烧结回用副产物、节省晶体。")
 	return "\n".join(lines)
+
+
+static func _energy(model: RefCounted) -> Dictionary:
+	if not model.first_expansion_placed: return _expansion(model)
+	if model.assembly_counts.cell_generator == 0:
+		return _step("first_generator", "制造第一台电芯发电机", "背包 %d / 3 构件包" % model.bag.get("construction_pack", 0), "发电机为扩建提供额外功率；原两套封装电源保留。", _build("cell_generator", "在装配栏选电芯发电机，花 3 包制造。工业电芯需 1 板 + 2 炭粉 + 1 催化剂。"))
+	var generators := _entities(model, "cell_generator")
+	if generators.is_empty(): return _step("place_generator", "放下电芯发电机", "已有发电机构件", "接近原电网与能源产线，西侧入口收电芯。", _build("cell_generator", "节点互连 12 格、设备接入 6 格；空发电机也能导通原网。"))
+	var g: Dictionary = generators[0]
+	if model.completed_by_recipe.cell_assembly == 0:
+		return _step("first_cells", "把三种原料组装成电芯", "工业电芯尚未产出", "复用基础电源启动能源线，不需预先有电芯。", _action("discovery", "查看电芯工艺", "给组装机接板材、炭粉与催化剂，选工业电芯组装，再接带至发电机。"))
+	var state: Dictionary = model.power_state()
+	var ledger: Dictionary = model.energy_balance()
+	if ledger.activated > 0 and ledger.remaining_kj == 0 and generators.all(func(e): return e.fuel.is_empty()):
+		return _step("restore_fuel", "燃料耗尽，恢复能源支线", "基础电源仍可供电", "走近停下部分扩建负载，保留电芯原料和组装；新电芯到货后恢复。", _device(g, "不丢在制；设备停机保留进度与被动物流，发电机按缺口自动接续。"))
+	if state.cell_supplied_kw > 0:
+		return _step("energy_working", "电芯正在支持扩建", "电芯供电 %.1f kW" % state.cell_supplied_kw, "比较实际加工与入仓速度，再决定是否继续扩建。", _action("statistics", "查看实际供能与产出", "下一目标可做 4 包：3 包制造第二发电机，1 包制造燃料分流器。"))
+	return _step("energy_standby", "电芯就绪，按需求扩建", "没有实际输出时不耗电芯", "保留基础供电，增加有料工作的加工机后再观察缺口；无需为了烧料空转。", _device(g, "查看燃料、启停与同网负载；有燃料仍待机可能是基础电源已满足需求。"))

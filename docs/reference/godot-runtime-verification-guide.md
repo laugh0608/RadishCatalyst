@@ -204,3 +204,10 @@ B 使用 `sh tools/check-factory-admission.sh`，模式及参数见 [Tools](../.
 C 使用 `sh tools/check-factory-combination.sh`；完整模式 / 参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`geometry` 为构造几何；`state/process-read` 为声明来源的严格快照与显式固定步重放。`background-write` 才承担普通空世界的自然 C0–C3，`background-read` 和 `background-complete-read` 分别承担两次独立 Boot 继续；不以状态夹具补签自然路径。检查只读跟踪连续固定步上的富集 batch、制剂整批投入及 G4 放行，采样跨步时清除未完成来源链，不从稀疏库存统计猜测来源。
 
 每个模式都使用新 batch。恢复 / 故障 / review 指定成功父批次，由 runner 复制输入并记录 SHA-256；禁止覆盖、消费原父档或以失败父结果继续验收，子结束后复核父目录未变。运行根为 `tools/runtime-intake/check-runs/factory-conveyor-combination-v1/`，原图为 `assets/art-intake/2026-10-17-factory-conveyor-combination-preview/`，亲测另用同专题 `review-worlds/`。`review` 先证明暂停下镜头 / 面板只读，再在独立子档中用真实回收、返料和短时自然推进演示末件堵塞 / 修复 / 8/8；该短段不是重新完成全程。Godot 日志使用绝对仓库路径，退出码、脚本断言与日志错误共同决定通过；不忽略字体或脚本错误。
+
+
+## E2 能源定向入口
+
+`tools/check-factory-energy.sh` / `.ps1` 复用带全目录哈希核对的 runner，独立批次根为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`。固定步与自然时钟模式、父批次要求见 [Tools](../../tools/README.md#正式工厂定向检查)。无窗口自然链从普通零材料 E2 经第二炉、P 备建、C 冷启动，再独立恢复扩为 D；开关对照各消费同一个成功 D 父档的副本，不能拿两个不同起点比较产出。状态检查中的人物定位、固定步及孤立边界夹具不计为 Boot 行走或自然生产。
+
+有窗口原图使用 `assets/art-intake/2026-10-23-factory-energy-e2-preview/<batch>/`。启动前告知；用户关闭则终止，不自动重开。E1 显式复制检查包含完整旧字段、原档字节与来源哈希，不能只验证菜单中出现第二条记录。Windows 暂缓仍单列。

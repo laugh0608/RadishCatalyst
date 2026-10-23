@@ -7,6 +7,7 @@ const ExpansionModel := preload("res://scripts/factory/expansion_model.gd")
 const Entity := preload("res://scripts/factory/save/expansion_entity_validator.gd")
 const Ledger := preload("res://scripts/factory/save/expansion_ledger_validator.gd")
 const Stats := preload("res://scripts/factory/save/statistics_validator.gd")
+const EnergyValidator := preload("res://scripts/factory/save/energy_validator.gd")
 const EXTRA := ["extracted_by_item", "completed_by_recipe", "assembly_counts", "batch_recipes", "first_expansion_placed"]
 
 
@@ -25,13 +26,18 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	if not value is Dictionary: return failure("存档必须是对象。")
 	if value.get("world_kind") != "factory_3d" or value.get("save_schema_version") != 6 or value.get("ruleset_id") != Expansion.RULESET_ID or value.get("map_id") != Expansion.MAP_ID or value.get("supply_id") != Expansion.SUPPLY_ID:
 		return failure("不支持的 E1 世界、规则、地图或供给组合。", true)
+	return decode_content(value, expected_id, ExpansionModel.new())
+
+
+## Shared content reconstruction; version identity remains checked by each codec.
+static func decode_content(value: Dictionary, expected_id: String, model: RefCounted, energy := false) -> Dictionary:
 	if not fields(value, TOP_FIELDS) or not valid_id(value.world_id) or value.world_id != expected_id: return failure("世界字段或目录身份无效。")
 	if not value.name is String or value.name.strip_edges().is_empty() or value.name.length() > 48 or "\n" in value.name or not integer(value.sequence, 1): return failure("世界名称或序号无效。")
 	# Derived upper bound is tightened to actual node count after entity validation.
-	var decoded := V2.unpack_state(value.state, Expansion.MAX_OWNED * (Expansion.MAX_OWNED - 1) / 2, EXTRA, Expansion.NAMES.keys())
+	var extra := EXTRA + (["energy_origin"] if energy else [])
+	var decoded := V2.unpack_state(value.state, Expansion.MAX_OWNED * (Expansion.MAX_OWNED - 1) / 2, extra, model.item_ids.filter(func(item): return item not in V2.Config.ITEMS))
 	if not decoded.ok: return decoded
 	var s: Dictionary = decoded.state
-	var model := ExpansionModel.new()
 	model.automatic_power = false
 	if not number(s.time, 0, 1e12) or not number(s.remainder, 0, 3600): return failure("工厂时钟或积压无效。")
 	for key in ["next_id", "next_batch"]:
@@ -39,7 +45,7 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	for key in ["generated", "completed", "delivered", "delivered_batch"]:
 		if not integer(s[key]): return failure("累计生产计数无效。")
 	if s.completed >= s.next_batch or s.delivered_batch >= s.next_batch: return failure("累计计数与批次序列矛盾。")
-	if not Ledger.counts(s.assembly_counts, Expansion.ASSEMBLY_COST.keys(), Expansion.MAX_OWNED) or not Ledger.counts(s.kits, Expansion.SUPPLY.keys(), Expansion.MAX_OWNED): return failure("构件库存或装配账无效。")
+	if not Ledger.counts(s.assembly_counts, model.assembly_costs.keys(), Expansion.MAX_OWNED) or not Ledger.counts(s.kits, model.kits.keys(), Expansion.MAX_OWNED): return failure("构件库存或装配账无效。")
 	var owned := 0
 	for type in model.kits:
 		model.kits[type] += int(s.assembly_counts.get(type, 0)) * Expansion.yield_for(type)
@@ -47,23 +53,28 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	if owned > Expansion.MAX_OWNED: return failure("构件总拥有量超过 326。")
 	if not Ledger.counts(s.extracted_by_item, model.extracted_by_item.keys()) or not Ledger.counts(s.completed_by_recipe, model.recipes.keys()): return failure("生产账字段或计数无效。")
 	if not s.first_expansion_placed is bool or (s.first_expansion_placed and s.assembly_counts.refinery == 0): return failure("首次扩建事实缺少精炼炉装配。")
+	model.first_expansion_placed = s.first_expansion_placed
+	if energy:
+		var origin := EnergyValidator.origin(s.energy_origin, expected_id)
+		if not origin.ok: return origin
+		model.energy_origin = s.energy_origin.duplicate()
 	if not s.batch_recipes is Dictionary: return failure("活批来源表无效。")
 	if not fields(s.actor, ["x", "z", "angle"]) or not number(s.actor.x, -31.7, 31.7) or not number(s.actor.z, -31.7, 31.7) or not number(s.actor.angle, -PI, PI): return failure("人物位置或朝向无效。")
 	if not s.entities is Array or s.entities.size() > owned: return failure("实体数量超过总拥有量。")
 	model.discovery = s.discovery.duplicate(true)
 	var seen := {}
 	for source in s.entities:
-		var valid := Entity.validate(source, int(s.next_id), int(s.next_batch), model)
+		var valid := Entity.validate(source, int(s.next_id), int(s.next_batch), model, energy)
 		if not valid.ok: return valid
 		if seen.has(source.id): return failure("实体 ID 重复。")
 		seen[source.id] = true
-		var placed := model.place(source.type, Vector2i(source.x, source.z), int(source.dir))
+		var placed: Dictionary = model.place(source.type, Vector2i(source.x, source.z), int(source.dir))
 		if not placed.ok: return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
 		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used"]:
 			if e.has(key): e[key] = int(e[key])
-		for key in ["buffer", "input", "output", "invested", "items"]:
+		for key in ["buffer", "input", "output", "invested", "items", "fuel"]:
 			if e.has(key): e[key] = V2.normalize_items(e[key])
 		if e.has("entry"): e.entry = Vector2i(source.entry[0], source.entry[1])
 	model.rebuild_indexes()
@@ -85,14 +96,17 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	if not topology.ok: return topology
 	# All owned consumers can be placed; historical demand cannot be bounded by today's layout.
 	var request_kw := 0.0
-	for type in Expansion.SUPPLY:
-		var count: int = Expansion.SUPPLY[type] + model.assembly_counts.get(type, 0) * Expansion.yield_for(type)
+	for type in model.kits:
+		var count: int = model.kits[type] + model.entities.filter(func(e): return e.type == type).size()
 		request_kw += count * (80.0 if type == "reactor" else model.DiscoveryRules.POWER.get(type, 0.0))
-	var stats := Stats.validate_timeline(s.statistics, model.time, 240.0, request_kw, model.item_ids)
+	var stats: Dictionary = EnergyValidator.statistics(s.statistics, model, request_kw) if energy else Stats.validate_timeline(s.statistics, model.time, 240.0, request_kw, model.item_ids)
 	if not stats.ok: return stats
+	model.statistics.restore(s.statistics)
+	if energy:
+		var energy_ledger := EnergyValidator.balance(model)
+		if not energy_ledger.ok: return energy_ledger
 	var ledger := Ledger.validate(model, s.statistics)
 	if not ledger.ok: return ledger
-	model.statistics.restore(s.statistics)
 	model.statistics_ui = s.statistics_ui.duplicate(true)
 	model.statistics_ui.window_seconds = int(model.statistics_ui.window_seconds)
 	return {"ok": true, "model": model, "document": value}

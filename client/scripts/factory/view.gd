@@ -60,7 +60,7 @@ var cargo_materials := {}
 
 func _ready() -> void:
 	cargo_materials = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}
-	for item in Model.DiscoveryRules.Expansion.NAMES:
+	for item in Model.DiscoveryRules.Expansion.NAMES.keys() + Model.DiscoveryRules.Energy.NAMES.keys():
 		cargo_materials[item] = Parts.material(preload("res://scripts/factory/item_slot.gd").ACCENTS[item], 0.3, 0.5)
 	status_mesh.radius = 0.5
 	status_mesh.height = 1.0
@@ -97,12 +97,17 @@ func _ready() -> void:
 			if not assets.admission_gate is PackedScene:
 				resource_error = "缺少物品准入口模型"
 				return
-		if world_model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+		if world_model.has_method("assemble"):
 			for kind in ["crusher", "refinery", "assembler", "iron-ore", "carbon-ore"]:
 				assets[kind] = load(ASSET_ROOT + "expansion/" + kind + ".glb")
 				if not assets[kind] is PackedScene:
 					resource_error = "缺少生产扩建模型：" + kind
 					return
+		if world_model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
+			assets.cell_generator = load(ASSET_ROOT + "energy/cell_generator.glb")
+			if not assets.cell_generator is PackedScene:
+				resource_error = "缺少电芯发电机模型"
+				return
 		barriers = Node3D.new()
 		add_child(barriers)
 		_build_mineral_barriers()

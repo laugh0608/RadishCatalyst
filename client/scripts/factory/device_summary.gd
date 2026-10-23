@@ -146,6 +146,17 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		power.text = "供电：%s\n请求 %.1f / 获供 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
 		if e.power_node_id != 0:
 			power.text += " · 节点 #%d" % e.power_node_id
+	elif e.type == "cell_generator":
+		var state: Dictionary = model.power_state()
+		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
+		var output: float = state.sources[e.id]
+		_card("input", "完整电芯 · 最多 5 件", "%d / 5 件" % Items.count(e.fuel))
+		_card("process", "已激活余能", "%.1f / 7,200 kJ" % e.remaining_kj)
+		_card("output", "实际输出", "%.1f / 120 kW" % output)
+		progress.show()
+		progress.value = e.remaining_kj / 72.0
+		production.text = "当前余能约 %.1f 秒；负载变化会改变估计。" % (e.remaining_kj / output) if output > 0 else "当前不消耗 · 余能保留；完整电芯可取回。"
+		power.text = "同网请求 %.1f · 基础容量 %.0f · 供后缺口 %.1f kW" % [network.request_kw, network.base_capacity_kw, maxf(0, network.request_kw - network.supplied_kw)]
 	elif model.Grid.is_node(e):
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
 		_card("process", "当前电网", "容量 %.0f kW\n请求 %.1f / 获供 %.1f kW" % [network.capacity_kw, network.request_kw, network.supplied_kw])
@@ -175,6 +186,10 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"splitter", "merger", "admission_gate":
 					if role == "output" and not e.cargo.is_empty():
 						stock = {e.cargo: 1}
+				"cell_generator":
+					if role == "input":
+						stock = e.fuel
+						required = {"industrial_cell": 0}
 				"collector":
 					if role == "output":
 						stock = e.buffer
@@ -183,7 +198,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 					if role == "input":
 						stock = e.items
 						for known in model.item_ids:
-							if known in Rules.Expansion.NAMES or known in ["crystal", "catalyst"] or model.discovery.trial_completed or (known == "crust_sample" and model.discovery.sample_taken):
+							if model.item_known(known):
 								required[known] = 0
 			var slot: Button = slots[role][item]
 			slot.visible = stock.has(item) or required.has(item)
@@ -191,6 +206,8 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 		values[role].visible = false
 		if e.type == "storage" and role == "input":
 			values[role].text = "%d / 200 件" % Items.count(e.items)
+			values[role].show()
+		elif e.type == "cell_generator":
 			values[role].show()
 		elif e.type == "collector" and role == "output":
 			values[role].text = "%d / 50 件" % Items.count(e.buffer)

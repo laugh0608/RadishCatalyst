@@ -79,7 +79,7 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 		if not target.cargo.is_empty():
 			return {"ok": false, "reason": "目标已满"}
 	elif not item.is_empty() and model.input_room(target, item) <= 0:
-		var accepts: bool = target.type == "storage" or (target.type in model.process_types and model.recipe_available(target.recipe_id) and model.recipes[target.recipe_id].input.has(item))
+		var accepts: bool = target.type == "storage" or (target.type == "cell_generator" and item == "industrial_cell") or (target.type in model.process_types and model.recipe_available(target.recipe_id) and model.recipes[target.recipe_id].input.has(item))
 		return {"ok": false, "reason": "目标已满" if accepts else "目标不收该物品"}
 	return connection.merged({"reason": "可接收", "source": source}, true)
 

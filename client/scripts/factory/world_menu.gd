@@ -19,6 +19,9 @@ var selected := -1
 var world_type := OptionButton.new()
 var upgrade_dialog := ConfirmationDialog.new()
 var pending_upgrade := ""
+var pending_copy_sequence := 0
+var pending_copy_hash := ""
+var pending_copy_title := ""
 
 
 func _ready() -> void:
@@ -49,6 +52,7 @@ func _ready() -> void:
 	world_type.add_item("基础工厂 · 原预供电规则")
 	world_type.add_item("勘探工厂 · 分流汇合、范围供电与矿道开拓")
 	world_type.add_item("生产扩建 E1 · 制造第二台炉与混料回用")
+	world_type.add_item("能源循环 E2 · 电芯供电与负载扩建")
 	layout.add_child(world_type)
 	title_input.placeholder_text = "新工厂名称（最多 48 字）"
 	title_input.max_length = 48
@@ -85,7 +89,7 @@ func refresh() -> void:
 func _selection() -> void:
 	continue_button.disabled = selected < 0 or not worlds[selected].ok
 	continue_button.text = "继续选中世界"
-	upgrade_button.disabled = selected < 0 or not worlds[selected].ok or worlds[selected].get("schema", 0) not in [2, 3, 4]
+	upgrade_button.disabled = selected < 0 or not worlds[selected].ok or worlds[selected].get("schema", 0) not in [2, 3, 4, 6]
 	upgrade_button.text = _upgrade_title(int(worlds[selected].get("schema", 0))) if selected >= 0 else "升级选中世界"
 	recover_button.disabled = selected < 0 and not DirAccess.dir_exists_absolute(catalog.root.path_join("creation.lock"))
 	notice.text = "创建空工厂，从第一条产线开始。旧二维世界保留在原入口。" if selected < 0 else worlds[selected].status
@@ -93,7 +97,7 @@ func _selection() -> void:
 
 func _create() -> void:
 	var store := Store.new(save_root, engineering_context)
-	var supply: String = [Store.Codec.Rules.NORMAL_SUPPLY, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID, Store.Codec.V6.Expansion.SUPPLY_ID][world_type.selected]
+	var supply: String = [Store.Codec.Rules.NORMAL_SUPPLY, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID, Store.Codec.V6.Expansion.SUPPLY_ID, Store.Codec.V7.Energy.SUPPLY_ID][world_type.selected]
 	var result := store.create(title_input.text, supply, world_type.selected != 0)
 	if not result.ok:
 		notice.text = result.reason
@@ -108,12 +112,18 @@ func _continue() -> void:
 
 
 func _ask_upgrade() -> void:
-	if selected < 0 or worlds[selected].get("schema", 0) not in [2, 3, 4]:
+	if selected < 0 or worlds[selected].get("schema", 0) not in [2, 3, 4, 6]:
 		return
 	pending_upgrade = worlds[selected].id
 	pending_schema = int(worlds[selected].schema)
 	upgrade_dialog.title = _upgrade_title(pending_schema)
+	upgrade_dialog.ok_button_text = "复制并进入" if pending_schema == 6 else "升级并继续"
 	match pending_schema:
+		6:
+			pending_copy_sequence = worlds[selected].sequence
+			pending_copy_hash = worlds[selected].hash
+			pending_copy_title = worlds[selected].title.left(43) + " · 能源"
+			upgrade_dialog.dialog_text = "复制为独立能源世界「%s」。原 E1 保留，之后两份进度独立。\n人物、布局、物料、在制与制造账完整接续；不补发构件或电芯。\n完成第二炉后可制造发电机；本机停机 / 恢复保留进度。" % pending_copy_title
 		4: upgrade_dialog.dialog_text = "增加 8 个物品准入口，可筛选物品、设置本轮总配额。原物流轮转与吞吐保持。\n设备、物料、在制、探索与统计保留；原 V4 存档会独立备份。\n也可取消后继续 V4。升级后的进度需要使用支持准入口的版本。"
 		3: upgrade_dialog.dialog_text = "增加 8 个分流器、8 个汇合器。物流采用统一公平轮转，机器补带可能多等 50ms。\n设备、物料、在制及探索进度保留；升级前存档会独立备份。\n此次只升级分流与汇合，之后可另行选择准入口；也可取消后按原规则继续。"
 		2: upgrade_dialog.dialog_text = "范围内节点和设备改为自动接电。设备、物料、在制与探索进度保留，原档会独立备份。\n此次只升级供电，之后可另行选择分流与汇合。也可取消后按原规则继续。"
@@ -121,11 +131,18 @@ func _ask_upgrade() -> void:
 
 
 func _upgrade_title(schema: int) -> String:
-	return {2: "升级范围自动供电", 3: "升级分流与汇合", 4: "升级物品准入口"}.get(schema, "升级选中世界")
+	return {2: "升级范围自动供电", 3: "升级分流与汇合", 4: "升级物品准入口", 6: "复制为能源世界"}.get(schema, "升级选中世界")
 
 
 func _open_world(id: String, upgrade_schema := 0) -> void:
 	var store := Store.new(save_root, engineering_context)
+	if upgrade_schema == 6:
+		var copied: Dictionary = store.copy_energy(id, pending_copy_sequence, pending_copy_hash, pending_copy_title)
+		if not copied.ok:
+			notice.text = copied.reason
+			return
+		world_ready.emit(store, copied.model, {})
+		return
 	var result := store.prepare(id)
 	if result.ok and upgrade_schema != 0:
 		match upgrade_schema:

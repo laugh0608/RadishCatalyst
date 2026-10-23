@@ -5,6 +5,7 @@ const MAX_COUNTER := 9007199254740991
 var extracted_by_item := {"crystal": 0, "rich_crystal": 0, "iron_ore": 0, "carbon_ore": 0}
 var completed_by_recipe := {}
 var assembly_counts := {}
+var assembly_costs := Expansion.ASSEMBLY_COST.duplicate()
 var batch_recipes := {}
 var first_expansion_placed := false
 
@@ -21,7 +22,7 @@ func _init() -> void:
 	admission_items = item_ids.filter(func(item): return item != "crust_sample")
 	for recipe_id in recipes:
 		completed_by_recipe[recipe_id] = 0
-	for type in Expansion.ASSEMBLY_COST:
+	for type in assembly_costs:
 		assembly_counts[type] = 0
 
 
@@ -101,8 +102,8 @@ func owned_count() -> int:
 
 
 func assemble(type: String) -> Dictionary:
-	if not Expansion.ASSEMBLY_COST.has(type): return failure("此构件不能装配")
-	var cost: int = Expansion.ASSEMBLY_COST[type]
+	if not assembly_costs.has(type): return failure("此构件不能装配")
+	var cost: int = assembly_costs[type]
 	var quantity := Expansion.yield_for(type)
 	if bag.get("construction_pack", 0) < cost: return failure("背包需要 %d 个构件包" % cost)
 	if owned_count() > Expansion.MAX_OWNED - quantity: return failure("总拥有量上限 326，整批还需 %d 个空位" % quantity)
@@ -127,11 +128,21 @@ func material_balance() -> Dictionary:
 		for item in recipes[recipe_id].input:
 			expected[item] = expected.get(item, 0) - n * recipes[recipe_id].input[item]
 	for type in assembly_counts:
-		expected.construction_pack = expected.get("construction_pack", 0) - assembly_counts[type] * Expansion.ASSEMBLY_COST[type]
+		expected.construction_pack = expected.get("construction_pack", 0) - assembly_counts[type] * assembly_costs[type]
 	for passage in discovery.passages:
 		if discovery.passages[passage]:
 			expected.crust_solvent = expected.get("crust_solvent", 0) - DiscoveryRules.PASSAGES[passage].cost
+	for item in extra_consumption():
+		expected[item] = expected.get(item, 0) - extra_consumption()[item]
 	var balanced := true
 	for item in item_ids:
 		if held.get(item, 0) != expected.get(item, 0): balanced = false
 	return {"held": held, "expected": expected, "balanced": balanced, "generated": generated}
+
+
+func extra_consumption() -> Dictionary:
+	return {}
+
+
+func item_known(item: String) -> bool:
+	return item in Expansion.NAMES or super.item_known(item)

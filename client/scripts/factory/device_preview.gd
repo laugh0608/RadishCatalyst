@@ -48,6 +48,8 @@ func show_device(kind: String, direction := 0) -> void:
 	var path := "res://assets/factory/" + kind + ".glb"
 	if kind in ["crusher", "refinery", "assembler"]:
 		path = "res://assets/factory/expansion/" + kind + ".glb"
+	elif kind == "cell_generator":
+		path = "res://assets/factory/energy/cell_generator.glb"
 	elif kind in ["power_source", "power_junction"]:
 		path = "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
 	elif kind == "admission_gate":

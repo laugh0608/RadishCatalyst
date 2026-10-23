@@ -11,7 +11,7 @@ $clientRoot = Join-Path $RepoRoot "client"
 $recordRoot = Join-Path $RepoRoot "tools/runtime-intake/check-runs/factory-foundation-v1"
 New-Item -ItemType Directory -Force -Path $recordRoot | Out-Null
 
-foreach ($name in @("state", "save", "clock", "view_state", "power", "range_power", "first_journey", "discovery", "statistics", "device_interaction", "routing", "admission", "expansion")) {
+foreach ($name in @("state", "save", "clock", "view_state", "power", "range_power", "first_journey", "discovery", "statistics", "device_interaction", "routing", "admission", "expansion", "energy")) {
     $scriptPath = Join-Path $clientRoot "scripts/checks/factory_${name}_check.gd"
     $logPath = Join-Path $recordRoot "powershell-${name}.log"
     & $GodotExe --headless --path $clientRoot --script $scriptPath --no-header --log-file $logPath
@@ -25,4 +25,4 @@ foreach ($name in @("state", "save", "clock", "view_state", "power", "range_powe
         throw ("Factory $name check reported errors: " + ($errors -join [Environment]::NewLine))
     }
 }
-Write-Host "Factory state, save, clock, view state, power, range power, first journey, discovery, statistics, device interaction, routing, admission and expansion checks passed."
+Write-Host "Factory state, save, clock, view state, power, range power, first journey, discovery, statistics, device interaction, routing, admission, expansion and energy checks passed."

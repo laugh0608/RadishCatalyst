@@ -13,10 +13,10 @@ import sys
 
 REPO = Path(__file__).resolve().parents[1]
 RUNS = REPO / "tools/runtime-intake/check-runs/factory-production-expansion-e1"
-MODES = ("state", "process-read", "menu", "background-write", "background-read", "background-complete-read", "review", "feedback", "feedback-window")
+MODES = ("state", "process-read", "menu", "background-write", "background-read", "background-complete-read", "background-off", "background-recovered-read", "review", "feedback", "feedback-window")
 REPORTS = {"state": "state-result.json", "process-read": "read-result.json", "menu": "menu-result.json",
            "background-write": "write-result.json", "background-read": "read-result.json",
-           "background-complete-read": "complete-read-result.json", "review": "review-result.json", "feedback": "review-result.json", "feedback-window": "review-result.json"}
+           "background-complete-read": "complete-read-result.json", "background-off": "complete-read-result.json", "background-recovered-read": "recovered-read-result.json", "review": "review-result.json", "feedback": "review-result.json", "feedback-window": "review-result.json"}
 
 
 def load(path):
@@ -54,22 +54,31 @@ def succeeded(root, report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--energy", action="store_true", help="Run the E2 energy contract in its separate evidence root.")
     parser.add_argument("mode", choices=MODES)
     parser.add_argument("batch")
     parser.add_argument("source", nargs="?")
     args = parser.parse_args()
+    global RUNS
+    if args.energy:
+        RUNS = REPO / "tools/runtime-intake/check-runs/factory-production-expansion-e2"
+        if args.mode in ("feedback", "feedback-window"):
+            raise ValueError("E2 has dedicated review; E1 feedback modes are not applicable.")
     destination = batch_path(args.batch)
     if destination.exists():
         raise ValueError("Always use a new batch; failed evidence is retained.")
-    derived = args.mode in ("process-read", "background-read", "background-complete-read", "review", "feedback", "feedback-window")
+    derived = args.mode in ("process-read", "background-read", "background-complete-read", "background-off", "background-recovered-read", "review", "feedback", "feedback-window")
     if derived != bool(args.source):
         raise ValueError("Recovery/review modes require one parent; new checks take no parent.")
+    if args.mode in ("background-off", "background-recovered-read") and not args.energy:
+        raise ValueError("Additional energy continuation modes are only available for E2.")
     source = batch_path(args.source) if args.source else None
     before = None
     if source:
         parent_report = "state-result.json" if args.mode == "process-read" else "write-result.json" if args.mode == "background-read" else "read-result.json"
         if args.mode in ("review", "feedback", "feedback-window") and not (source / parent_report).exists():
             parent_report = "write-result.json"
+        if args.mode == "background-recovered-read": parent_report = "complete-read-result.json"
         succeeded(source, parent_report)
         runner = load(source / "runner-result.json")
         if runner.get("exit_code") != 0 or runner.get("errors") != [] or not runner.get("parent_unchanged"):
@@ -99,6 +108,8 @@ def main():
     state = args.mode in ("state", "process-read")
     script = "factory_expansion_check.gd" if state else "factory_expansion_menu_check.gd" if args.mode == "menu" else "factory_expansion_boot_check.gd"
     if args.mode in ("feedback", "feedback-window"): script = "factory_feedback_boot_check.gd"
+    if args.energy:
+        script = "factory_energy_check.gd" if state else "factory_energy_menu_check.gd" if args.mode == "menu" else "factory_energy_boot_check.gd"
     log = destination / (args.mode + ".log")
     command = [godot] + ([] if args.mode in ("review", "feedback-window") else ["--headless"])
     command += ["--path", str(REPO / "client"), "--script", "res://scripts/checks/" + script, "--no-header", "--log-file", str(log), "--"]
@@ -109,14 +120,26 @@ def main():
         command += ["--batch=" + args.batch]
         if args.mode not in ("review", "feedback-window"): command += ["--background"]
         if derived: command += ["--read"]
-        if args.mode == "background-complete-read": command += ["--complete-read"]
+        if args.mode in ("background-complete-read", "background-off"): command += ["--complete-read"]
+        if args.mode == "background-off": command += ["--generator-off"]
+        if args.mode == "background-recovered-read": command += ["--recovered-read"]
         if args.mode in ("review", "feedback", "feedback-window"): command += ["--visual-only"]
     sources = sorted((REPO / "client/scripts/factory").rglob("*.gd")) + sorted((REPO / "client/data/factory").glob("*.gd")) + sorted((REPO / "client/scripts/checks").glob("factory_expansion_*.gd")) + [REPO / "client/scripts/checks/factory_feedback_boot_check.gd"]
+    if args.energy:
+        sources += sorted((REPO / "client/scripts/checks").glob("factory_energy_*.gd"))
+        sources += sorted((REPO / "client/scripts/boot").glob("*.gd"))
+        sources += [REPO / "client/scripts/checks" / name for name in
+                    ("factory_routing_boot_check.gd", "factory_device_interaction_boot_check.gd",
+                     "factory_statistics_boot_check.gd", "factory_window_driver.gd")]
+        sources += [REPO / "client/scenes/boot/Boot.tscn", REPO / "client/project.godot",
+                    REPO / "client/assets/factory/energy/source-manifest.json",
+                    REPO / "client/assets/factory/energy/cell_generator.glb",
+                    REPO / "client/assets/icons/factory_industrial_cell.svg"]
     (destination / "execution-inputs.json").write_text(json.dumps({"command": command, "code_sha256": {str(path.relative_to(REPO)): digest(path) for path in sources}, "runner_sha256": digest(Path(__file__))}, indent=2) + "\n", encoding="utf-8")
     errors = []
     try:
         with (destination / "process.log").open("w", encoding="utf-8") as output:
-            result = subprocess.run(command, cwd=REPO, check=False, stdout=output, stderr=subprocess.STDOUT, timeout=1200 if args.mode == "review" else 900)
+            result = subprocess.run(command, cwd=REPO, check=False, stdout=output, stderr=subprocess.STDOUT, timeout=1800 if args.energy else 1200 if args.mode == "review" else 900)
         code = result.returncode
     except subprocess.TimeoutExpired:
         code = 124
@@ -135,7 +158,7 @@ def main():
     if code or errors:
         print(json.dumps({"exit_code": code, "errors": errors}, ensure_ascii=False), file=sys.stderr)
         return 1
-    print(f"E1 {args.mode} passed: {destination}")
+    print(f"{'E2' if args.energy else 'E1'} {args.mode} passed: {destination}")
     return 0
 
 

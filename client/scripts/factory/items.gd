@@ -3,7 +3,7 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 
 
-static var NAMES := Rules.NAMES.merged(Rules.Expansion.NAMES)
+static var NAMES := Rules.NAMES.merged(Rules.Expansion.NAMES).merged(Rules.Energy.NAMES)
 
 
 static func count(items: Dictionary) -> int:
@@ -46,6 +46,7 @@ static func contents(e: Dictionary) -> Dictionary:
 	var result := {}
 	match e.type:
 		"collector": merge(result, e.buffer)
+		"cell_generator": merge(result, e.fuel)
 		"reactor", "crusher", "refinery", "assembler":
 			for key in ["input", "output", "invested"]:
 				merge(result, e[key])

@@ -32,7 +32,8 @@ static func validate(model: RefCounted, saved_stats: Dictionary) -> Dictionary:
 		completed += n
 		if not add_scaled(produced, model.recipes[recipe_id].output, n) or not add_scaled(consumed, model.recipes[recipe_id].input, n): return failure("配方累计溢出。")
 	for type in model.assembly_counts:
-		if not add_scaled(consumed, {"construction_pack": Expansion.ASSEMBLY_COST[type]}, model.assembly_counts[type]): return failure("装配消费溢出。")
+		if not add_scaled(consumed, {"construction_pack": model.assembly_costs[type]}, model.assembly_counts[type]): return failure("装配消费溢出。")
+	if not add_scaled(consumed, model.extra_consumption(), 1): return failure("能源消费溢出。")
 	for passage in model.discovery.passages:
 		if model.discovery.passages[passage] and not add_scaled(consumed, {"crust_solvent": model.DiscoveryRules.PASSAGES[passage].cost}, 1): return failure("开路消费溢出。")
 	if completed != model.completed or generated != model.generated or model.completed_by_recipe.solvent_trial != int(model.discovery.trial_completed): return failure("生产账与累计计数或唯一试制矛盾。")

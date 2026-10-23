@@ -161,7 +161,7 @@ func _ready() -> void:
 			buttons[item + "_" + suffix].set_meta("bag_side", false)
 	device_content.add_child(actions)
 	actions.add_theme_constant_override("separation", 8)
-	for option in [["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转物流构件"], ["salvage", "回收设备与物料"]]:
+	for option in [["device_toggle", "停机 / 恢复"], ["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转物流构件"], ["salvage", "回收设备与物料"]]:
 		button(actions, option[0], option[1], func(): device_action.emit(option[0], selected))
 	for label in [summary, inventory, result_label, guide_overview]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -306,7 +306,7 @@ func refresh() -> void:
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
-	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage"]
+	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage", "cell_generator"]
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
@@ -322,7 +322,7 @@ func refresh() -> void:
 		buttons.cancel_batch.disabled = not e.processing
 	var contents := Items.contents(e) if stores_items else {}
 	for item in Items.NAMES:
-		var known: bool = item in model.item_ids and (item in Rules.Expansion.NAMES or item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed)
+		var known: bool = model.item_known(item)
 		var available: int = contents.get(item, 0) - e.get("invested", {}).get(item, 0)
 		if bag_item.is_empty() and known:
 			bag_item = item
@@ -344,6 +344,8 @@ func refresh() -> void:
 	device_summary.select_item(device_item)
 	if not device_only:
 		return
+	buttons.device_toggle.visible = model.has_method("set_device_enabled") and (Rules.POWER.has(e.type) or e.type == "cell_generator")
+	buttons.device_toggle.text = "停机 · 保留进度" if e.get("enabled", false) else "恢复运行"
 	buttons.power_toggle.visible = e.type == "power_source"
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)

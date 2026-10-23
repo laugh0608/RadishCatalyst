@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Energy := preload("res://data/factory/energy_rules.gd")
 const Rules := preload("res://data/factory/discovery_rules.gd")
 var revision := -1
 var groups: Array[Dictionary] = []
@@ -8,7 +9,7 @@ var rebuild_count := 0
 
 
 static func is_node(e: Dictionary) -> bool:
-	return e.get("type", "") in ["power_source", "power_junction"]
+	return e.get("type", "") in ["power_source", "power_junction", "cell_generator"]
 
 
 static func center(e: Dictionary) -> Vector2:
@@ -83,7 +84,7 @@ func reconnect_automatic(model: RefCounted) -> void:
 		for node in nodes:
 			if not reachability(node, e, model.discovery.passages, model.map_id).ok:
 				continue
-			var powered: bool = groups[membership[node.id]].capacity_kw > 0
+			var powered: bool = groups[membership[node.id]].nominal_kw > 0
 			var distance := center(node).distance_squared_to(center(e))
 			if best_id == 0 or (powered and not best_powered) or (powered == best_powered and distance < best_distance):
 				best_id = node.id
@@ -110,7 +111,7 @@ func rebuild(model: RefCounted) -> void:
 	for id in ids:
 		if membership.has(id):
 			continue
-		var group := {"nodes": [], "sources": [], "capacity_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0}
+		var group := {"nodes": [], "sources": [], "generators": [], "base_capacity_kw": 0.0, "nominal_kw": 0.0, "capacity_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0}
 		var pending := [id]
 		membership[id] = groups.size()
 		while not pending.is_empty():
@@ -119,12 +120,18 @@ func rebuild(model: RefCounted) -> void:
 			var e: Dictionary = model.by_id(current)
 			if e.type == "power_source" and e.enabled:
 				group.sources.append(current)
-				group.capacity_kw += Rules.SOURCE_KW
+				group.base_capacity_kw += Rules.SOURCE_KW
+				group.nominal_kw += Rules.SOURCE_KW
+			if e.type == Energy.GENERATOR and e.enabled:
+				group.generators.append(current)
+				group.nominal_kw += Energy.GENERATOR_KW
 			for neighbor in neighbors[current]:
 				if not membership.has(neighbor):
 					membership[neighbor] = groups.size()
 					pending.append(neighbor)
 		group.nodes.sort()
+		group.generators.sort()
+		group.capacity_kw = group.base_capacity_kw
 		groups.append(group)
 	revision = model.revision
 	rebuild_count += 1
@@ -132,19 +139,26 @@ func rebuild(model: RefCounted) -> void:
 
 func allocate(model: RefCounted, dt: float) -> Dictionary:
 	rebuild(model)
-	var result := {"work": {}, "devices": {}, "sources": {}, "installed_kw": 0.0,
-		"available_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0, "deficit_kw": 0.0}
+	var result := {"work": {}, "devices": {}, "sources": {}, "generators": {}, "installed_kw": 0.0,
+		"enabled_kw": 0.0, "available_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0, "deficit_kw": 0.0,
+		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0}
+	var capacities := {}
 	for group in groups:
 		group.request_kw = 0.0
 		group.supplied_kw = 0.0
+		group.capacity_kw = group.base_capacity_kw
+		for id in group.generators:
+			var e: Dictionary = model.by_id(id)
+			capacities[id] = minf(Energy.GENERATOR_KW, (e.remaining_kj + Energy.CELL_KJ * e.fuel.get(Energy.CELL, 0)) / dt)
+			group.capacity_kw += capacities[id]
+		result.available_kw += group.capacity_kw
+		result.enabled_kw += group.nominal_kw
 	for e in model.entities:
-		if e.type == "power_source":
-			result.installed_kw += Rules.SOURCE_KW
+		if e.type in ["power_source", Energy.GENERATOR]:
+			result.installed_kw += Rules.SOURCE_KW if e.type == "power_source" else Energy.GENERATOR_KW
 			result.sources[e.id] = 0.0
-			if e.enabled:
-				result.available_kw += Rules.SOURCE_KW
-		if not Rules.POWER.has(e.type):
-			continue
+			if e.type == Energy.GENERATOR: result.generators[e.id] = 0.0
+		if not Rules.POWER.has(e.type): continue
 		var spec: Dictionary = model.work_spec(e)
 		var work: float = minf(dt, maxf(0, spec.seconds - e.progress)) if spec.ready else 0.0
 		var demand: float = spec.kw * work / dt
@@ -156,16 +170,43 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		else:
 			result.deficit_kw += demand
 	for group in groups:
-		group.supplied_kw = minf(group.capacity_kw, group.request_kw)
+		var base: float = minf(group.base_capacity_kw, group.request_kw)
+		var gap: float = maxf(0, group.request_kw - base)
+		var generation := capped_equal_share(group.generators, capacities, gap)
+		var cells := 0.0
+		for id in generation:
+			result.sources[id] = generation[id]
+			result.generators[id] = generation[id]
+			cells += generation[id]
+		group.supplied_kw = base + cells
+		result.base_supplied_kw += base
+		result.cell_supplied_kw += cells
 		result.supplied_kw += group.supplied_kw
-		result.deficit_kw += maxf(0, group.request_kw - group.capacity_kw)
+		result.deficit_kw += maxf(0, group.request_kw - group.supplied_kw)
 		for id in group.sources:
-			result.sources[id] = group.supplied_kw * Rules.SOURCE_KW / group.capacity_kw
+			result.sources[id] = base * Rules.SOURCE_KW / group.base_capacity_kw
 	for id in result.devices:
 		var device: Dictionary = result.devices[id]
 		if device.network >= 0 and device.request_kw > 0:
 			var group: Dictionary = groups[device.network]
-			device.fraction = minf(1, group.capacity_kw / group.request_kw)
+			device.fraction = minf(1, group.supplied_kw / group.request_kw)
 		device.supplied_kw = device.request_kw * device.fraction
 		result.work[id] = device.work * device.fraction
+	return result
+
+
+## Water filling: small sources cap first, then redistribute the remaining gap.
+static func capped_equal_share(ids: Array, capacities: Dictionary, gap: float) -> Dictionary:
+	var pending := ids.duplicate()
+	var result := {}
+	while not pending.is_empty():
+		var share: float = gap / pending.size()
+		var limited: Array = pending.filter(func(id): return capacities[id] <= share)
+		if limited.is_empty():
+			for id in pending: result[id] = share
+			break
+		for id in limited:
+			result[id] = capacities[id]
+			gap = maxf(0, gap - capacities[id])
+			pending.erase(id)
 	return result

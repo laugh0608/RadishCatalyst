@@ -293,7 +293,7 @@ func _action(name: String, value: Variant) -> void:
 	else:
 		match name:
 			"assemble":
-				if model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+				if model.has_method("assemble"):
 					var result: Dictionary = model.assemble(hud.assembly_target.get_selected_metadata())
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
@@ -314,6 +314,11 @@ func _action(name: String, value: Variant) -> void:
 				ui.tool = ""
 				ui.power_from = ui.selected
 				hud.announce("点击目标节点 / 用电设备接线；Esc 或右键取消。")
+			"device_toggle":
+				var e := model.by_id(ui.selected)
+				if model.has_method("set_device_enabled") and not e.is_empty():
+					var result: Dictionary = model.set_device_enabled(e.id, not e.enabled)
+					hud.announce("设备已恢复运行。" if result.ok and e.enabled else "设备已停机，库存、进度与物流保留。" if result.ok else result.reason, not result.ok)
 			"power_toggle":
 				var e := model.by_id(ui.selected)
 				if e.get("type", "") == "power_source":
@@ -426,7 +431,7 @@ func _device_action(name: String, id: int) -> void:
 		discovery_panel.close_panel()
 	_action(name, null)
 	if discovery_panel.visible:
-		if name in ["power_toggle", "rotate_selected", "salvage"] and not power_dialog.visible:
+		if name in ["device_toggle", "power_toggle", "rotate_selected", "salvage"] and not power_dialog.visible:
 			discovery_panel.result_label.text = hud.notice.text
 			discovery_panel.result_label.add_theme_color_override("font_color", hud.notice.get_theme_color("font_color"))
 		discovery_panel.refresh()

@@ -27,6 +27,14 @@
 
 | 入口 | 模式与用途 |
 | --- | --- |
+| `sh tools/check-factory-energy.sh state <新 batch>` | E2 固定步：R12 / 启停 / 供电边界、自然物料 C/P/D/D+、同源开关对照、耗尽恢复、V7 与复制 / 保存故障；显式步和人物定位单列 |
+| `sh tools/check-factory-energy.sh process-read <新 batch> <state 父 batch>` | 独立进程恢复能源半程，比较完整 80 秒轨迹 |
+| `sh tools/check-factory-energy.sh menu <新 batch>` | 正式 Boot 四种入口 / 继续；带真实半批的 E1 显式复制、取消、原档字节保护与全部旧字段投影比对 |
+| `sh tools/check-factory-energy.sh background-write <新 batch>` | 正式 Boot 零物料自然完成第二炉，P 造 G，C 自举两电芯；真实主循环、碰撞行走和控件操作 |
+| `sh tools/check-factory-energy.sh background-read <新 batch> <write 父 batch>` | 独立恢复 C，P 自然制造其余构件，改建 D 并保留 R12 半批 / 实际缺口 |
+| `sh tools/check-factory-energy.sh background-complete-read/background-off <新 batch> <read 父 batch>` | 同一 D 父档分别启用 / 停用 G，比较四包新入仓；启用分支继续真实制造 D+、耗尽和停机自救，两个模式须用不同新批次 |
+| `sh tools/check-factory-energy.sh background-recovered-read <新 batch> <complete-read 父 batch>` | 独立恢复耗尽自救后的 R12 半批 / 发电余能，真实继续加工与供电 |
+| `sh tools/check-factory-energy.sh review <新 batch> <write 或 read 父 batch>` | 短窗口：自然检查点副本、近身面板与发电机模型；截图与后台结果分列 |
 | `sh tools/check-factory-expansion.sh state <新 batch>` | E1 11 配方、原子装配 / 326 总预算、主副产物、逐物料账、独立 schema 6 与真实文件故障；模型显式步。状态脚本已登记默认 Godot 检查 |
 | `sh tools/check-factory-expansion.sh process-read <新 batch> <state 父 batch>` | 炭矿半周期、混料半批、矿渣持货、制造未放置与第二炉完成，独立进程完整恢复和续跑 |
 | `sh tools/check-factory-expansion.sh menu <新 batch>` | 正式 Boot 默认基础、旧 V5 与第三个显式 E1 世界的创建 / 继续及身份隔离 |
@@ -154,4 +162,4 @@ python3 -m venv .venv-art
 
 发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。
 
-E1 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。
+E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。E2 批次根独立为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`，窗口原图在 `assets/art-intake/2026-10-23-factory-energy-e2-preview/`。`check-client` 的显式 Godot 路径包含 E2 状态检查，不因此代表自然 Boot 或窗口通过。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。

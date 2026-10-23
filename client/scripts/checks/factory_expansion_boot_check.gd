@@ -12,10 +12,11 @@ var baseline_time := 0.0
 
 
 func run() -> void:
-	evidence_topic = "factory-production-expansion-e1"
-	screenshot_topic = "2026-10-22-factory-expansion-e1-preview"
-	new_world_type = 2
-	new_world_title = "生产扩建 E1 · 自然生产"
+	if new_world_type != 3:
+		evidence_topic = "factory-production-expansion-e1"
+		screenshot_topic = "2026-10-22-factory-expansion-e1-preview"
+		new_world_type = 2
+		new_world_title = "生产扩建 E1 · 自然生产"
 	complete_read = "--complete-read" in OS.get_cmdline_user_args()
 	visual_only = "--visual-only" in OS.get_cmdline_user_args()
 	await super.run()
@@ -248,12 +249,12 @@ func _snapshot() -> Dictionary:
 func _save_checkpoint(label: String) -> void:
 	if not world.ui.paused: await native_click(world.hud.buttons.pause)
 	await native_click(world.hud.buttons.save)
-	driver.expect(not world.save_failed and Codec.decode(_snapshot(), world.store.world_id).ok, "strict E1 save succeeds " + label)
+	driver.expect(not world.save_failed and Codec.decode(_snapshot(), world.store.world_id).ok, "strict content-world save succeeds " + label)
 	write_json("expected.json", _snapshot())
 	write_json("ids.json", ids)
 	write_json("route.json", last_route.map(func(point): return [point.x, point.y]))
 	await native_click(world.hud.buttons.return)
-	driver.expect(boot.factory_world == null, "save and return releases E1 world")
+	driver.expect(boot.factory_world == null, "save and return releases content world")
 
 
 func _review() -> void:

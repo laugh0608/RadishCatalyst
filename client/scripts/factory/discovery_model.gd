@@ -182,6 +182,7 @@ func _production_entities() -> Array[Dictionary]:
 func _step(dt: float) -> void:
 	var allocation := grid.allocate(self, dt)
 	statistics.begin_step(allocation, dt)
+	_commit_power(allocation, dt)
 	time = statistics.ticks * STEP
 	for e in _production_entities():
 		var work: float = allocation.work.get(e.id, 0.0)
@@ -223,6 +224,11 @@ func _step(dt: float) -> void:
 					revision += 1
 	_logistics(dt)
 	statistics.end_step()
+
+
+## A step commit hook; allocations and UI queries remain side-effect free.
+func _commit_power(_allocation: Dictionary, _dt: float) -> void:
+	pass
 
 
 func _record_delivery(item: String) -> void:
@@ -472,3 +478,7 @@ func _batch_started(_e: Dictionary) -> void:
 
 func _batch_completed(_e: Dictionary) -> void:
 	pass
+
+
+func item_known(item: String) -> bool:
+	return item in item_ids and (item in ["crystal", "catalyst"] or (item == "crust_sample" and discovery.sample_taken) or (item in ["crust_solvent", "rich_crystal"] and discovery.trial_completed))

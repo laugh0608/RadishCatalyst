@@ -5,14 +5,7 @@ const Items := preload("res://scripts/factory/items.gd")
 
 
 static func known_items(model: RefCounted) -> Array:
-	var result := ["crystal", "catalyst"]
-	if model.supply_id == Rules.Expansion.SUPPLY_ID:
-		result.append_array(Rules.Expansion.NAMES.keys())
-	if model.discovery.sample_taken:
-		result.append("crust_sample")
-	if model.discovery.trial_completed:
-		result.append_array(["crust_solvent", "rich_crystal"])
-	return result
+	return model.item_ids.filter(func(item): return model.item_known(item))
 
 
 static func materials(model: RefCounted, seconds: int) -> Dictionary:
@@ -43,6 +36,9 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 						produces[item] = recipe.output[item] * 60.0 / recipe.seconds
 					for item in recipe.input:
 						consumes[item] = recipe.input[item] * 60.0 / recipe.seconds
+			"cell_generator":
+				locations.buffer = e.fuel
+				consumes["industrial_cell"] = 1.0
 			"storage": locations.storage = e.items
 			"belt", "splitter", "merger", "admission_gate": locations.transit = {e.cargo: 1} if not e.cargo.is_empty() else {}
 		for item in rows:

@@ -1,10 +1,12 @@
 # Factory World State And Save V1
 
-更新时间：2026-10-17
+更新时间：2026-10-23
 
 状态：已确认并接入正式工程；单调活动时钟和失败退出层级已修正，原生保存返回 / 重进、系统关闭保存及独立 Boot 恢复、后台稳定性已有证据，本机四档前台持续性能于 9 月 25 日通过，同日界面补证完成，萝卜SAMA亲测反馈无明显问题，开发机交付收口；Windows / 目标硬件仍待验。新建勘探工厂的 D2-A / D2-B 分支已接入，共同字段见[联合 schema 2 合同](factory-discovery-save-v2.md)，自动电网见 [V3](factory-discovery-save-v3.md)，物流共同调度见 [V4](factory-routing-save-v4.md)，当前新勘探世界与准入配额见 [V5](factory-admission-save-v5.md)；本文的 schema 1 合同保留，不迁移已有世界。
 
 ## 用途与适用范围
+
+生产内容世界使用独立 [E1 schema 6](../features/factory-production-expansion-e1.md) 和 [E2 schema 7](factory-energy-save-v7.md)。E2 增加第四个新建入口，以及保留原档的 E1→E2 显式复制；这是新增的限定复制事务，不改变本文首包 schema 1 的原规则。
 
 10 月 17 日新增的[工程规模身份](factory-engineering-scale-v1.md)复用 schema 5，固定工程地图 / 供给并由隔离检查入口启用；默认菜单仍创建普通世界。工程与普通 V5 的严格身份分派、Store 上下文及备份隔离见 [V5 增量](factory-admission-save-v5.md#工程身份增量)，不把工程规模上界推广到本篇 schema 1 或普通 V5。
 

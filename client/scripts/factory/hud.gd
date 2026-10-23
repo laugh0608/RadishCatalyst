@@ -340,17 +340,20 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
-	assembly_row.visible = ui.build and model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID
+	assembly_row.visible = ui.build and model.has_method("assemble")
 	if assembly_row.visible:
+		_sync_assembly(model)
 		var type: String = assembly_target.get_selected_metadata()
-		var cost: int = Model.DiscoveryRules.Expansion.ASSEMBLY_COST[type]
+		var cost: int = model.assembly_costs[type]
 		var quantity: int = Model.DiscoveryRules.Expansion.yield_for(type)
 		var remaining: int = Model.DiscoveryRules.Expansion.MAX_OWNED - model.owned_count()
 		assembly_info.text = "%d 包 → %d 件 · 背包 %d 包 · 总额 %d/326（已放 %d / 库存 %d）" % [cost, quantity, model.bag.get("construction_pack", 0), model.owned_count(), model.entities.size(), Items.count(model.kits)]
 		buttons.assemble.disabled = model.bag.get("construction_pack", 0) < cost or remaining < quantity
 		buttons.assemble.tooltip_text = "还缺 %d 包、%d 个预算空位；只从背包扣包，整批发放。" % [maxi(0, cost - model.bag.get("construction_pack", 0)), maxi(0, quantity - remaining)]
-	if model.supply_id == Model.DiscoveryRules.Expansion.SUPPLY_ID:
+	if model.has_method("assemble"):
 		totals.text = "构件包已产 %d · 第二炉%s  %02d:%02d" % [model.completed_by_recipe.construction_assembly, "已落位" if model.first_expansion_placed else "待扩建", int(model.time) / 60, int(model.time) % 60]
+	if model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
+		totals.text = "电芯已产 %d · 已激活 %d · 构件包 %d  %02d:%02d" % [model.completed_by_recipe.cell_assembly, model.statistics.totals.cells_activated, model.completed_by_recipe.construction_assembly, int(model.time) / 60, int(model.time) % 60]
 	placement_row.visible = not ui.tool.is_empty()
 	connection_preview.hide()
 	connection_preview_slot.hide()
@@ -358,7 +361,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
 	for type in Model.CATALOG.keys():
-		buttons[type].visible = model.kits.has(type)
+		buttons[type].visible = model.kits.has(type) and (type != "cell_generator" or model.first_expansion_placed)
 		if not model.kits.has(type):
 			continue
 		buttons[type].text = "%s  %d" % [Model.CATALOG[type].name, model.kits[type]]
@@ -424,3 +427,16 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	buttons.guide_action.visible = powered and ui.mission
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"
+
+
+func _sync_assembly(model: RefCounted) -> void:
+	var types: Array = model.assembly_costs.keys().filter(func(type): return type != "cell_generator" or model.first_expansion_placed)
+	var previous: Variant = assembly_target.get_selected_metadata() if assembly_target.item_count > 0 else null
+	var current: Array = []
+	for i in assembly_target.item_count: current.append(assembly_target.get_item_metadata(i))
+	if current == types: return
+	assembly_target.clear()
+	for type in types:
+		assembly_target.add_item("装配：" + Model.CATALOG[type].name)
+		assembly_target.set_item_metadata(assembly_target.item_count - 1, type)
+		if type == previous: assembly_target.select(assembly_target.item_count - 1)

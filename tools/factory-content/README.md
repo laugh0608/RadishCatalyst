@@ -47,3 +47,8 @@
 ## E1 加工与矿源资产
 
 `node tools/factory-content/export-expansion-assets.mjs` 使用同一既有离线 Three.js，导出粉碎机、精炼炉、组装机及铁 / 炭矿源五个自有 GLB 到 `client/assets/factory/expansion/`，并生成八个 `client/assets/icons/factory_*.svg`。manifest 记录脚本 / 共用源文件与每个产物 SHA-256、包围盒和网格数。新设备足印分别 2×2、2×3、3×2，正式 E1 以导入 Node3D 资产呈现；不下载素材或依赖，不替换旧世界资产。端口预览与物流读取同一数据定义；自然工艺及窗口验证由 `check-factory-expansion.sh` 承担，导出不代表玩法验收。
+
+
+## E2 能源资产
+
+`node tools/factory-content/export-energy-assets.mjs` 继续使用仓库已有 Three.js 与自有材质，导出 `client/assets/factory/energy/cell_generator.glb` 和 `client/assets/icons/factory_industrial_cell.svg`。G 为 2×2 固定西输入、青绿底座与金色散热环，7 网格 / 1,305 三角形；包围盒不越足印，地面 Y=0。manifest 记录源码、已有 Three.js 版本文件与产物 SHA-256。正式 E2 只载入导入 GLB，图标与原物料格一致；工具不进入运行时、不安装依赖，状态 / 自然用途与窗口证据由 `check-factory-energy.sh` 另验。

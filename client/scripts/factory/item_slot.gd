@@ -4,6 +4,7 @@ extends Button
 const Items := preload("res://scripts/factory/items.gd")
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const TEXTURES := {
+	"industrial_cell": preload("res://assets/icons/factory_industrial_cell.svg"),
 	"iron_ore": preload("res://assets/icons/factory_iron_ore.svg"),
 	"carbon_ore": preload("res://assets/icons/factory_carbon_ore.svg"),
 	"iron_powder": preload("res://assets/icons/factory_iron_powder.svg"),
@@ -19,7 +20,7 @@ const TEXTURES := {
 	"crust_solvent": preload("res://assets/icons/factory_crust_solvent.svg"),
 	"rich_crystal": preload("res://assets/icons/factory_rich_crystal.svg"),
 }
-const ACCENTS := {"iron_ore": "b77b57", "carbon_ore": "87909c", "iron_powder": "d39b79", "carbon_powder": "a1abb4", "metal_plate": "a5cfda", "mineral_slag": "a9ae88", "porous_carrier": "d8c999", "construction_pack": "7cd7c6", "crystal": "7cd7c6", "catalyst": "edc97e", "crust_sample": "bed4b3", "crust_solvent": "eba960", "rich_crystal": "bda0df"}
+const ACCENTS := {"industrial_cell": "edc97e", "iron_ore": "b77b57", "carbon_ore": "87909c", "iron_powder": "d39b79", "carbon_powder": "a1abb4", "metal_plate": "a5cfda", "mineral_slag": "a9ae88", "porous_carrier": "d8c999", "construction_pack": "7cd7c6", "crystal": "7cd7c6", "catalyst": "edc97e", "crust_sample": "bed4b3", "crust_solvent": "eba960", "rich_crystal": "bda0df"}
 var item_id := ""
 var amount := 0
 var artwork := TextureRect.new()
