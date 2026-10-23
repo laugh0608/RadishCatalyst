@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-10-22
+更新时间：2026-10-23
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-**当前主线：[Factory Production Expansion V1](factory-production-expansion-v1.md)。** 物品、设备、配方与用途方案分材料扩建、能源、开拓三批；E1 已实现待试玩。参考见[终末地产线研究](../reference/endfield-production-planning-study.md)。原 D4 保留但非前置，顺位见 [Current Plan](../planning/current.md)。
+**当前主线：[Factory Production Expansion V1](factory-production-expansion-v1.md)。** 分材料扩建、能源、开拓三批；E1 已实现，[E2 合同](factory-production-expansion-e2.md)待确认后实施。原 D4 保留但非前置，顺位见 [Current Plan](../planning/current.md)。
 
 [E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)已实现并通过定向验证，待试玩。
 
