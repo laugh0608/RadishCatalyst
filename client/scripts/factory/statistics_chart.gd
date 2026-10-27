@@ -3,7 +3,7 @@ extends Control
 var points: Array = []
 var power := false
 var peak := 1.0
-const COLORS := [Color("79d7c5"), Color("edc575"), Color("a9b8d7"), Color("ef947e")]
+const COLORS := [Color("79d7c5"), Color("edc575"), Color("a9b8d7"), Color("ef947e"), Color("c7a5e8")]
 
 
 func _ready() -> void:
@@ -18,9 +18,14 @@ func show_points(value: Array, electricity := false) -> void:
 	power = electricity
 	peak = 1.0
 	for point in points:
-		for key in (["a", "b", "c", "d"] if power else ["a", "b"]):
+		for key in series_keys():
 			peak = maxf(peak, point[key] / point.seconds * (1.0 if power else 60.0))
 	queue_redraw()
+
+
+func series_keys() -> Array:
+	if not power: return ["a", "b"]
+	return ["a", "b", "c", "d", "e"] if not points.is_empty() and points[0].has("e") else ["a", "b", "c", "d"]
 
 
 func _draw() -> void:
@@ -32,7 +37,7 @@ func _draw() -> void:
 	if points.is_empty():
 		draw_string(font, Vector2(12, 50), "暂无完整秒样本", HORIZONTAL_ALIGNMENT_LEFT, -1, 14)
 		return
-	var keys := ["a", "b", "c", "d"] if power else ["a", "b"]
+	var keys := series_keys()
 	for k in keys.size():
 		var previous := Vector2.ZERO
 		for i in points.size():
@@ -58,5 +63,6 @@ func _gui_input(event: InputEvent) -> void:
 	var p: Dictionary = points[index]
 	if power:
 		tooltip_text = "(%.0f, %.0f] 秒\n供用电 %.2f kJ / 均值 %.2f kW\n请求 %.2f kJ / 均值 %.2f kW\n装机均值 %.2f kW · 缺口均值 %.2f kW" % [p.start, p.start + p.seconds, p.a, p.a / p.seconds, p.b, p.b / p.seconds, p.c / p.seconds, p.d / p.seconds]
+		if p.has("e"): tooltip_text += "\n其中待机 %.2f kJ / 均值 %.2f kW；运行 %.2f kJ" % [p.e, p.e / p.seconds, p.a - p.e]
 	else:
 		tooltip_text = "(%.0f, %.0f] 秒\n生产 %d 件 / %.1f 件每分\n消耗 %d 件 / %.1f 件每分" % [p.start, p.start + p.seconds, p.a, p.a * 60 / p.seconds, p.b, p.b * 60 / p.seconds]

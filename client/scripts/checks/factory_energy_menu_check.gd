@@ -38,7 +38,7 @@ func run() -> void:
 		expect(world != null and world.initialized, "formal menu creation " + str(option))
 		if world == null: break
 		var doc: Dictionary = Store.Codec.snapshot(world.model, world.store.world_id, world.store.world_name, world.store.sequence)
-		expect(doc.save_schema_version == [1, 5, 6, 7][option], "world uses selected schema " + str(option))
+		expect(doc.save_schema_version == [1, 5, 6, 8][option], "world uses selected schema " + str(option))
 		if option == 2:
 			expect(doc.ruleset_id == Store.Codec.V6.Expansion.RULESET_ID and doc.map_id == Store.Codec.V6.Expansion.MAP_ID and world.model.owned_count() == 165 and world.model.bag.is_empty(), "E1 exact identity and ordinary zero-material supply")
 		elif option == 1:
@@ -82,11 +82,11 @@ func run() -> void:
 	expect(boot.factory_world == null and menu.catalog.list_worlds().size() == 4 and FileAccess.get_file_as_bytes(source_file) == original, "cancel copy changes neither world nor source")
 	menu.upgrade_button.pressed.emit(); menu.upgrade_dialog.hide(); menu.upgrade_dialog.confirmed.emit()
 	var copied: Control = boot.factory_world
-	expect(copied != null and copied.initialized, "formal explicit copy enters E2")
+	expect(copied != null and copied.initialized, "formal explicit copy enters E2: " + menu.notice.text)
 	if copied != null:
 		copied.ui.paused = true
 		var result: Dictionary = Store.Codec.snapshot(copied.model, copied.store.world_id, copied.store.world_name, copied.store.sequence)
-		expect(result.save_schema_version == 7 and result.world_id != source_id and result.sequence == 1, "copy creates independent V7 identity")
+		expect(result.save_schema_version == 8 and result.world_id != source_id and result.sequence == 1, "copy creates independent V8 identity")
 		expect(FileAccess.get_file_as_bytes(source_file) == original, "copy never rewrites original E1 bytes")
 		var projected: Dictionary = result.state.duplicate(true)
 		projected.erase("energy_origin"); projected.kits.erase("cell_generator")
@@ -94,7 +94,7 @@ func run() -> void:
 		for entity in projected.entities:
 			if Store.Codec.V2.Config.POWER.has(entity.type): entity.erase("enabled")
 		for record in [projected.statistics.totals, projected.statistics.current] + projected.statistics.buckets:
-			for field in ["enabled_kj", "base_supplied_kj", "cell_supplied_kj", "discarded_kj", "cells_activated"]: record.erase(field)
+			for field in ["enabled_kj", "base_supplied_kj", "cell_supplied_kj", "discarded_kj", "cells_activated", "standby_kj"]: record.erase(field)
 		expect(preload("res://scripts/checks/factory_expansion_compare.gd").equivalent(projected, source.state), "copy preserves every existing E1 authoritative field including active batch and statistics")
 		expect(copied.model.energy_origin.source_sha256 == FileAccess.get_sha256(source_file) and copied.model.energy_origin.source_sequence == source.sequence, "copy records exact selected source")
 		var count: int = copied.model.completed_by_recipe.direct_refining
@@ -106,12 +106,59 @@ func run() -> void:
 		copied._action("return", null)
 		await process_frame
 		expect(menu.catalog.list_worlds().size() == 5 and FileAccess.get_file_as_bytes(source_file) == original, "saved E2 and unchanged E1 coexist")
+	await _legacy_menu(boot)
 	boot.free()
 	var file := FileAccess.open(evidence.path_join("menu-result.json"), FileAccess.WRITE)
-	file.store_string(JSON.stringify({"assertions": checks, "failures": failures, "input": "formal Boot with menu/button/list signals; isolated foundation/V5/E1/E2 creation and continue; explicit E1 copy/cancel; source partial batch produced with fixed steps and actor repositioning as declared state fixture; copied partial batch continues under actual Boot clock; no full natural origin or screenshots claim"}, "\t"))
+	file.store_string(JSON.stringify({"assertions": checks, "failures": failures, "input": "formal Boot with menu/button/list signals; isolated foundation/V5/E1/V8 creation and continue; explicit E1 and V7 copy/cancel; V7 original continues unchanged rules; source partial batch produced with fixed steps and actor repositioning as declared state fixture; copied partial batch continues under actual Boot clock; no full natural origin or screenshots claim"}, "\t"))
 	file.close()
 	print("E2 menu: %d assertions, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+
+func _legacy_menu(boot: Node) -> void:
+	# Valid isolated old-rule fixture, not a user's save or natural-run evidence.
+	var id := "77777777777777777777777777777777"
+	var old := Store.Codec.V7.EnergyModel.new()
+	_seed_natural_partial(old)
+	var directory: String = boot.factory_save_root.path_join(id)
+	DirAccess.make_dir_recursive_absolute(directory)
+	var file := FileAccess.open(directory.path_join("autosave.json"), FileAccess.WRITE)
+	file.store_string(JSON.stringify(Store.Codec.snapshot(old, id, "旧 E2 菜单回归", 1), "\t", false, true))
+	file.close()
+	var menu: Control = boot.factory_menu
+	menu.refresh()
+	var index: int = menu.worlds.find_custom(func(entry): return entry.id == id)
+	expect(index >= 0, "old E2 source appears in menu")
+	if index < 0: return
+	menu.list.select(index); menu.list.item_selected.emit(index)
+	expect("旧规则" in menu.worlds[index].name and menu.upgrade_button.text == "复制为待机耗电新版", "V7 is clearly labeled and explicitly copyable")
+	menu.continue_button.pressed.emit()
+	var world: Control = boot.factory_world
+	expect(world != null and not world.model.standby_power, "continue original V7 does not enable standby")
+	if world == null: return
+	world.ui.paused = true
+	expect(not world.model.statistics.totals.has("standby_kj"), "V7 original statistics retain exact legacy fields")
+	world._action("return", null)
+	await process_frame
+	var source_file: String = directory.path_join("autosave.json")
+	var original := FileAccess.get_file_as_bytes(source_file)
+	menu = boot.factory_menu
+	index = menu.worlds.find_custom(func(entry): return entry.id == id)
+	menu.list.select(index); menu.list.item_selected.emit(index)
+	var count: int = menu.worlds.size()
+	menu.upgrade_button.pressed.emit()
+	expect(menu.upgrade_dialog.visible and "原 E2 保留" in menu.upgrade_dialog.dialog_text and "旧历史不追扣" in menu.upgrade_dialog.dialog_text, "V7 copy dialog explains policy and original retention")
+	menu.upgrade_dialog.canceled.emit(); menu.upgrade_dialog.hide()
+	expect(menu.catalog.list_worlds().size() == count and FileAccess.get_file_as_bytes(source_file) == original, "cancel V7 copy preserves world count and source")
+	menu.upgrade_button.pressed.emit(); menu.upgrade_dialog.hide(); menu.upgrade_dialog.confirmed.emit()
+	world = boot.factory_world
+	expect(world != null and world.initialized and world.model.standby_power, "formal V7 copy enters standby world: " + menu.notice.text)
+	if world == null: return
+	world.ui.paused = true
+	expect(world.store.world_id != id and world.model.statistics.totals.standby_kj == 0, "V7 copy gets new identity without historical idle charges")
+	world._action("return", null)
+	await process_frame
+	expect(menu.catalog.list_worlds().size() == count + 1 and FileAccess.get_file_as_bytes(source_file) == original, "saved V8 copy coexists with byte-identical V7 source")
 
 
 func _seed_natural_partial(model: RefCounted) -> void:

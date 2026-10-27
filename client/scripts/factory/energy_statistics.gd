@@ -3,20 +3,28 @@ extends "res://scripts/factory/statistics.gd"
 const Energy := preload("res://data/factory/energy_rules.gd")
 
 
-func _init() -> void:
+var standby_power := false
+
+
+func _init(with_standby := false) -> void:
+	standby_power = with_standby
 	totals = new_record()
 	current = new_bucket(0)
 
 
 func new_record() -> Dictionary:
 	var result := record()
-	for key in Energy.EXTRA_ENERGY: result[key] = 0.0
+	for key in extra_energy_keys(): result[key] = 0.0
 	for key in Energy.EXTRA_COUNTS: result[key] = 0
 	return result
 
 
 func energy_keys() -> Array:
-	return ENERGY + Energy.EXTRA_ENERGY
+	return ENERGY + extra_energy_keys()
+
+
+func extra_energy_keys() -> Array:
+	return Energy.EXTRA_ENERGY + (["standby_kj"] if standby_power else [])
 
 
 func count_keys() -> Array:
@@ -29,6 +37,11 @@ func begin_step(power: Dictionary, dt: float) -> void:
 		var value: float = power[pair[1]] * dt
 		current[pair[0]] += value
 		totals[pair[0]] += value
+
+	if standby_power:
+		var spent: float = power.standby_supplied_kw * dt
+		current.standby_kj += spent
+		totals.standby_kj += spent
 
 
 func fuel_event(key: String, value: Variant) -> void:

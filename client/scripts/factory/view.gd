@@ -24,6 +24,8 @@ var limbs: Array[Node3D] = []
 var grid := Node3D.new()
 var ghost := Node3D.new()
 var selection := Node3D.new()
+var focus_highlight := preload("res://scripts/factory/focus_highlight.gd").new()
+var logical_pixel_scale := 1.0
 var port_hints := Node3D.new()
 var port_key := ""
 var build_model := Node3D.new()
@@ -315,6 +317,7 @@ func clear_node(node: Node) -> void:
 
 
 func invalidate() -> void:
+	focus_highlight.clear()
 	for v in models.values():
 		remove_child(v.root)
 		v.root.queue_free()
@@ -338,6 +341,7 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 	if e.type == "belt":
 		var belt: Node3D = assets["belt-%d" % mask].instantiate()
 		root.add_child(belt)
+		result.focus_parts = belt.find_children("*", "MeshInstance3D", true, false)
 		belt.rotation.y = -e.dir * PI / 2
 		var cargo: Node3D = assets.cargo.instantiate()
 		root.add_child(cargo)
@@ -346,6 +350,7 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 	else:
 		var asset: Node3D = assets[e.type].instantiate()
 		root.add_child(asset)
+		result.focus_parts = asset.find_children("*", "MeshInstance3D", true, false)
 		if e.type in ["splitter", "merger", "admission_gate"]:
 			asset.rotation.y = -e.dir * PI / 2
 			var cargo: Node3D = assets.cargo.instantiate()
@@ -397,14 +402,18 @@ func _rebuild(model: RefCounted) -> void:
 	last_revision = model.revision
 
 
-func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
-	if world_model != model:
-		invalidate()
-	world_model = model
+func follow_actor(actor: Dictionary) -> void:
 	var follow: Vector3 = inspection_target if inspection_target != null else Vector3(actor.x, 0.25, actor.z - 4.0)
 	if target.distance_squared_to(follow) > 0.0001:
 		target = follow
 		sync_camera()
+
+
+func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
+	if world_model != model:
+		invalidate()
+	world_model = model
+	follow_actor(actor)
 	if last_revision != model.revision:
 		_rebuild(model)
 	engineer.position = Vector3(actor.x, 0, actor.z)
@@ -439,6 +448,8 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 			if ui.tool == "belt":
 				arrow(ghost, ui.cell, ui.dir, mat)
 	var selected_id: int = ui.get("focus_device", -1) if ui.get("focus_device", -1) != -1 else ui.selected
+	var focus_id: int = ui.get("panel_device", -1) if ui.get("blocked", false) else ui.get("focus_device", -1)
+	focus_highlight.sync(models.get(focus_id, {}), logical_pixel_scale)
 	var next_selection := str([selected_id, model.revision])
 	if next_selection != selection_key:
 		clear_node(selection)

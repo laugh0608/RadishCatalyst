@@ -83,7 +83,7 @@ func list_worlds() -> Array[Dictionary]:
 			entry.sequence = int(candidate.document.sequence)
 			entry.hash = candidate.hash
 			entry.title = candidate.document.name
-			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 能源循环 E2" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 能源循环 E2 · 待机耗电" if entry.schema == 8 else " · 能源循环 E2（旧规则）" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -341,7 +341,7 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	loaded = true
 	var model: RefCounted
 	if supply == Codec.V7.Energy.SUPPLY_ID:
-		model = Codec.V7.EnergyModel.new()
+		model = Codec.V7.EnergyModel.new(true)
 	elif supply == Codec.V6.Expansion.SUPPLY_ID:
 		model = Codec.V6.ExpansionModel.new()
 	elif supply == Engineering.SUPPLY_ID:
@@ -382,7 +382,7 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 		return _error("主档被外部修改，停止覆盖；当前进度仍在内存。")
 	var document := Codec.snapshot(model, world_id, world_name, sequence + 1)
 	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID] or session_identity[3] in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]) and _identity(document) != session_identity:
-		return Codec.failure("不能转换普通、工程与内容世界身份；E1 到 E2 须显式复制。", true)
+		return Codec.failure("不能转换普通、工程与内容世界身份；E1 到 E2、旧 E2 到待机新版均须显式复制。", true)
 	var valid := Codec.decode(document, world_id)
 	if _fail("validation") or not valid.ok:
 		return _error("保存校验失败：" + valid.get("reason", "校验故障"))
@@ -439,7 +439,7 @@ func _backup_main() -> Dictionary:
 func copy_energy(id: String, expected_sequence: int, expected_hash: String, title: String) -> Dictionary:
 	if not token.is_empty(): return _error("当前已有写入会话，不能创建能源副本。")
 	if not Codec.valid_id(id) or expected_sequence < 1 or expected_hash.length() != 64:
-		return _error("请选择有效 E1 快照后复制。")
+		return _error("请选择有效 E1 或旧 E2 快照后复制。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
 	return _creation_transaction(func(): return EnergyCopy.create(self, id, expected_sequence, expected_hash, title.strip_edges()))

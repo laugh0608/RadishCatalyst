@@ -141,7 +141,7 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 	rebuild(model)
 	var result := {"work": {}, "devices": {}, "sources": {}, "generators": {}, "installed_kw": 0.0,
 		"enabled_kw": 0.0, "available_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0, "deficit_kw": 0.0,
-		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0}
+		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0, "standby_supplied_kw": 0.0}
 	var capacities := {}
 	for group in groups:
 		group.request_kw = 0.0
@@ -161,9 +161,11 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		if not Rules.POWER.has(e.type): continue
 		var spec: Dictionary = model.work_spec(e)
 		var work: float = minf(dt, maxf(0, spec.seconds - e.progress)) if spec.ready else 0.0
-		var demand: float = spec.kw * work / dt
+		var standby: float = spec.standby_kw * (dt - work) / dt
+		var demand: float = spec.kw * work / dt + standby
 		var network: int = membership.get(e.power_node_id, -1)
-		result.devices[e.id] = {"request_kw": demand, "supplied_kw": 0.0, "fraction": 0.0, "network": network, "work": work}
+		result.devices[e.id] = {"request_kw": demand, "supplied_kw": 0.0, "fraction": 0.0, "network": network, "work": work,
+			"running_kw": spec.kw, "standby_kw": spec.standby_kw, "standby_request_kw": standby, "standby_supplied_kw": 0.0}
 		result.request_kw += demand
 		if network >= 0:
 			groups[network].request_kw += demand
@@ -191,6 +193,8 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 			var group: Dictionary = groups[device.network]
 			device.fraction = minf(1, group.supplied_kw / group.request_kw)
 		device.supplied_kw = device.request_kw * device.fraction
+		device.standby_supplied_kw = device.standby_request_kw * device.fraction
+		result.standby_supplied_kw += device.standby_supplied_kw
 		result.work[id] = device.work * device.fraction
 	return result
 

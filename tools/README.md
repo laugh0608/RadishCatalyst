@@ -27,6 +27,11 @@
 
 | 入口 | 模式与用途 |
 | --- | --- |
+| `sh tools/check-factory-energy-feedback.sh state <新 batch>` | V8 固定步运行 / 待机 / 尾步欠供、严格能量账、V7 显式复制；原 V7 状态回归仍用 `check-factory-energy` |
+| `sh tools/check-factory-energy-feedback.sh process-read <新 batch> <state 父 batch>` | 独立进程比较完整 80 秒运行 / 待机账轨迹 |
+| `sh tools/check-factory-energy-feedback.sh menu <新 batch>` | 正式菜单新建 V8；原 V7 继续，E1 / V7 复制与取消、源档保护 |
+| `sh tools/check-factory-energy-feedback.sh review <新 batch> <父 batch> [--legacy-source]` | V8 正式窗口的物品图标、密集设备描边、鼠标 / F / Tab、启停及统计；`feedback` 为无窗口同路径 |
+| `sh tools/check-factory-energy-feedback.sh background-write/background-read/background-complete-read/background-off/background-recovered-read <新 batch> [父 batch] [--legacy-source]` | 新版自然 C 自举、D 对照 / D+ 耗尽自救与独立接续，模式含义同下列 E2 表；跨旧 E2 根读取仅显式使用 `--legacy-source`，复制后保留原档 |
 | `sh tools/check-factory-energy.sh state <新 batch>` | E2 固定步：R12 / 启停 / 供电边界、自然物料 C/P/D/D+、同源开关对照、耗尽恢复、V7 与复制 / 保存故障；显式步和人物定位单列 |
 | `sh tools/check-factory-energy.sh process-read <新 batch> <state 父 batch>` | 独立进程恢复能源半程，比较完整 80 秒轨迹 |
 | `sh tools/check-factory-energy.sh menu <新 batch>` | 正式 Boot 四种入口 / 继续；带真实半批的 E1 显式复制、取消、原档字节保护与全部旧字段投影比对 |
@@ -162,4 +167,4 @@ python3 -m venv .venv-art
 
 发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。
 
-E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。E2 批次根独立为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`，窗口原图在 `assets/art-intake/2026-10-23-factory-energy-e2-preview/`。`check-client` 的显式 Godot 路径包含 E2 状态检查，不因此代表自然 Boot 或窗口通过。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。
+E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。V8 使用 `check-factory-energy-feedback.sh` / `.ps1`（PowerShell 的 `-LegacySource` 对应 `--legacy-source`），批次根为 `tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1/`，截图根为 `assets/art-intake/2026-10-27-factory-energy-feedback-preview/`。旧 runner 的新建入口随产品创建 V8，旧 V7 状态测试仍保留原规则；需要新版完整反馈证据时使用新 runner。原 E2 批次根独立为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`，窗口原图在 `assets/art-intake/2026-10-23-factory-energy-e2-preview/`。`check-client` 的显式 Godot 路径包含 E2 状态检查，不因此代表自然 Boot 或窗口通过。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。

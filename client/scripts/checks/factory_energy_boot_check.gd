@@ -8,8 +8,8 @@ var recovered_read := false
 
 
 func run() -> void:
-	evidence_topic = "factory-production-expansion-e2"
-	screenshot_topic = "2026-10-23-factory-energy-e2-preview"
+	evidence_topic = "factory-energy-and-focus-feedback-v1" if "--standby-feedback" in OS.get_cmdline_user_args() else "factory-production-expansion-e2"
+	screenshot_topic = "2026-10-27-factory-energy-feedback-preview" if "--standby-feedback" in OS.get_cmdline_user_args() else "2026-10-23-factory-energy-e2-preview"
 	new_world_type = 3
 	new_world_title = "能源循环 E2 · 自然生产"
 	generator_off = "--generator-off" in OS.get_cmdline_user_args()
@@ -250,7 +250,7 @@ func _complete_energy() -> void:
 	comparison.wall_seconds = (Time.get_ticks_usec() - wall_start) / 1000000.0
 	comparison.merge(observed)
 	comparison.energy_delta = {}
-	for field in ["requested_kj", "supplied_kj", "used_kj", "deficit_kj", "base_supplied_kj", "cell_supplied_kj"]:
+	for field in ["requested_kj", "supplied_kj", "used_kj", "deficit_kj", "base_supplied_kj", "cell_supplied_kj"] + (["standby_kj"] if initial_energy.has("standby_kj") else []):
 		comparison.energy_delta[field] = world.model.statistics.totals[field] - initial_energy[field]
 	write_json("comparison.json", comparison)
 	write_json("comparison-end.json", _snapshot())

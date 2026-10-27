@@ -28,6 +28,7 @@ func _run() -> void:
 	viewport.size = Vector2i(1920, 1080)
 	root.add_child(viewport)
 	view = View.new()
+	view.world_model = model
 	viewport.add_child(view)
 	view.draw(model, model.actor, ui)
 	expect(view.models.size() == 1100, "all engineering entities have views")

@@ -283,9 +283,9 @@ func recipe_available(id: String) -> bool:
 
 func work_spec(e: Dictionary) -> Dictionary:
 	if e.type == "collector":
-		return {"ready": Items.count(e.buffer) < 50, "seconds": collector_cycle(e), "kw": 20.0}
+		return {"ready": Items.count(e.buffer) < 50, "seconds": collector_cycle(e), "kw": 20.0, "standby_kw": 0.0}
 	var recipe: Dictionary = recipes[e.recipe_id]
-	return {"ready": e.processing or (recipe_available(e.recipe_id) and e.output.is_empty() and Items.contains(e.input, recipe.input)), "seconds": recipe.seconds, "kw": recipe.kw}
+	return {"ready": e.processing or (recipe_available(e.recipe_id) and e.output.is_empty() and Items.contains(e.input, recipe.input)), "seconds": recipe.seconds, "kw": recipe.kw, "standby_kw": 0.0}
 
 
 func near_entity(e: Dictionary) -> bool:

@@ -27,11 +27,12 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def batch_path(name):
+def batch_path(name, root=None):
+    root = RUNS if root is None else root
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", name):
         raise ValueError("Use a safe, explicit batch name.")
-    path = RUNS / name
-    if path.is_symlink() or not path.resolve().is_relative_to(RUNS.resolve()):
+    path = root / name
+    if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
         raise ValueError("Batch must stay inside E1 runtime intake.")
     return path
 
@@ -55,6 +56,8 @@ def succeeded(root, report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--energy", action="store_true", help="Run the E2 energy contract in its separate evidence root.")
+    parser.add_argument("--standby", action="store_true", help="E2 v2 standby and focus feedback checks.")
+    parser.add_argument("--legacy-source", action="store_true", help="Copy a successful V7 parent from the original E2 evidence root.")
     parser.add_argument("mode", choices=MODES)
     parser.add_argument("batch")
     parser.add_argument("source", nargs="?")
@@ -62,8 +65,13 @@ def main():
     global RUNS
     if args.energy:
         RUNS = REPO / "tools/runtime-intake/check-runs/factory-production-expansion-e2"
-        if args.mode in ("feedback", "feedback-window"):
+        if args.mode in ("feedback", "feedback-window") and not args.standby:
             raise ValueError("E2 has dedicated review; E1 feedback modes are not applicable.")
+    if args.standby:
+        if not args.energy: raise ValueError("Standby checks require --energy.")
+        RUNS = REPO / "tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1"
+    if args.legacy_source and (not args.standby or not args.source):
+        raise ValueError("Legacy input requires a standby check and an explicit source batch.")
     destination = batch_path(args.batch)
     if destination.exists():
         raise ValueError("Always use a new batch; failed evidence is retained.")
@@ -72,7 +80,8 @@ def main():
         raise ValueError("Recovery/review modes require one parent; new checks take no parent.")
     if args.mode in ("background-off", "background-recovered-read") and not args.energy:
         raise ValueError("Additional energy continuation modes are only available for E2.")
-    source = batch_path(args.source) if args.source else None
+    source_root = REPO / "tools/runtime-intake/check-runs/factory-production-expansion-e2" if args.legacy_source else RUNS
+    source = batch_path(args.source, source_root) if args.source else None
     before = None
     if source:
         parent_report = "state-result.json" if args.mode == "process-read" else "write-result.json" if args.mode == "background-read" else "read-result.json"
@@ -110,6 +119,8 @@ def main():
     if args.mode in ("feedback", "feedback-window"): script = "factory_feedback_boot_check.gd"
     if args.energy:
         script = "factory_energy_check.gd" if state else "factory_energy_menu_check.gd" if args.mode == "menu" else "factory_energy_boot_check.gd"
+    if args.standby:
+        script = "factory_standby_check.gd" if state else "factory_energy_menu_check.gd" if args.mode == "menu" else "factory_energy_feedback_boot_check.gd"
     log = destination / (args.mode + ".log")
     command = [godot] + ([] if args.mode in ("review", "feedback-window") else ["--headless"])
     command += ["--path", str(REPO / "client"), "--script", "res://scripts/checks/" + script, "--no-header", "--log-file", str(log), "--"]
@@ -124,9 +135,14 @@ def main():
         if args.mode == "background-off": command += ["--generator-off"]
         if args.mode == "background-recovered-read": command += ["--recovered-read"]
         if args.mode in ("review", "feedback", "feedback-window"): command += ["--visual-only"]
+    if args.standby:
+        command += ["--standby-feedback"]
+        if args.legacy_source: command += ["--copy-standby"]
     sources = sorted((REPO / "client/scripts/factory").rglob("*.gd")) + sorted((REPO / "client/data/factory").glob("*.gd")) + sorted((REPO / "client/scripts/checks").glob("factory_expansion_*.gd")) + [REPO / "client/scripts/checks/factory_feedback_boot_check.gd"]
     if args.energy:
         sources += sorted((REPO / "client/scripts/checks").glob("factory_energy_*.gd"))
+        sources += [REPO / "client/scripts/checks/factory_standby_check.gd"]
+        sources += sorted((REPO / "client/scripts/factory").glob("*.gdshader"))
         sources += sorted((REPO / "client/scripts/boot").glob("*.gd"))
         sources += [REPO / "client/scripts/checks" / name for name in
                     ("factory_routing_boot_check.gd", "factory_device_interaction_boot_check.gd",

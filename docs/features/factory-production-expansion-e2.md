@@ -4,6 +4,8 @@
 
 状态：**2026-10-23 已按确认合同实现并通过开发机定向工程验证；短试玩、Windows 与目标硬件验证仍保留。** 承接[生产内容扩展 V1](factory-production-expansion-v1.md)与已实现的 [E1](factory-production-expansion-e1.md)。本文定义玩家流程、运行与存档合同；坐标、构件清单见 [E2 布局](../reference/factory-production-expansion-e2-layout.md)，算式、供能能力与限制见 [E2 能量收支](../reference/factory-production-expansion-e2-energy-balance.md)。
 
+2026-10-27 新版 E2 的运行 / 待机 / 停机与焦点反馈见[已确认子包](factory-energy-and-focus-feedback-v1.md)，新建 / 显式复制使用 [V8](../architecture/factory-energy-save-v8.md)。本文后续数值及验收记录保留为原 V7 基线；新版耗电与复制边界以子包为准，旧 V7 仍按原规则继续。
+
 ## 玩家结果与取舍
 
 玩家制造工业电芯，将它自动送入自己制造的发电机；扩建有实际产出的工厂后，发电机按同网缺口消耗电芯，提高加工速度。燃料耗尽时仍有基础供电，玩家能就地停下部分负载、恢复电芯生产，再继续扩建。成品用途从一次性制造延伸到随实际用电发生的消费，为后续开拓增加可用产能；E3 的高产矿与胶囊仍未开放。
@@ -185,4 +187,4 @@ sh tools/runtime-intake/review-worlds/factory-production-expansion-e2/start.sh c
 
 ### 待确认的亲测整改
 
-10 月 27 日萝卜SAMA要求先提出运行 / 待机 / 停机耗电规则与数值，同时改善准入口浮动物品提示和密集布局焦点高亮。完整建议见[能源与焦点反馈 V1](factory-energy-and-focus-feedback-v1.md)，包含旧档保留与新版显式复制。当前只完成设计，本文原 V7 运行合同和上述工程成绩尚未被替代；确认后再修改客户端并重测受影响路径。
+10 月 27 日萝卜SAMA要求先提出运行 / 待机 / 停机耗电规则与数值，同时改善准入口浮动物品提示和密集布局焦点高亮。完整建议见[能源与焦点反馈 V1](factory-energy-and-focus-feedback-v1.md)，包含旧档保留与新版显式复制。整组方案已确认并完成客户端接入；新版工程证据归子包与 W44，原 V7 成绩保留，不代签新版或玩家体验。

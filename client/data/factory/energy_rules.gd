@@ -1,6 +1,8 @@
 extends RefCounted
 
 const RULESET_ID := "factory_expansion_e2_v1"
+const STANDBY_RULESET_ID := "factory_expansion_e2_v2"
+const STANDBY_KW := {"collector": 2.0, "crusher": 2.0, "refinery": 6.0, "assembler": 4.0, "reactor": 4.0}
 const SUPPLY_ID := "factory_expansion_energy_starter_v1"
 const CELL := "industrial_cell"
 const RECIPE := "cell_assembly"

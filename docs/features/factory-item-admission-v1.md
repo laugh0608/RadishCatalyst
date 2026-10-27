@@ -1,12 +1,14 @@
 # Factory Item Admission V1
 
-更新时间：2026-10-17
+更新时间：2026-10-27
 
 ## 状态与决策用途
 
 本篇承接[附件路线](../planning/factory-conveyor-accessories-roadmap.md) B。10 月 12 日萝卜SAMA明确“确认，按这份准入口 B 提案继续实施，包含新增 8 件供给和 schema 5 升级”，以下整组数量、配置、供给与版本合同已获实施确认，按此范围连续实现 / 验证，不重复申请授权。A 仍沿[分流 / 汇合](factory-conveyor-routing-v1.md)与[保存 V4](../architecture/factory-routing-save-v4.md)执行；B 增量见[保存 V5](../architecture/factory-admission-save-v5.md)。
 
 B 已按“单物品白名单 + 不限量 / 本轮总配额”实现，配额按成功从准入口送出计数，重新启用与读档均不重置。权威状态、严格保存、模型 / 图标、正式操作与显式升级均已接入；自然定量备料和独立恢复、短窗口原图已有工程证据，C 组合工程结果见[组合专题](factory-conveyor-combination-v1.md)，用户理解仍待验。10 月 17 日已按亲测反馈实现普通带原位改装，三类附件的共同合同与验证见[改装记录](factory-conveyor-routing-v1.md#belt-replacement)。
+
+10 月 27 日共同三维视图已增加[准入口浮动物品图标与焦点高亮](factory-energy-and-focus-feedback-v1.md)：显示已应用白名单，空载 / 停收 / 配额完成保留物品，点击图标与本体同一目标；不改变占地、物流、配额、近身权限或旧档身份。
 
 ## 玩家结果与主循环
 

@@ -38,6 +38,8 @@ var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
 var interaction_choice := -1
+var mouse_position: Variant = null
+var tab_pointer_origin := Vector2.ZERO
 var focused := true
 var ui_elapsed := 0.0
 var initialized := false
@@ -76,7 +78,7 @@ func _ready() -> void:
 	hud.action.connect(_action)
 	get_window().focus_exited.connect(_focus_lost)
 	get_window().focus_entered.connect(_focus_gained)
-	get_window().mouse_exited.connect(func(): _stop_pointer())
+	get_window().mouse_exited.connect(func(): mouse_position = null; _stop_pointer())
 	hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
@@ -138,6 +140,10 @@ func _process(delta: float) -> void:
 	if sample_enabled and focused:
 		frame_samples.append(frame_interval_ms)
 	_tick_save(frame_interval_ms / 1000.0)
+	view.follow_actor(actor)
+	hud.sync_markers(view, model, ui)
+	if _sync_focus():
+		hud.refresh(model, actor, ui, focused)
 	ui_elapsed += delta
 	if ui_elapsed >= 0.12:
 		_refresh()
@@ -208,15 +214,22 @@ func _sync_replacement_direction() -> void:
 
 func _refresh() -> void:
 	_sync_replacement_direction()
+	_sync_focus()
+	discovery_panel.sync_session(ui.paused, focused)
+	hud.refresh(model, actor, ui, focused)
+
+
+func _sync_focus() -> bool:
+	var before := [ui.focus_device, ui.focus_ready, ui.interaction_kind, ui.get("interaction_index", -1), ui.get("interaction_count", 0), ui.blocked]
 	ui.blocked = discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
+	ui.panel_device = discovery_panel.selected if discovery_panel.visible and discovery_panel.device_only else -1
 	var target := _interaction_target()
 	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
 	ui.focus_ready = target.get("ready", false)
 	ui.interaction_kind = target.get("kind", "")
 	ui.interaction_count = target.get("count", 0)
 	ui.interaction_index = target.get("index", -1)
-	discovery_panel.sync_session(ui.paused, focused)
-	hud.refresh(model, actor, ui, focused)
+	return before != [ui.focus_device, ui.focus_ready, ui.interaction_kind, ui.interaction_index, ui.interaction_count, ui.blocked]
 
 
 func _stop_pointer() -> void:
@@ -380,17 +393,35 @@ func _interaction_target() -> Dictionary:
 	if not initialized or not model.has_method("power_state") or ui.blocked or not ui.tool.is_empty() or ui.power_from != 0:
 		return {}
 	var target := InteractionTarget.resolve(model, interaction_choice)
-	if interaction_choice != -1 and target.id != interaction_choice:
+	if interaction_choice != -1:
+		if target.id == interaction_choice: return target
 		interaction_choice = -1
+		return target
+	if mouse_position != null:
+		var screen = hud.world_point(mouse_position)
+		if screen != null:
+			var id := _pointer_hit(mouse_position, screen)
+			if id != -1:
+				var nearby := InteractionTarget.candidates(model)
+				var index := nearby.find_custom(func(t): return t.id == id)
+				return {"kind": "device", "id": id, "ready": model.near_entity(model.by_id(id)), "count": nearby.size(), "index": index}
+			if view.hit_sample(screen):
+				return {"kind": "sample", "id": 0, "ready": model.near_sample(), "count": 0, "index": -1}
 	return target
 
 
+func _pointer_hit(position: Vector2, screen: Vector2) -> int:
+	var marker := hud.admission_markers.hit(position)
+	return marker if marker != -1 and not model.by_id(marker).is_empty() else view.hit(screen)
+
+
 func _cycle_interaction() -> void:
-	var target := _interaction_target()
-	if target.get("count", 0) < 2:
-		return
 	var nearby := InteractionTarget.candidates(model)
-	interaction_choice = nearby[(target.index + 1) % nearby.size()].id
+	if nearby.is_empty(): return
+	var target := _interaction_target()
+	var index := nearby.find_custom(func(t): return t.id == target.get("id", -1))
+	interaction_choice = nearby[(index + 1) % nearby.size()].id
+	tab_pointer_origin = mouse_position if mouse_position != null else get_global_mouse_position()
 	_refresh()
 
 
@@ -409,7 +440,7 @@ func _open_device(id: int) -> void:
 		return
 	ui.selected = id
 	if not model.near_entity(e):
-		hud.announce("%s #%d：请走到两格内点击，或按 F 操作附近高亮对象；Tab 切换目标。" % [Model.CATALOG[e.type].name, id])
+		hud.announce("%s #%d：请走到两格内操作；Tab 可切换附近目标。" % [Model.CATALOG[e.type].name, id])
 		return
 	_stop_pointer()
 	ui.tool = ""
@@ -460,6 +491,12 @@ func _preview(cell: Vector2i) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Keep the pointer current while a panel owns input, so closing it cannot
+	# restore the stale pre-panel hover target.
+	if initialized and event is InputEventMouse:
+		mouse_position = event.position
+		if event is InputEventMouseMotion and interaction_choice != -1 and event.position.distance_to(tab_pointer_origin) >= 4:
+			interaction_choice = -1
 	if not initialized or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
 		return
 	if event is InputEventKey:
@@ -511,6 +548,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index != MOUSE_BUTTON_LEFT:
 			return
 		if event.pressed:
+			interaction_choice = -1
 			# Release precision-field focus so movement/shortcuts work from the field.
 			var owner := get_viewport().gui_get_focus_owner()
 			if owner:
@@ -536,14 +574,13 @@ func _input(event: InputEvent) -> void:
 					ui.cell = cell
 					_commit()
 				else:
-					var id := view.hit(screen)
+					var id := _pointer_hit(event.position, screen)
 					if id == -1 and view.hit_sample(screen):
 						ui.selected = -1
 						_click_sample()
 						_refresh()
 						return
-					var e := model.entity_at(cell)
-					ui.selected = id if id != -1 else e.get("id", -1)
+					ui.selected = id
 					if ui.selected != -1 and model.has_method("power_state"):
 						_open_device(ui.selected)
 		_refresh()

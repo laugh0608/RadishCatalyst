@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Keep all unpublished output outside valid world IDs. Rename only a verified V7.
+## Keep all unpublished output outside valid world IDs. Rename only a verified current energy world.
 static func create(target: RefCounted, id: String, expected_sequence: int, expected_hash: String, title: String) -> Dictionary:
 	if target.list_worlds().size() >= 30: return target._error("最多保留 30 个工厂世界。")
 	var source: RefCounted = target.get_script().new(target.root)
@@ -18,12 +18,12 @@ static func create(target: RefCounted, id: String, expected_sequence: int, expec
 
 
 static func _copy_locked(target: RefCounted, source: RefCounted, candidate: Dictionary, expected_sequence: int, expected_hash: String, title: String) -> Dictionary:
-	if candidate.document.save_schema_version != 6 or candidate.source != source.path("autosave.json"):
-		return target._error("只能复制有效 E1 主档；旧版本、工程身份或需备份恢复的世界不能直接复制。")
+	if (candidate.document.save_schema_version != 6 and candidate.document.save_schema_version != 7) or candidate.source != source.path("autosave.json"):
+		return target._error("只能复制有效 E1 或旧 E2 主档；其他版本、工程身份或需备份恢复的世界不能直接复制。")
 	if candidate.document.sequence != expected_sequence or candidate.hash != expected_hash:
-		return target._error("选中的 E1 快照已经变化，请刷新列表后重新确认。")
+		return target._error("选中的来源快照已经变化，请刷新列表后重新确认。")
 	var id: String = Crypto.new().generate_random_bytes(16).hex_encode()
-	var decoded: Dictionary = target.Codec.V7.copy_from_e1(candidate.document, id, title, candidate.hash)
+	var decoded: Dictionary = target.Codec.V8.copy_from(candidate.document, id, title, candidate.hash)
 	if not decoded.ok: return decoded
 	var staging_root: String = target.root.path_join(".energy-copy-" + id)
 	if DirAccess.make_dir_recursive_absolute(staging_root.path_join(id)) != OK:

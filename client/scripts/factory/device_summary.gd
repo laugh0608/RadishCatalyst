@@ -143,7 +143,10 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		production.text = "下一次先尝试%s%s" % [(model.Logistics.OUTPUT_NAMES[e.output_cursor] if e.type == "splitter" else model.Logistics.INPUT_NAMES[e.input_cursor]), "出口" if e.type == "splitter" else "入口"]
 	if e.type in model.process_types + ["collector"]:
 		var device: Dictionary = model.power_state().devices[e.id]
-		power.text = "供电：%s\n请求 %.1f / 获供 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
+		power.text = "供电：%s\n请求 %.1f / 实际用电 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
+		if model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power:
+			power.text += "\n运行额定 %.0f / 待机额定 %.0f kW" % [device.running_kw, Rules.Energy.STANDBY_KW[e.type]]
+			production.text = ("已停机 · 0 kW" if not e.enabled else "运行" if model.work_spec(e).ready else "待机") + " · " + production.text
 		if e.power_node_id != 0:
 			power.text += " · 节点 #%d" % e.power_node_id
 	elif e.type == "cell_generator":

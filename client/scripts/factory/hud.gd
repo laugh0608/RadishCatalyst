@@ -36,6 +36,7 @@ var cell_z := SpinBox.new()
 var help_panel: PanelContainer
 var sample_button: Button
 var interaction_button: Button
+var admission_markers := preload("res://scripts/factory/admission_markers.gd").new()
 var quota_notice := preload("res://scripts/factory/quota_notice.gd").new()
 
 
@@ -67,6 +68,7 @@ func _ready() -> void:
 	world_image.resized.connect(_sync_render_resolution)
 	get_window().size_changed.connect(_sync_render_resolution.call_deferred)
 	_sync_render_resolution.call_deferred()
+	world_slot.add_child(admission_markers)
 	_build_world_panels()
 	_build_footer(stack)
 
@@ -303,10 +305,19 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 	return world_image.global_position + point * world_image.size / Vector2(subviewport.size)
 
 
+func world_panels() -> Array:
+	return [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]
+
+
+func sync_markers(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
+	view.logical_pixel_scale = Vector2(subviewport.size).y / maxf(1, world_image.size.y)
+	admission_markers.sync(view, model, self, ui)
+
+
 func world_point(screen: Vector2) -> Variant:
 	if not world_image.get_global_rect().has_point(screen):
 		return null
-	for panel in [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]:
+	for panel in world_panels():
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
 	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
@@ -411,8 +422,14 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))
 	interaction_button.visible = powered and not ui.get("blocked", false) and not target.is_empty()
 	if interaction_button.visible:
-		interaction_button.text = "F  查看 %s #%d" % [Model.CATALOG[target.type].name, target.id]
-		if ui.get("interaction_count", 0) > 1:
+		interaction_button.text = ("F  查看 " if ui.focus_ready else "走近后操作 · ") + "%s #%d" % [Model.CATALOG[target.type].name, target.id]
+		if target.type == "admission_gate":
+			interaction_button.text += " · " + Items.NAMES.get(target.filter_item, "待配置")
+			var gate_state: String = admission_markers.status(target)
+			if gate_state in ["closed", "complete"]:
+				interaction_button.text += " · " + ("配额完成" if gate_state == "complete" else "停止接收")
+				if not target.cargo.is_empty(): interaction_button.text += " · 尾货排空中"
+		if ui.get("interaction_count", 0) > 1 and ui.interaction_index >= 0:
 			interaction_button.text += "  ·  Tab 切换 %d/%d" % [ui.interaction_index + 1, ui.interaction_count]
 		interaction_button.position.x = (world_slot.size.x - interaction_button.size.x) * 0.5
 		interaction_button.disabled = not ui.focus_ready

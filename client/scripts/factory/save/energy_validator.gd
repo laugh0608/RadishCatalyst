@@ -22,11 +22,12 @@ static func statistics(value: Variant, model: RefCounted, request_kw: float) -> 
 	var core: Dictionary = value.duplicate(true)
 	var originals: Array = [value.totals] + value.buckets + [value.current]
 	var copies: Array = [core.totals] + core.buckets + [core.current]
-	var extra := Energy.EXTRA_ENERGY + Energy.EXTRA_COUNTS
+	var energy_keys: Array = model.statistics.extra_energy_keys()
+	var extra := energy_keys + Energy.EXTRA_COUNTS
 	for i in originals.size():
 		var names := BaseStats.ENERGY + BaseStats.MATERIAL + extra + ([] if i == 0 else ["start_tick", "ticks"])
 		if not fields(originals[i], names): return failure("能源统计字段不完整或含未知字段。")
-		for key in Energy.EXTRA_ENERGY:
+		for key in energy_keys:
 			if not number(originals[i][key], 0, 1e15): return failure("能源统计必须是有限非负电量。")
 		for key in Energy.EXTRA_COUNTS:
 			if not integer(originals[i][key]): return failure("激活电芯计数无效。")
@@ -34,6 +35,11 @@ static func statistics(value: Variant, model: RefCounted, request_kw: float) -> 
 	var generator_kw: float = model.assembly_counts[Energy.GENERATOR] * Energy.GENERATOR_KW
 	var result := Stats.validate_timeline(core, model.time, 240.0 + generator_kw, request_kw, model.item_ids)
 	if not result.ok: return result
+	var standby_limit := 0.0
+	if model.standby_power:
+		for type in Energy.STANDBY_KW:
+			var count: int = model.kits[type] + model.entities.filter(func(e): return e.type == type).size()
+			standby_limit += count * Energy.STANDBY_KW[type]
 	var sums := {}
 	for key in extra: sums[key] = 0 if key in Energy.EXTRA_COUNTS else 0.0
 	for i in originals.size():
@@ -41,6 +47,11 @@ static func statistics(value: Variant, model: RefCounted, request_kw: float) -> 
 		var duration: float = model.time if i == 0 else r.ticks * 0.05
 		if not Stats.near(r.base_supplied_kj + r.cell_supplied_kj, r.supplied_kj) or r.base_supplied_kj > 240.0 * duration + 1e-7 or r.cell_supplied_kj > generator_kw * duration + 1e-7:
 			return failure("基础与电芯供能分项不守恒或超装机上限。")
+		if model.standby_power:
+			if r.standby_kj > r.used_kj and not Stats.near(r.standby_kj, r.used_kj):
+				return failure("待机用电超过实际总用电。")
+			if r.standby_kj > standby_limit * duration + 1e-7:
+				return failure("待机用电超过合法消费者上限。")
 		if r.available_kj > r.enabled_kj + 1e-7 or r.enabled_kj > r.installed_kj + 1e-7:
 			return failure("当前可供、启用额定与装机额定关系无效。")
 		if r.consumed.get(Energy.CELL, 0) != r.cells_activated: return failure("电芯消费必须在激活时恰记一次。")
@@ -50,6 +61,13 @@ static func statistics(value: Variant, model: RefCounted, request_kw: float) -> 
 		var same: bool = sums[key] == value.totals[key] if key in Energy.EXTRA_COUNTS else Stats.near(sums[key], value.totals[key])
 		if (sums[key] > value.totals[key] and not same) or (value.ticks < 12020 and not same):
 			return failure("近期能源账与累计量不一致。")
+	if model.standby_power:
+		var recent_used := 0.0
+		for r in value.buckets + [value.current]: recent_used += r.used_kj
+		var recent_work: float = recent_used - sums.standby_kj
+		var total_work: float = value.totals.used_kj - value.totals.standby_kj
+		if recent_work > total_work and not Stats.near(recent_work, total_work):
+			return failure("近期运行用电超过累计运行用电。")
 	return {"ok": true}
 
 

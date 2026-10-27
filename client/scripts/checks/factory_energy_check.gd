@@ -408,11 +408,18 @@ func _store() -> void:
 	if result.ok:
 		expect(result.model.energy_origin.source_id == source_id and result.model.owned_count() == 165, "copy records source and adds no supply")
 		expect(not copy.save(E1.new()).ok, "E2 session rejects E1 identity")
-		expect(copy.save(model).ok, "save natural D model")
+		expect(not copy.save(model).ok, "new energy session rejects legacy V7 model")
+		var upgraded := Codec.V8.copy_from(snapshot(model), copy.world_id, "D 待机新版", JSON.stringify(snapshot(model)).sha256_text())
+		expect(upgraded.ok, "copy conserved natural D into new rules")
+		if not upgraded.ok:
+			copy.release()
+			return
+		var saved_model: RefCounted = upgraded.model
+		expect(copy.save(saved_model).ok, "save natural D model with current energy identity")
 		var original := FileAccess.get_file_as_bytes(copy.path("autosave.json"))
 		for stage in ["validation", "temporary_write", "readback", "backup", "publish"]:
 			copy.fault = func(point): return point == stage
-			expect(not copy.save(model).ok and FileAccess.get_file_as_bytes(copy.path("autosave.json")) == original, "save failure atomic " + stage)
+			expect(not copy.save(saved_model).ok and FileAccess.get_file_as_bytes(copy.path("autosave.json")) == original, "save failure atomic " + stage)
 		copy.fault = Callable()
 		copy.release()
 

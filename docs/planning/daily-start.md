@@ -4,7 +4,7 @@
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)、[E2 实施合同](../features/factory-production-expansion-e2.md)、[能源与焦点反馈提案](../features/factory-energy-and-focus-feedback-v1.md)和[本周周志](../devlogs/2026-W44.md)。布局 / 算式读 [E2 坐标](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)；E1 反馈再读其[合同](../features/factory-production-expansion-e1.md)；研究参考按需读[六款生产游戏对照](../reference/factory-game-production-study.md)，原验收 / 历史证据再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)、[E2 实施合同](../features/factory-production-expansion-e2.md)、[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)和[本周周志](../devlogs/2026-W44.md)。布局 / 算式读 [E2 坐标](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)；E1 反馈再读其[合同](../features/factory-production-expansion-e1.md)；研究参考按需读[六款生产游戏对照](../reference/factory-game-production-study.md)，原验收 / 历史证据再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
 
 ## 当前交接
 
@@ -18,7 +18,7 @@
 
 ## 当前接续事项
 
-1. **先确认 E2 反馈方案**：[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)提出运行沿用、设备小额待机、停机零耗电，以及准入口浮动物品图标和统一焦点描边；新版能源身份 / 显式复制一并列入待确认范围。本轮仅设计，确认前不改客户端。**短试玩入口已交付**：`tools/runtime-intake/review-worlds/factory-production-expansion-e2/` 内含 C 有料待机、D 真实缺口独立副本；从仓库根运行该目录 `start.sh d` / `start.sh c`，一次一个；准备页点击「开始试玩」后启用移动 / 生产，默认镜头跟随角色。README 说明来源 / 哈希、操作、配额及用新会话重置的方法；不覆盖 E1 或验收父档。入口检查与窗口原图见 [W44](../devlogs/2026-W44.md)。下一步收集实际反馈，自动检查不能代签体验。
+1. **亲测 E2 反馈整改**：[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)已接入小额待机、停机零耗电、准入口物品图标和统一焦点描边；新建 E2 使用 V8，旧 V7 可在正式世界菜单显式“复制为待机耗电新版”，保留原进度。开发机证据见 [W44](../devlogs/2026-W44.md)。原 `tools/runtime-intake/review-worlds/factory-production-expansion-e2/` 的 C/D 仍是 V7 副本，直接继续只体验共同图标 / 高亮，不会静默改变耗电；测试新规则请新建 V8 或显式复制。用户活动世界不自动重启、覆盖或转换，自动检查不代签体验。
 2. **先看 E2 收益，再评估起步成本**：优先从 D 短试玩发电机开关、实际供能与构件入仓，再试本机停机 / 恢复是否直观；从 C 看懂有料不烧，再结合 E1 接续观察逐步扩建的首次补电。自动工程 C→D 约 16.4 分钟，四包对照提速不能代签“5–10 分钟感知收益”。若施工 / 等待压过收益，先讨论紧凑布局或缩小首个目标，再决定是否调整数值；保留原 240 kW，不直接扩张内容。合同与证据见 [E2](../features/factory-production-expansion-e2.md)。
 3. **顺带收集 E1 反馈**：[合同与亲测入口](../features/factory-production-expansion-e1.md#playtest)。优先已有混料半批副本，观察余料到两包、配额停收提示及换料是否值得；也可从正式菜单新建 E1。已有工程证据不代签节材感受和继续扩建意愿，不为收集反馈重新跑整套自然流程。
 4. **后续能源 / 开拓**：E2 已证明扩建真实缺电、电芯改善产出，短试玩后再细化 E3 合同：四件胶囊、接回高产炭矿，观察开路后持续负载是否受益。3 / 12 件每分钟尚未冻结；若没有实际收益，调整回报和节拍，不靠新增无用途物品制造需求。
@@ -30,7 +30,7 @@
 ## 保留待办与边界
 
 - 首次理解、独立诊断、20–40 分钟首程目标；Windows / PowerShell 与目标硬件；约 0.3 秒保存停顿、输入风险、仓库 / 原生切窗、统计图标 / 精细美术及测试入口暂停 / 朝向反馈均保留，详见 [Current Plan](current.md#retained-d4)和 [D4 记录](factory-d3-exit-and-d4-validation.md)。
-- 默认基础与原 V5 入口保持，E1 / E2 分别使用独立身份 / schema 6、7，E1→E2 仅显式复制；不静默改旧档、不消费用户亲测档，普通供给与工程夹具分开。
+- 默认基础与原 V5 入口保持，E1 / 新 E2 分别使用独立身份 / schema 6、8，旧 E2 / schema 7 原规则继续，E1 / V7→V8 仅显式复制；不静默改旧档、不消费用户亲测档，普通供给与工程夹具分开。
 - 固体内容包之外的液气、种植、交易、通用科技树、战斗、多人、随机地图、物流桥 / 自动出仓和自动蓝图仍未纳入。打包、分发和发布不随主线切换自动授权。
 - Godot 开窗前告知；用户关闭后不自动重开。功能检查优先无窗口，必要的关键操作与截图单独补证；遵循[运行时指南](../reference/godot-runtime-verification-guide.md)。
 - 文档修改执行 `./scripts/check-docs.sh`、`./scripts/check-repo.sh` 和 `git diff --check`；客户端实现再执行 `sh ./scripts/check-client.sh` 及按风险选定的运行时检查。

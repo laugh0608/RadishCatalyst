@@ -3,10 +3,12 @@ extends "res://scripts/factory/expansion_model.gd"
 const Energy := preload("res://data/factory/energy_rules.gd")
 const EnergyStatistics := preload("res://scripts/factory/energy_statistics.gd")
 var energy_origin := {}
+var standby_power := false
 
 
-func _init() -> void:
+func _init(with_standby := false) -> void:
 	super()
+	standby_power = with_standby
 	supply_id = Energy.SUPPLY_ID
 	kits[Energy.GENERATOR] = 0
 	recipes.merge(Energy.RECIPES)
@@ -15,7 +17,7 @@ func _init() -> void:
 	completed_by_recipe[Energy.RECIPE] = 0
 	assembly_costs[Energy.GENERATOR] = 3
 	assembly_counts[Energy.GENERATOR] = 0
-	statistics = EnergyStatistics.new()
+	statistics = EnergyStatistics.new(standby_power)
 
 
 func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
@@ -45,6 +47,7 @@ func assemble(type: String) -> Dictionary:
 func work_spec(e: Dictionary) -> Dictionary:
 	var spec := super.work_spec(e)
 	if not e.enabled: spec.ready = false
+	spec.standby_kw = Energy.STANDBY_KW[e.type] if standby_power and e.enabled else 0.0
 	return spec
 
 
@@ -147,6 +150,7 @@ func feedback(e: Dictionary) -> Dictionary:
 		result.kind = "ready"
 		result.label = "手动停机 · 保留进度，被动物流继续"
 		result.production = result.label
+		result.power = "已停机 · 0 kW"
 	return result
 
 

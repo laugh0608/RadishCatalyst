@@ -1,6 +1,8 @@
 # Factory Production Expansion E2 Energy Balance
 
-更新时间：2026-10-23
+更新时间：2026-10-27
+
+本文为原 E2 / V7 的无待机能量基线；新版待机成本与对照结果见[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)。运行额定、物料成本和电芯容量保持，旧总用能 / 提速公式不能直接代入新版。
 
 ## 用途与计算口径
 

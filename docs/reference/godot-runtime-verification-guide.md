@@ -12,6 +12,8 @@
 - 约束：启动 Godot 属 `CLAUDE.md` 中"需要先告知用户再执行"的操作，跑之前先在回复中告知萝卜SAMA。
 - 平台：macOS 下 Godot 可执行文件为 `/Applications/Godot.app/Contents/MacOS/Godot`；以下记为 `$GODOT`。
 
+V8 待机耗电与焦点反馈使用 `sh tools/check-factory-energy-feedback.sh` / `.ps1`；完整模式见 [Tools](../../tools/README.md#正式工厂定向检查)。批次根为 `tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1/`，旧 E2 父批次仅通过显式 `--legacy-source` 另建隔离副本再复制至 V8，不改原档。状态、自然 Boot、窗口及原生操作证据分列于 [W44](../devlogs/2026-W44.md)。
+
 E1 的定向入口是 `sh tools/check-factory-expansion.sh <mode> <新 batch> [父 batch]`，模式和前置见 [Tools](../../tools/README.md#正式工厂定向检查)。`state / process-read` 为模型显式步，`menu / background-*` 为无窗口正式 Boot，`review / feedback-window` 渲染窗口原图；`feedback` 为同一亲测整改路径的无窗口预检。检查双根位于 `tools/runtime-intake/check-runs/factory-production-expansion-e1/<batch>/`，恢复从成功父批次哈希复制并核对父目录不变；亲测另用 `tools/runtime-intake/review-worlds/factory-production-expansion-e1/`。E1 不迁移 V5，不将自然路线时长当玩家首程时长；窗口和失败记录见 [W43](../devlogs/2026-W43.md)。
 
 ## 焦点与用户桌面

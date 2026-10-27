@@ -4,6 +4,8 @@
 
 状态：E2 已按确认合同接入并通过开发机定向状态、复制与自然运行验证；实际证据见 [E2 专题](../features/factory-production-expansion-e2.md)和 [W43](../devlogs/2026-W43.md)。本文说明持久状态、能源提交及显式复制边界。原 [V5](factory-admission-save-v5.md)、[E1 schema 6](../features/factory-production-expansion-e1.md)继续按各自规则运行。
 
+2026-10-27 起新建 E2 与能源复制入口改为 [V8 待机耗电版](factory-energy-save-v8.md)。本文保留 V7 的规则与原实现事务；旧 V7 继续不计待机，只有显式复制才进入新版。
+
 ## 身份与职责
 
 | 字段 | 固定值 |

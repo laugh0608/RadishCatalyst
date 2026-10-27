@@ -3,6 +3,7 @@
 影响工程边界、数据模型、联机策略和长期演进路线的架构文档。
 
 - [Factory Engineering Scale V1](factory-engineering-scale-v1.md)（D4-S0 待审阅提案：独立工程身份、100 台 / 1,000 带、真实电力与验证边界；未实施）
+- [Factory Energy Save V8](factory-energy-save-v8.md)（新版 E2 待机能量账、旧 E1 / V7 保留源档的显式复制）
 - [Factory Energy Save V7](factory-energy-save-v7.md)（E2 能源权威状态、严格守恒与保留原 E1 的显式复制）
 - [Factory Admission Save V5](factory-admission-save-v5.md)（当前新勘探世界、准入配额严格状态与 4→5 独立原档升级）
 - [Factory Routing Save V4](factory-routing-save-v4.md)（A 附件严格状态与 3→4 显式升级，旧 V4 原规则保持）

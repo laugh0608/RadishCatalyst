@@ -25,6 +25,7 @@ var device_list := VBoxContainer.new()
 var power_body := VBoxContainer.new()
 var power_summary := Label.new()
 var power_chart := Chart.new()
+var power_legend := Label.new()
 var network_list := VBoxContainer.new()
 var rows := {}
 var selected_item := ""
@@ -99,7 +100,8 @@ func _ready() -> void:
 	power_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	power_chart.custom_minimum_size.y = 180
 	power_body.add_child(power_chart)
-	label(power_body, "青实线：供电＝用电　金虚线：请求　灰实线：装机　红虚线：缺口")
+	power_legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	power_body.add_child(power_legend)
 	power_body.add_child(network_list)
 	var foot := label(stack, "只读统计 · 理论值为当前配置上限；历史曲线不代表当前故障原因。搬运不计产消，试制与开路不计持续理论速率。")
 	foot.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -259,6 +261,7 @@ func update_devices(parent: Node) -> void:
 func refresh_power(result: Dictionary) -> void:
 	var p: Dictionary = result.current
 	var w: Dictionary = result.window
+	power_legend.text = "青：供电＝用电　金虚线：请求　灰：装机　红虚线：缺口" + ("　紫：其中待机" if w.has("standby_kj") else "")
 	power_summary.text = "当前：装机 %.1f / 可用 %.1f / 请求 %.1f / 实际供用 %.1f / 分网缺口 %.1f kW" % [p.installed_kw, p.available_kw, p.request_kw, p.supplied_kw, p.deficit_kw]
 	if w.has_samples:
 		power_summary.text += "\n窗口均值：装机 %.1f / 请求 %.1f / 供用 %.1f / 缺口 %.1f kW\n窗口供电＝用电 %.2f kJ；累计用电 %.2f kJ" % [w.installed_kj / w.seconds, w.requested_kj / w.seconds, w.used_kj / w.seconds, w.deficit_kj / w.seconds, w.used_kj, model.statistics.totals.used_kj]
@@ -266,6 +269,9 @@ func refresh_power(result: Dictionary) -> void:
 		var ledger: Dictionary = model.energy_balance()
 		power_summary.text += "\n启用额定 %.1f kW · 当前基础 %.1f / 电芯 %.1f kW\n累计激活 %d 件 · 电芯供能 %.1f kJ · 回收损失 %.1f kJ · 现存余能 %.1f kJ" % [p.enabled_kw, p.base_supplied_kw, p.cell_supplied_kw, ledger.activated, ledger.supplied_kj, ledger.discarded_kj, ledger.remaining_kj]
 		if w.has_samples: power_summary.text += "\n窗口基础 %.1f / 电芯 %.1f kJ · 激活 %d 件" % [w.base_supplied_kj, w.cell_supplied_kj, w.cells_activated]
+	if w.has("standby_kj"):
+		power_summary.text += "\n当前运行 %.1f / 待机 %.1f kW · 累计运行 %.1f / 待机 %.1f kJ" % [p.supplied_kw - p.standby_supplied_kw, p.standby_supplied_kw, model.statistics.totals.used_kj - model.statistics.totals.standby_kj, model.statistics.totals.standby_kj]
+		if w.has_samples: power_summary.text += "\n窗口运行 %.1f / 待机 %.1f kJ" % [w.used_kj - w.standby_kj, w.standby_kj]
 	power_chart.show_points(result.points, true)
 	# Rebuild only when membership changes; stable buttons retain keyboard focus.
 	var signature := []

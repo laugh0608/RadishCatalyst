@@ -93,4 +93,5 @@ static func electricity(model: RefCounted, seconds: int) -> Dictionary:
 	for b in model.statistics.buckets.slice(maxi(0, model.statistics.buckets.size() - seconds)):
 		points.append({"start": b.start_tick * 0.05, "seconds": b.ticks * 0.05,
 			"a": b.supplied_kj, "b": b.requested_kj, "c": b.installed_kj, "d": b.deficit_kj})
+		if b.has("standby_kj"): points.back().e = b.standby_kj
 	return {"window": window, "current": power, "groups": groups, "unplugged": unplugged, "points": points}
