@@ -1,10 +1,10 @@
 # Daily Start
 
-更新时间：2026-10-23
+更新时间：2026-10-27
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)、[E2 实施合同](../features/factory-production-expansion-e2.md)和[本周周志](../devlogs/2026-W43.md)。布局 / 算式读 [E2 坐标](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)；E1 反馈再读其[合同](../features/factory-production-expansion-e1.md)；研究参考按需读[六款生产游戏对照](../reference/factory-game-production-study.md)，原验收 / 历史证据再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)、[E2 实施合同](../features/factory-production-expansion-e2.md)、[能源与焦点反馈提案](../features/factory-energy-and-focus-feedback-v1.md)和[本周周志](../devlogs/2026-W44.md)。布局 / 算式读 [E2 坐标](../reference/factory-production-expansion-e2-layout.md)与[能量收支](../reference/factory-production-expansion-e2-energy-balance.md)；E1 反馈再读其[合同](../features/factory-production-expansion-e1.md)；研究参考按需读[六款生产游戏对照](../reference/factory-game-production-study.md)，原验收 / 历史证据再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
 
 ## 当前交接
 
@@ -18,14 +18,14 @@
 
 ## 当前接续事项
 
-1. **下次先准备 E2 短试玩入口**：从已通过的 C 有料待机、D 真实缺口检查点各复制独立亲测世界到 `tools/runtime-intake/review-worlds/factory-production-expansion-e2/`，记录来源 / 哈希与重置方法；不消费验收父档、不覆盖既有 E1 亲测进度。补简短操作说明后再按需开窗。当前只有正式菜单新建 / E1 显式复制入口和自动验收批次，尚未交付这两份亲测副本。
+1. **先确认 E2 反馈方案**：[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)提出运行沿用、设备小额待机、停机零耗电，以及准入口浮动物品图标和统一焦点描边；新版能源身份 / 显式复制一并列入待确认范围。本轮仅设计，确认前不改客户端。**短试玩入口已交付**：`tools/runtime-intake/review-worlds/factory-production-expansion-e2/` 内含 C 有料待机、D 真实缺口独立副本；从仓库根运行该目录 `start.sh d` / `start.sh c`，一次一个；准备页点击「开始试玩」后启用移动 / 生产，默认镜头跟随角色。README 说明来源 / 哈希、操作、配额及用新会话重置的方法；不覆盖 E1 或验收父档。入口检查与窗口原图见 [W44](../devlogs/2026-W44.md)。下一步收集实际反馈，自动检查不能代签体验。
 2. **先看 E2 收益，再评估起步成本**：优先从 D 短试玩发电机开关、实际供能与构件入仓，再试本机停机 / 恢复是否直观；从 C 看懂有料不烧，再结合 E1 接续观察逐步扩建的首次补电。自动工程 C→D 约 16.4 分钟，四包对照提速不能代签“5–10 分钟感知收益”。若施工 / 等待压过收益，先讨论紧凑布局或缩小首个目标，再决定是否调整数值；保留原 240 kW，不直接扩张内容。合同与证据见 [E2](../features/factory-production-expansion-e2.md)。
 3. **顺带收集 E1 反馈**：[合同与亲测入口](../features/factory-production-expansion-e1.md#playtest)。优先已有混料半批副本，观察余料到两包、配额停收提示及换料是否值得；也可从正式菜单新建 E1。已有工程证据不代签节材感受和继续扩建意愿，不为收集反馈重新跑整套自然流程。
 4. **后续能源 / 开拓**：E2 已证明扩建真实缺电、电芯改善产出，短试玩后再细化 E3 合同：四件胶囊、接回高产炭矿，观察开路后持续负载是否受益。3 / 12 件每分钟尚未冻结；若没有实际收益，调整回报和节拍，不靠新增无用途物品制造需求。
 5. **快速试玩驱动调整**：重点看是否愿意建线、分配材料、修瓶颈和继续扩建；观察副产物停线是否可理解、是否变成反复手工清理。最终处理设施与多场景开拓工具留作反馈后的候选，不要求先完成旧体验细分清单。
 6. **按风险保留必要验证**：新配方 / 制造账、回压 / 满包、独立存读和关键正式 Boot 操作；美术做能辨认和使用的程度。只有变化影响旧证据时补相应回归，不例行重跑历史长测，不把自动通过写成玩法成立。
 
-10 月 22 日 E1 实现及反馈整改已本地提交。10 月 23 日 E2 已按整组授权完成实现与开发机定向验证，详细证据见专题 / W43。E3 实现、推送、发布与外部依赖仍不包含；无需另行完成原 D4 才能开始。
+10 月 22 日 E1 实现及反馈整改已本地提交。10 月 23 日 E2 已完成实现与开发机定向验证；10 月 27 日已补亲测入口，详见专题 / W43 / W44。E3 实现、推送、发布与外部依赖仍不包含；无需另行完成原 D4 才能开始。
 
 ## 保留待办与边界
 
