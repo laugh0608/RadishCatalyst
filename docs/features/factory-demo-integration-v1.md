@@ -2,7 +2,7 @@
 
 更新时间：2026-11-01
 
-状态：**方向与设计工作已获确认；本轮为合同细化，暂不修改客户端。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**方向与设计工作已获确认；正式玩法仍为合同细化，另获授权的 R1-A 独立镜头样板已交付。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 
@@ -17,7 +17,7 @@
 | [能源](factory-fixed-burn-energy-v1.md) | 固定燃烧、供需 / 弃能、自救、后续储能与控制边界 |
 | [存档](../architecture/factory-integrated-demo-save-v1.md) | 独立身份、权威字段、守恒、严格恢复、旧世界保护 |
 | [布局与预算](../reference/factory-integrated-demo-layout-and-budget.md) | 候选坐标、端口、物料 / 电力 / 供给核算与证据等级 |
-| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | 同场景镜头对照、现有资产选用、新核心与材质要求；仅设计，未实施 |
+| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 透视正向 / 21 格 / 跟随；新核心 / 材质仍为设计，未制作 |
 
 ## 状态与参数等级
 

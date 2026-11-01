@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 四类合同及[R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md)均为设计，暂不修改客户端。原 E1 / E2 / V8 保留旧规则与待验，顺位见 [Current Plan](../planning/current.md)。
+**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 四类玩法合同仍为设计；[R1-A 镜头样板](factory-camera-and-representative-scene-v1.md)已获萝卜SAMA选择 C2 / 21 格 / 跟随，后续按此审阅新核心与材质。原 E1 / E2 / V8 保留旧规则与待验，顺位见 [Current Plan](../planning/current.md)。
 
 [E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)已实现并通过定向验证，待试玩。
 

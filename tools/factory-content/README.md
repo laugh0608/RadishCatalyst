@@ -26,6 +26,16 @@
 
 所有 Godot 启动和窗口检查前先告知；不循环抢焦点，关闭后不自动重开，不为静态资源安排四档长测。
 
+## R1-A 镜头与尺度试玩
+
+macOS 双击 `tools/factory-content/camera-study.command`，或仓库根执行 `sh tools/factory-content/camera-study.sh`；已有 Godot 可由 `GODOT_EXE` 指定。先显示准备页，点击开始才挂载双存档根隔离的正式 Boot 与独立样板。无需新增依赖或导出模型；不添加正式世界身份，不运行生产或保存世界。
+
+默认使用萝卜SAMA已选的 C2 透视正向 / 21 格 / 跟随角色。1 / 2 / 3 保留对照，主板 / 密集板、16 / 默认 21 / 28 格、固定 / 跟随、窗口大小与截图在工具栏。滚轮向上拉近 / 降低，向下拉远 / 升高，保持俯角与 FOV；默认 21 格按钮只恢复距离。WASD 为屏幕方向移动，左键选中、F 选两格内设备，B 测量、R 旋转、Esc 取消；测量不建造，口位和六个输出物品只是几何密度标尺。关闭后重新开始，不恢复角色或保存设置。
+
+日志为 `tools/runtime-intake/check-runs/factory-camera-v1/<session>/godot.log`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-camera-v1/<session>/`，逐图 PNG / JSON 为 `assets/art-intake/factory-camera-v1/<session>/`，均忽略提交。每次新会话避免覆盖证据。
+
+定向检查（启动前告知）：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-camera-study.gd --log-file <ignored-batch>/godot.log`，路径用绝对值。检查已选默认值、实际相机高度与缩放边界、双根、几何、投影 / UI 换算、射线选取、碰撞、密集替换及不写工厂存档；必须同时查退出码与错误日志。原生窗口和主人偏好另验；范围与实测见[R1 方案](../../docs/features/factory-camera-and-representative-scene-v1.md)。
+
 ## 低投入交互样板
 
 `node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。
