@@ -172,3 +172,5 @@ E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全
 ## 整合设计离线核算
 
 `python3 tools/design/audit-demo-integration.py` 复核[整合布局与预算](../docs/reference/factory-integrated-demo-layout-and-budget.md)的 S0 双原料几何，追加 `--layout S1` 复核三原料电芯链。两者检查足印 / 端口 / 带路、供电范围、保守通行、首包研究 DAG / 成本可达性和首阶段材料账。仅使用 Python 标准库，分别写入忽略的 `tools/runtime-intake/design-references/2026-11-01-integrated-contracts/audit.json` / `audit-s1.json`；不修改客户端、不启动 Godot，不证明能源 / 构件并行布局、自然吞吐或玩家体验。
+
+`python3 tools/design/audit-asset-inventory.py` 只读盘点已跟踪的媒体 / Godot 资源，输出逐文件归属、字面引用 / 动态候选、来源清单哈希、制作工具候选和本地缓存元数据；CSV / JSON 位于忽略的 `tools/runtime-intake/design-references/2026-11-01-asset-inventory/`。详见[资产盘点](../docs/reference/asset-inventory-and-transition-v1.md)与[来源映射](../docs/reference/asset-source-and-export-map.md)。不运行导出器、不修改资产或客户端；未命中字面引用不是可删除证明，旧工具候选也不代表当前可重放入口。

@@ -9,6 +9,7 @@
 
 ## Current Reference Guides
 
+- [Asset Inventory And Transition](asset-inventory-and-transition-v1.md)；[Asset Source And Export Map](asset-source-and-export-map.md)
 - [Client Data Dictionary](client-data-dictionary.md)
 - [Content Authoring Guide](content-authoring-guide.md)
 - [Godot Runtime Verification Guide](godot-runtime-verification-guide.md)
