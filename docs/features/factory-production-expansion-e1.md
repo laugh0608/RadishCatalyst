@@ -2,6 +2,8 @@
 
 更新时间：2026-10-22
 
+2026-11-01 接续：下一阶段已确认[统一 Demo 整合基线](../planning/demo-consolidation-proposal.md)，当前只做[整合合同](factory-demo-integration-v1.md)与设计核算，暂不修改客户端。本篇继续规定已实现旧世界 / 原批次规则；新核心、科技树、固定燃烧不追改本篇旧档与证据。
+
 状态：**2026-10-22 已按萝卜SAMA确认合同实现，状态 / 失败 / 独立存读、自然 Boot 的直接扩建与混料回用及关键窗口检查通过；已交付独立副本，玩家短试玩反馈待收集。** 承接[生产内容扩展 V1](factory-production-expansion-v1.md)，两份坐标草图与核算见 [E1 布局和吞吐](../reference/factory-production-expansion-e1-layout.md)。本篇是 E1 的具体范围来源；母专题继续承载 E1–E3 整体关系与后续候选。
 
 ## 玩家结果与交付边界

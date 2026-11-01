@@ -3,6 +3,7 @@
 当前项目方向和产品定义类文档。
 
 - [Project Definition](project-definition.md)
+- [Demo Integration Contract](../features/factory-demo-integration-v1.md)（当前设计整合与子合同路由）
 - [Production-Centered Direction](production-centered-direction.md)
 - [Creative Development Brief](creative-development-brief.md)
 - [Reference Positioning](reference-positioning.md)

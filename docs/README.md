@@ -45,6 +45,7 @@
 ## Core Documents
 
 - [Project Definition](product/project-definition.md)
+- [Demo Integration Contract](features/factory-demo-integration-v1.md)（下一阶段已确认基线后的设计合同，未实现）
 - [Production-Centered Direction](product/production-centered-direction.md)
 - [Creative Development Brief](product/creative-development-brief.md)
 - [Reference Positioning](product/reference-positioning.md)

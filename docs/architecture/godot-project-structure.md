@@ -1,12 +1,14 @@
 # Godot Project Structure
 
-更新时间：2026-10-23
+更新时间：2026-11-01
 
 ## 拆分说明
 
 本文已按主题拆分为子文档；当前文件只保留入口索引，避免新会话读取过长背景。
 
 ## 子文档
+
+- [Integrated Demo Save V1](factory-integrated-demo-save-v1.md)：新整合世界核心 / 研究 / 固定燃烧的设计合同，预留 schema 9、未实现；现行 V8 等旧世界保持原合同。
 
 - [Factory World State And Save V1](factory-world-state-and-save-v1.md)：正式三维工厂入口、权威状态、独立 schema 1 与工厂共用的文件协议；保留旧二维世界，当前未实现多人。
 - [Factory Discovery Save V2](factory-discovery-save-v2.md)：勘探工厂独立 schema 2、电力 / 发现 / 多物料 / 统计状态，不迁移已有 schema 1 或旧二维 schema 10。

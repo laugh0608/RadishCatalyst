@@ -29,7 +29,7 @@
 
 ## 视觉研究与当前体验入口
 
-当前推进 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 首包验收收尾：Godot 画面方向与操作已获认可，精细度暂缓；正式入口、独立存档与扩建基础已实现，计时差异和持续负载待验证。[Godot Demo](../features/godot-first-production-line-demo-v1.md) 与 [Web 产线](../features/web-first-production-line-v1.md) 保留为固定参照。下列视觉研究保留各自证据，不作为并行待办，也不代表量产美术已经定稿。
+当前进入[统一 Demo 与第一轮成长](../features/factory-demo-integration-v1.md)的合同设计；产品 / Godot 3D 基线已确认，暂不修改客户端。下列视觉研究保留历史证据，不作为并行待办或量产美术定稿；核心 / 科技树 / 能源 / 新存档由整合总合同路由。
 
 - [Small Chemical Factory Visual Target V1](small-chemical-factory-visual-target-v1.md) — 工厂概念候选与透明管道方向反馈。
 - [Transparent Pipe Module Visual Validation V1](transparent-pipe-module-visual-validation-v1.md) — 32px 透明管、动态标识与定向验证；体积效果未验收。

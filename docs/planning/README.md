@@ -4,6 +4,7 @@
 
 - [Daily Start](daily-start.md)
 - [Current Plan](current.md)
+- [Demo Consolidation Baseline](demo-consolidation-proposal.md)：2026-11-01 已确认的下一阶段设计基线，当前同步正式文档并细化合同，暂不修改客户端。
 - [Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)
 - [Milestone Review Checklist](milestone-review-checklist.md)
 

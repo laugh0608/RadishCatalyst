@@ -168,3 +168,7 @@ python3 -m venv .venv-art
 发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。
 
 E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。V8 使用 `check-factory-energy-feedback.sh` / `.ps1`（PowerShell 的 `-LegacySource` 对应 `--legacy-source`），批次根为 `tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1/`，截图根为 `assets/art-intake/2026-10-27-factory-energy-feedback-preview/`。旧 runner 的新建入口随产品创建 V8，旧 V7 状态测试仍保留原规则；需要新版完整反馈证据时使用新 runner。原 E2 批次根独立为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`，窗口原图在 `assets/art-intake/2026-10-23-factory-energy-e2-preview/`。`check-client` 的显式 Godot 路径包含 E2 状态检查，不因此代表自然 Boot 或窗口通过。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。
+
+## 整合设计离线核算
+
+`python3 tools/design/audit-demo-integration.py` 复核[整合布局与预算](../docs/reference/factory-integrated-demo-layout-and-budget.md)的 S0 双原料几何，追加 `--layout S1` 复核三原料电芯链。两者检查足印 / 端口 / 带路、供电范围、保守通行、首包研究 DAG / 成本可达性和首阶段材料账。仅使用 Python 标准库，分别写入忽略的 `tools/runtime-intake/design-references/2026-11-01-integrated-contracts/audit.json` / `audit-s1.json`；不修改客户端、不启动 Godot，不证明能源 / 构件并行布局、自然吞吐或玩家体验。

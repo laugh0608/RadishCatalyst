@@ -1,5 +1,8 @@
 # Godot Project Structure - 工程结构与分层原则
 
+2026-11-01 适用范围：本文保留既有创始 / 原型设计；现行统一 Demo 以[整合总合同](../features/factory-demo-integration-v1.md)与 [Current Plan](../planning/current.md)为准，旧 ARPG、二维组织、候选服务端及首程阶段不作为新整合包实施清单。
+
+
 返回：[Godot Project Structure](godot-project-structure.md)
 
 ## 文档目的

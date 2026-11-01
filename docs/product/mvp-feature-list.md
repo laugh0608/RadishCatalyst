@@ -1,5 +1,8 @@
 # MVP Feature List
 
+2026-11-01 适用范围：本文为早期 MVP 设想，当前统一 Demo 的实际范围 / 发布批次以[整合总合同](../features/factory-demo-integration-v1.md)与 [Current Plan](../planning/current.md)为准；旧战斗 / 区域 / 科技设想不自动进入本批。
+
+
 更新时间：2026-06-08
 
 ## 文档目的

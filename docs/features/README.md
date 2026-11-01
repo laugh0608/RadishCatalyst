@@ -1,6 +1,6 @@
 # Feature Development Docs
 
-更新时间：2026-10-27
+更新时间：2026-11-01
 
 ## 用途
 
@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-**当前主线：[生产内容扩展 V1](factory-production-expansion-v1.md)。** E1 / [E2](factory-production-expansion-e2.md)已实现并通过定向验证；[能源与焦点反馈](factory-energy-and-focus-feedback-v1.md)已实现并通过定向验证，亲测待反馈。D4 保留但非前置；顺位见 [Current Plan](../planning/current.md)。
+**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 基线已确认，正在细化核心 / 科技树 / 能源 / 存档合同，暂不修改客户端；子合同见总合同。原 E1 / E2 / V8 为既有能力与旧规则证据，待验继续保留，顺位见 [Current Plan](../planning/current.md)。
 
 [E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)已实现并通过定向验证，待试玩。
 

@@ -7,6 +7,8 @@
 
 ## 子文档
 
+- [Integrated Demo Save V1](factory-integrated-demo-save-v1.md)：新整合世界核心 / 研究 / 固定燃烧的设计合同，预留 schema 9、未实现；现行 V8 等旧世界保持原合同。
+
 - [Factory World State And Save V1](factory-world-state-and-save-v1.md)：正式三维工厂入口、权威状态与独立 schema 1；保留旧二维世界，当前未实现多人。
 - [E1 内容存档合同](../features/factory-production-expansion-e1.md#内容存档与守恒合同)：已实现独立 schema 6、制造账、逐物料守恒及主副产出活批校验；默认基础与旧 V5 保持，不做跨身份升级。
 

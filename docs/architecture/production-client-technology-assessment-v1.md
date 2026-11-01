@@ -2,7 +2,7 @@
 
 更新时间：2026-09-08
 
-状态：评估保留为路线选择依据；Godot 3D 首包方案已获确认，正式入口 / 独立存档已实现，持续负载验收待收口。
+状态：历史路线比较依据；2026-11-01 已确认 Godot 4.x / GDScript / 3D / 20 Hz 的[整合基线](../planning/demo-consolidation-proposal.md)。下文“待迁移 / 待测试”仅指当时，当前实现 / 证据和未验范围见 [Current Plan](../planning/current.md)，不重新开启引擎选型。
 
 2026-09-08 决定更新：[独立 Godot 3D 产线 Demo](../features/godot-first-production-line-demo-v1.md) 与最大化清晰度修正已完成，萝卜SAMA认可当前画面和操作、暂缓精细度打磨，并要求推进下一步。现已形成 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md) 与[工厂状态 / 存档合同](factory-world-state-and-save-v1.md)，并经用户确认实施为 `978d6250`。正式 Boot、跨进程与多线操作已有定向证据；百台设备 / 千段带仅完成满载短测，30 分钟长测中断、计时差异待查。下文的建议、工作量与“本次未测”指评估形成时；当前实现和验收以新专题为准，不继续把同一 Demo 画面认可当作前置阻塞。
 

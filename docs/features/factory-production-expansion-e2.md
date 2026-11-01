@@ -2,6 +2,8 @@
 
 更新时间：2026-11-01
 
+2026-11-01 接续：下一阶段已确认[统一 Demo 整合基线](../planning/demo-consolidation-proposal.md)，当前只做[整合合同](factory-demo-integration-v1.md)与设计核算，暂不修改客户端。本篇继续规定已实现旧世界 / 原批次规则；新核心、科技树、固定燃烧不追改本篇旧档与证据。
+
 状态：**2026-10-23 已按确认合同实现并通过开发机定向工程验证；短试玩、Windows 与目标硬件验证仍保留。** 承接[生产内容扩展 V1](factory-production-expansion-v1.md)与已实现的 [E1](factory-production-expansion-e1.md)。本文定义玩家流程、运行与存档合同；坐标、构件清单见 [E2 布局](../reference/factory-production-expansion-e2-layout.md)，算式、供能能力与限制见 [E2 能量收支](../reference/factory-production-expansion-e2-energy-balance.md)。
 
 2026-10-27 新版 E2 的运行 / 待机 / 停机与焦点反馈见[已确认子包](factory-energy-and-focus-feedback-v1.md)，新建 / 显式复制使用 [V8](../architecture/factory-energy-save-v8.md)。本文后续数值及验收记录保留为原 V7 基线；新版耗电与复制边界以子包为准，旧 V7 仍按原规则继续。
