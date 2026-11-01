@@ -15,7 +15,7 @@
 3. 复核新档自举、研究与升级无循环、核心多口物流、固定燃烧守恒、断燃料恢复和旧世界保留；列清仍需客户端 / 窗口验证的事项，交付可审阅实施包。
 4. 获得后续代码授权后，按「核心与成长 → 普通能源与真实扩建 → 开拓回报 → 可选测控 → 整段收口」推进，同一世界接续，每批交付可玩结果。
 
-11 月 1 日已完成真相源同步、四类合同首轮和 S0 / S1 离线几何及材料核算；随后按萝卜SAMA要求完成[资产盘点与归类](../reference/asset-inventory-and-transition-v1.md)，保留全部资产与客户端原样。接续先准备镜头 / 代表场景的范围与资产选择，再获授权制作样板；并行构件布局与参数审阅继续保留，运行证据留待实施后补齐。详见[预算的剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
+11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。现已形成[R1 镜头与代表场景设计](../features/factory-camera-and-representative-scene-v1.md)：先现有资产同尺度对照，再新核心结构与代表材质，审阅后才进入样板实施；全部既有资产与客户端保持原样。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 
@@ -27,6 +27,7 @@
 - 多人、战斗扩展、随机地图、多星球、交易、离线收益、自动蓝图、物流桥、全量长期科技树及 1,000 台 / 10,000 带仍未纳入；不新增后端或外部依赖。
 - Godot 3D / 工业科幻方向保留；萝卜SAMA进一步明确高斜角正交视图待定，主视角按两张参考经代表场景确认俯角 / 投影 / 距离，见[视觉方向](../product/visual-and-ui-direction.md)。精细模型和全部资产量产不作为本轮合同完成条件。安装依赖、打包、分发、推送与发布仍须另行授权。
 - 资产已按正式 / 共用 / 保留二维 / 实验 / 历史候选建立引用与[来源映射](../reference/asset-source-and-export-map.md)；当前仅盘点，不搬迁、删除、重导出或重导入。旧路线的待退役候选不等于已批准删除。
+- R1 只完成设计与离线核算；[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)和[镜头 / 场景候选](../reference/factory-camera-study-layout-and-framing.md)不代表定稿或制作授权。既有玩法 / 存档合同不因视觉样板而提前发布。
 
 ## 已有能力与证据
 

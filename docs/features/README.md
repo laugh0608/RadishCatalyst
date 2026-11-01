@@ -25,7 +25,7 @@
 
 ## 当前状态
 
-**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 基线已确认，正在细化核心 / 科技树 / 能源 / 存档合同，暂不修改客户端；子合同见总合同。原 E1 / E2 / V8 为既有能力与旧规则证据，待验继续保留，顺位见 [Current Plan](../planning/current.md)。
+**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 四类合同及[R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md)均为设计，暂不修改客户端。原 E1 / E2 / V8 保留旧规则与待验，顺位见 [Current Plan](../planning/current.md)。
 
 [E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)已实现并通过定向验证，待试玩。
 

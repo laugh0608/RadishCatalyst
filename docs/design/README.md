@@ -1,5 +1,7 @@
 # Design Documents
 
+- [Factory Representative Asset Brief](factory-representative-asset-brief-v1.md)（R1 新核心 / 材质需求，未制作）
+
 本目录用于后续收纳具体玩法与内容设计文档，包括核心循环、资源链、地图区域、角色成长、装备、战斗、交互原型、任务框架和新手引导设计。
 
 建议使用英文文件名，例如：

@@ -17,7 +17,7 @@
 
 ## 当前接续事项
 
-资产盘点首轮已完成，先读[清单与替换计划](../reference/asset-inventory-and-transition-v1.md)及[制作来源 / 导出映射](../reference/asset-source-and-export-map.md)。下一项是镜头 / 代表场景样板的设计范围与资产选择；当前仍未授权客户端实施或旧资产迁删，不能批量重跑历史归一 / 导出工具。
+资产盘点已提交为 `2fe4beb7`。已准备[R1 设计方案](../features/factory-camera-and-representative-scene-v1.md)、[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)与[镜头 / 布局核算](../reference/factory-camera-study-layout-and-framing.md)；下一项是审阅候选并明确样板实施范围。仍未授权客户端、资产制作或旧资产迁删；先镜头 / 尺度，再核心 / 材质，不批量重跑历史工具。
 
 1. 真相源同步及四类合同首轮已完成；依[总合同](../features/factory-demo-integration-v1.md)审阅核心足印 / 端口 / 库存和研究 / 升级事务。S0 / S1 离线几何已通过，继续核对能源 / 构件并行布局与供给成本，不重复宣称自然路径通过。
 2. 复核完整电池链 + 其他生产的峰值 / 平均 / 待机、首颗与恢复路径；明确固定燃烧的实际释能 / 弃能，避免沿用 V8 供用相等的全部前提。

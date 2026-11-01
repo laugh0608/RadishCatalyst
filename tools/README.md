@@ -174,3 +174,5 @@ E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全
 `python3 tools/design/audit-demo-integration.py` 复核[整合布局与预算](../docs/reference/factory-integrated-demo-layout-and-budget.md)的 S0 双原料几何，追加 `--layout S1` 复核三原料电芯链。两者检查足印 / 端口 / 带路、供电范围、保守通行、首包研究 DAG / 成本可达性和首阶段材料账。仅使用 Python 标准库，分别写入忽略的 `tools/runtime-intake/design-references/2026-11-01-integrated-contracts/audit.json` / `audit-s1.json`；不修改客户端、不启动 Godot，不证明能源 / 构件并行布局、自然吞吐或玩家体验。
 
 `python3 tools/design/audit-asset-inventory.py` 只读盘点已跟踪的媒体 / Godot 资源，输出逐文件归属、字面引用 / 动态候选、来源清单哈希、制作工具候选和本地缓存元数据；CSV / JSON 位于忽略的 `tools/runtime-intake/design-references/2026-11-01-asset-inventory/`。详见[资产盘点](../docs/reference/asset-inventory-and-transition-v1.md)与[来源映射](../docs/reference/asset-source-and-export-map.md)。不运行导出器、不修改资产或客户端；未命中字面引用不是可删除证明，旧工具候选也不代表当前可重放入口。
+
+`python3 tools/design/audit-camera-study.py` 核对[R1 镜头 / 布局候选](../docs/reference/factory-camera-study-layout-and-framing.md)的占格、口锚点、中心尺度、示例视锥与贴图字节估算，并读取选用 GLB 元数据。仅用标准库，报告在忽略的 `tools/runtime-intake/design-references/2026-11-01-camera-study/design-audit.json`；不运行 Godot、不写资产，结果不代表遮挡、点击、画面或性能通过。
