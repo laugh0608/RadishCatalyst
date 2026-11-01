@@ -2,80 +2,100 @@
 
 更新时间：2026-11-01
 
-## 用途
+## 用途与层级
 
-本目录存放玩家功能目标文档。阶段入口定主线，具体范围、路径和验收放在这里。
+本页是唯一能力专题地图：[产品方向](../product/production-centered-direction.md)与[整合基线](../planning/demo-consolidation-proposal.md)维护整体目标，六条大专题按能力组织，既有功能文件或合同承载子专题。阶段与能力分开；阶段整合包连接多条能力，不取代能力归属。
 
-当开发同时影响玩法、场景、HUD、任务、存档、运行时状态或自动检查时，先建或更新专题。
+[Current Plan](../planning/current.md)维护实际顺位、冻结项与退出条件，[Daily Start](../planning/daily-start.md)提供日常路由。每个子专题有一个主要归属，其他关系为协同；实施切片保留原 ID，任务状态与验收只在下表指定来源维护。本页不复制进度，详细规则见[协作专题](../process/agent-collaboration.md#planning-hierarchy)。
 
-## 使用规则
+## 当前阶段包
 
-- `docs/planning/current.md` 只保留当前阶段、当前活跃专题、阶段边界和退出条件。
-- `docs/planning/daily-start.md` 只保留日常推进入口和读取顺序。
-- `docs/devlogs/` 只记录已经发生的推进、决策、验证和风险，不作为具体功能范围的真相源。
-- 专题文档必须说明玩家价值、范围、不做项、路径、状态 / 存档 / HUD / 检查和验收。
-- 不为文案调整、局部修错或一次性讨论创建专题；专题应对应玩家可感知功能目标或阶段开发包。
-- 活跃专题接近 220 行时，优先拆成总览与子专题，或把历史过程移入周志 / 参考 / 归档。
+[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)是跨能力整合包，主要归属为生产物流，协同其余五条主线；[切片映射](factory-demo-integration-v1.md#capability-slices)连接 B1 / B2 / C / D1 / D2 / E 与原合同。[R1 镜头与代表场景](factory-camera-and-representative-scene-v1.md)是视觉准备切片，实施状态独立维护。设计方向确认、离线核算、样板、正式玩法、自然新档路径和目标平台验收分别判断。
 
-## 专题层级
+<a id="production"></a>
 
-- 阶段级专题说明能力域方向、冻结边界和跨包验收。
-- 可执行细专题用于定义一个基建设备、装备 / 模块、功能玩法、场景压力或工程边界包，是每日代码开发的直接范围来源。
-- 细专题应由阶段入口链接。
+## 生产物流
 
-## 当前状态
+玩家通过材料生产与真实物流建设基地。拥有核心库存、端口、加工与运输规则；依赖能源和世界存档，协同研究、设备交互与视觉，不把图示或工程检查点当自然生产完成。
 
-**当前主线：[统一 Demo 与第一轮成长](factory-demo-integration-v1.md)。** 四类玩法合同仍为设计；[R1-A 镜头样板](factory-camera-and-representative-scene-v1.md)已获萝卜SAMA选择 C2 / 21 格 / 跟随，后续按此审阅新核心与材质。原 E1 / E2 / V8 保留旧规则与待验，顺位见 [Current Plan](../planning/current.md)。
+| 子专题 / 切片 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 唯一核心与库存 | [核心合同](factory-base-core-v1.md) | 整合 B1；研究、交互、存档 |
+| 材料、构件与内容扩展 | [生产扩展总纲](factory-production-expansion-v1.md)、[E1 切片](factory-production-expansion-e1.md) | 旧 E1 / 后续内容批次；研究、能源 |
+| 发现与工业生产 | [发现生产](factory-discovery-and-production-v1.md) | 旧 D3 / D4；探索与研究 |
+| 传送带与准入 | [分流汇合](factory-conveyor-routing-v1.md)、[物品准入](factory-item-admission-v1.md)、[组合切片](factory-conveyor-combination-v1.md) | 旧附件 / C 组合；存档与交互 |
 
-[E1 合同](factory-production-expansion-e1.md)与[布局比较](../reference/factory-production-expansion-e1-layout.md)已实现并通过定向验证，待试玩。
+完成条件：选定内容版本的自举、供料、回压与物料账成立，失败不丢货 / 复制；自然路径与跨进程恢复按该合同验收，历史通过不覆盖新负载。
 
-[分流 / 汇合](factory-conveyor-routing-v1.md)与[准入口](factory-item-admission-v1.md)已实现；[C 组合](factory-conveyor-combination-v1.md)已完成精确布局、自然两次开路 / 独立恢复、六故障分支及原图工程复核；隔离亲测已接续，附件原位替换及带货距离限制整改已获用户复测无明显问题反馈；其余 D4 体验范围仍保留。见 [W42](../devlogs/2026-W42.md)。
+<a id="energy"></a>
 
-[设备交互](factory-device-interaction-v1.md)已实现主动拾样、角色近身 F / Tab、物品格与模型预览；工程证据见专题及 [W41](../devlogs/2026-W41.md)，体验反馈待验。
+## 能源
 
-[低投入交互样板](factory-refinement-demo-v1.md)的圆润机械 / 化工方向已初步认可。[范围供电与拾取](factory-range-power-and-pickup-v1.md)及[首程引导](factory-first-journey-guidance-v1.md)已有工程证据；最新手动拾样以设备专题为准。附件历史顺位见[附件日程](../planning/factory-conveyor-accessories-roadmap.md)，当前开发主线以内容扩展为准。
+让电力支持可理解的扩建与断供恢复。拥有发电、供需、耗能与储能 / 测控边界，依赖生产燃料与存档；不追改旧世界规则，不把可选优化变为普通通关门槛。
 
-联合包[发现生产](factory-discovery-and-production-v1.md)、[统计](factory-production-statistics-v1.md)与[电力](factory-power-and-grid-v1.md)已完成 D3 工程退出；开发机 D4-P / S 完成，其余体验、Windows / 目标硬件及保留项继续登记，详见[D4 记录](../planning/factory-d3-exit-and-d4-validation.md)。三专题作为新内容的基础能力接续。
+| 子专题 / 切片 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 固定燃烧与后续测控 | [固定燃烧合同](factory-fixed-burn-energy-v1.md) | 新整合 C / D2；研究与存档 |
+| 既有电网与范围供电 | [电网](factory-power-and-grid-v1.md)、[范围供电与拾取](factory-range-power-and-pickup-v1.md) | 旧 D3 / D4；拾取交互协同设备主线 |
+| 电芯及能耗反馈 | [E2 内容切片](factory-production-expansion-e2.md)、[V8 能源与焦点反馈](factory-energy-and-focus-feedback-v1.md) | 旧 E2 / V8；设备交互 |
 
-[Factory Foundation And Persistence V1](factory-foundation-and-persistence-v1.md) 的 P1–P3 开发机交付已收口：四档长测与剩余界面证据齐备，萝卜SAMA亲测反馈无明显问题；Windows / 目标硬件仍待验。现行实现边界见该专题及[工厂状态与存档合同](../architecture/factory-world-state-and-save-v1.md)。[Godot Demo](godot-first-production-line-demo-v1.md)、[Web 产线](web-first-production-line-v1.md) 和既有 [Factory Building Experience Validation V1](factory-building-experience-validation-v1.md) 保留为参照；产品方向以 [Production-Centered Direction](../product/production-centered-direction.md) 为准。
+完成条件：指定版本的燃料、输出 / 弃能、停机、恢复与存读账守恒；新固定燃烧不能由旧按缺口耗能证据代签。
 
-原[试玩反馈整改 V1](slice-playtest-remediation-v1.md)与 S0 暂缓，陌生玩家盲测继续冻结；既有整改成果和历史证据保留。
+<a id="progression"></a>
 
-旧切片功能基线：[Slice First Playable Journey V1](slice-first-playable-journey-v1.md)。旧自动与人工证据继续承担对应回归，不代表当前体验验收。
+## 科技成长与探索
 
-最新收口子专题：[Slice Visual Hierarchy And Color Separation V1](slice-visual-hierarchy-and-color-separation-v1.md) 与 [Slice Game UI Visual Finalization V1](slice-game-ui-visual-finalization-v1.md)——世界设备、HUD、制造 / 背包、设备、核心与系统界面均已完成正式入口和人工定稿。
+让发现资源和研究解锁反哺生产。拥有节点、等级、前置 / 消费及开拓收益，依赖生产和能源；不扩张战斗、多星球或全量长期科技。
 
-旧切片整改包 0—4 的状态、存读与 UI 证据见[统一状态反馈专题](slice-hud-and-device-feedback-v1.md)，保留为旧二维基线。
+| 子专题 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 科技树、等级与开拓回报 | [科技树合同](factory-research-and-progression-v1.md) | B2 / D1；D2 的等级要求协同能源，首包与后续节点分别验收 |
 
-最新人工通过子专题：[Slice Category Inventory And Powered Storage V1](slice-category-inventory-and-powered-storage-v1.md) 与 [Slice World Device Family Integration V1](slice-world-device-family-integration-v1.md)——联合 schema 8、设备家族、实体物流、真实二值供电线和双档迁移闸门已收口；[Slice Unified Device Operation Panels V1](slice-unified-device-operation-panels-v1.md) 核心仓库包 2 的视觉与行为也已随 UI 定稿收口。
+完成条件：首包节点无自举循环，研究与升级消费原子，开拓资源具有持续用途；未实施节点和旧 E3 保持各自边界，不伪称完整成长体验已成立。
 
-已收口专题：
+<a id="interaction"></a>
 
-- [Slice First Journey Guidance And Exploration Map V1](slice-first-journey-guidance-and-exploration-map-v1.md)——五阶段引导、混合迷雾与 schema 9（2026-08-15 收口）。
-- [Slice Damaged Core Visual Family V1](slice-damaged-core-visual-family-v1.md)——V5 同族 `144×128px` 破损 / 修复双态（2026-08-15 收口）。
-- [Slice Ranged Weapon And Industrial Ammunition V1](slice-ranged-weapon-and-industrial-ammunition-v1.md)——步枪 / 电池工业财产、远射、输入互斥与三格战斗 HUD（2026-08-15 收口）。
-- [Slice Base First Screen Integration V1](slice-base-first-screen-integration-v1.md)——归一管线、基地首屏、玩家四方向行走（2026-07-16 收口）。
-- [Slice Crystal Expedition V1](slice-crystal-expedition-v1.md)——晶体远征区、无缝大地图与相机跟随口径定档（2026-07-17 收口）。
-- [Slice Minimal Core Loop V1](slice-minimal-core-loop-v1.md)——采集晶体 → 回基地 → 修复核心 + 最小 HUD（2026-07-17 收口）。
-- [Slice Save Persistence V1](slice-save-persistence-v1.md)——独立切片存档服务、载入存档改指切片、自动存档与读档还原（2026-07-18 收口）。
-- [Slice Harvest And Build V1](slice-harvest-and-build-v1.md)——整备台建造采集器、晶体地放置、自动产出，首条化工链第一步（2026-07-18 收口）。
-- [Slice Viewpoint Correction V1](slice-viewpoint-correction-v1.md)——投影口径修订为高斜角俯视、全部世界层素材重出换装、画面填充止血、方向性 idle（2026-07-19 收口）。
-- [Slice Core Functionalization V1](slice-core-functionalization-v1.md)——修复核心后启用 6 格直供电源与中央仓库，schema 3 存读兼容（2026-07-21 收口）。
-- [Slice Building Placement And Power Grid V1](slice-building-placement-and-power-grid-v1.md)——六类建筑通用放置、扩展供电、schema 4、自举资源与视觉修正包 5（2026-07-25 收口）。
-- [Slice Conveyor Logistics V1](slice-conveyor-logistics-v1.md)——直线、转角、端点、双 / 三路合流、公平轮询、回压与 schema 5 存读（2026-07-25 收口）。
-- [Slice Reactor Automation V1](slice-reactor-automation-v1.md)——双端口反应器、催化剂货物、schema 6、自然完整产线、双状态重启与人工确认（2026-07-26 收口）。
-- [Slice Recipe Processing V1](slice-recipe-processing-v1.md)——L0–L5 空间工厂自动化 arc，总体完成“冒险资源 → 电力 / 物流 / 加工 → 催化剂”（2026-07-26 收口）。
-- [Slice Multi-World Save List V1](slice-multi-world-save-list-v1.md)——最多 30 个世界、三份备份、损坏隔离、可恢复回收、启动列表与游戏内保存返回（2026-07-26 收口）。
-- [Slice First Field Combat And Sample Recovery V1](slice-first-field-combat-and-sample-recovery-v1.md)——首次充能、鼠标瞄准战斗、单敌人、撤离、关键样本、基地交付与 schema 7（2026-07-27 收口）。
-- [Slice HUD Gameplay Shell V1](slice-hud-gameplay-shell-v1.md)——任务舷窗、三物资槽、角色 / 敌人余量条与上下文键帽（2026-07-28 收口）。
-- [Slice Graphical Crafting And Inventory V1](slice-graphical-crafting-and-inventory-v1.md)——七张配方卡、九个背包格、鼠标制作 / 选中与权威阻塞反馈（2026-07-29 收口）。
+## 设备交互
 
-背景结论（复盘与证据轮）：
+让玩家能识别、选择、操作设备并理解反馈。拥有近身动作、界面投影、引导与统计呈现；所有值来自生产 / 能源 / 存档权威状态，不另设 UI 事实源。
 
-- 美术介质已定为像素 + 2D 俯视网格，机械口径见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)；介质证据轮 S1 到 S6 全绿。
-- 首个交付版结构：单基地 + 单远征区 = 同一张无缝地图上的两个区域（2026-07-16 定档），20 到 40 分钟可玩切片；章程见 [复盘文档](../planning/project-purpose-and-solo-ai-development-review.md)。
-- 当前先完成第一可玩切片全链串通；立绘对话框与角色八方向动画继续作为后续候选，不抢占全链里程碑证据。
+| 子专题 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 设备选择与操作 | [设备交互](factory-device-interaction-v1.md) | 旧设备基线及后续整合；生产、视觉 |
+| 首程引导 | [首次旅程](factory-first-journey-guidance-v1.md) | 旧首程 / 新路径协同；成长与探索 |
+| 生产统计 | [统计专题](factory-production-statistics-v1.md) | 旧 D3 / D4；生产、能源 |
 
-## 历史专题
+完成条件：正常、阻塞、无效选择与恢复反馈可操作且符合真实状态；自动断言不替代正式入口和用户路径证据。
 
-2026-04 至 2026-07 服务旧 Demo Definition V1（12 区纵切 + 写实资产路线）的约 60 个专题已整体归档至 [docs/archive/features-demo-v1/](../archive/features-demo-v1/README.md)，仅作历史证据与设计素材，不再是任何当前规范；其中系统层设计（任务链、存档、资源链、加工、HUD 状态）对应的运行时代码仍保留复用。
+<a id="world-save"></a>
+
+## 世界与存档
+
+让每个内容版本能独立创建、持续游玩和恢复。拥有世界身份、权威字段与文件事务，协同所有玩法；不默认转换旧档或消费用户亲测进度。
+
+| 子专题 / 技术合同 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 工厂基础与持久化 | [基础专题](factory-foundation-and-persistence-v1.md)、[既有世界合同](../architecture/factory-world-state-and-save-v1.md) | 旧 P1–P3 与对应版本 |
+| 新整合世界身份与恢复 | [整合存档合同](../architecture/factory-integrated-demo-save-v1.md) | B1 / B2 / C 联合首包，D1 / D2 单独身份；文件仍保留 architecture 目录 |
+
+完成条件：内容身份、库存 / 研究 / 能源账、严格读档、备份和跨进程恢复有对应证据；旧二维与世界 1–8 保留，未定义转换不自动迁移。
+
+<a id="visual-delivery"></a>
+
+## 视觉与交付验证
+
+让玩法以已确认的画面与可复验路径交付。拥有镜头 / 代表资产准备和跨能力验收，具体功能行为仍由其合同负责；不把样板、开发机结果或历史视觉认可扩大为新内容发布。
+
+| 子专题 / 证据入口 | 任务状态与验收来源 | 阶段 / 协同 |
+| --- | --- | --- |
+| 镜头与代表场景 | [R1 方案](factory-camera-and-representative-scene-v1.md) | R1-A–D；新核心与材质和镜头分别审阅 |
+| 既有样板 / 工厂体验 | [交互样板](factory-refinement-demo-v1.md)、[建造体验验证](factory-building-experience-validation-v1.md) | 旧样板，只提供其原范围依据 |
+| 整段与平台验收 | [Demo 整合检查](factory-demo-integration-v1.md#检查与保留边界)、[D4 保留项](../planning/factory-d3-exit-and-d4-validation.md) | 新 E 与旧 D4 分别留证，不合并状态 |
+
+完成条件：同一候选的正式 Boot、自然新档、窗口 / 原生操作、玩家反馈和平台结果有证据；D4-U / X 待验继续可见，发布另行授权。
+
+## 历史与维护
+
+原索引中的状态、旧切片与像素路线摘要保留于[整理前快照](../archive/feature-index-before-capability-map-2026-11-01.md)，旧 Demo Definition V1 仍见[原归档](../archive/features-demo-v1/README.md)。旧二维、Web / Godot 产线试验与当前整合世界各有独立历史边界；不修改原验收结论，不从旧“当前 / 最新”恢复任务。
+
+新增子专题先写玩家价值、范围 / 非目标、输入输出、依赖、正常 / 失败 / 恢复路径、状态 / 存档 / HUD、实施切片和验收。细项状态与证据在所属合同维护；持续能力以已交付基线和剩余范围表达，不按文档或勾选数量计算完成率。

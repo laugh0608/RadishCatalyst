@@ -6,6 +6,8 @@
 
 用途：在同一处可行走工业现场确认镜头取景和目标资产品质，避免以整仓资产重做或无限截图调参代替方向判断。资产需求见[代表资产设计](../design/factory-representative-asset-brief-v1.md)，候选镜头 / 坐标见[取景与布局](../reference/factory-camera-study-layout-and-framing.md)。
 
+规划归属：[能力地图](README.md#visual-delivery)。R1-A–D 为本专题实施切片；状态及审阅证据留在本文，不等同正式玩法完成。
+
 ## 玩家结果与设计闸门
 
 - 玩家能辨认角色、核心与加工设备，判断可走区域、物流口与流向；在拉远布局和近身操作之间保持空间关系。

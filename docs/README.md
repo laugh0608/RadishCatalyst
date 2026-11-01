@@ -82,7 +82,7 @@
 
 ## Feature Documents
 
-- [Feature Development Docs](features/README.md)
+- [Feature Development Docs](features/README.md)：六条能力主线、子专题归属和阶段包映射；细项状态仍由原合同维护。
 - 历史专题（旧 Demo Definition V1 路线）：[docs/archive/features-demo-v1/](archive/features-demo-v1/README.md)
 
 ## Planning And Governance

@@ -19,6 +19,24 @@
 | [布局与预算](../reference/factory-integrated-demo-layout-and-budget.md) | 候选坐标、端口、物料 / 电力 / 供给核算与证据等级 |
 | [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 透视正向 / 21 格 / 跟随；新核心 / 材质仍为设计，未制作 |
 
+<a id="capability-slices"></a>
+
+## 能力归属与切片来源
+
+本篇是[生产物流](README.md#production)牵头的跨能力整合包，不是新的能力层级。下表仅作责任导航，原实施拆分、首包条件与编号不变；细项状态在相应合同，联合发布与整段退出在本文，参数证据在布局与预算。
+
+| 原切片 | 主要能力 / 任务与验收来源 | 协同 |
+| --- | --- | --- |
+| B1 核心 / 库存 | 生产物流：[核心](factory-base-core-v1.md) | 设备交互、世界与存档 |
+| B2 研究 / 等级 | 科技成长：[科技树](factory-research-and-progression-v1.md) | 核心库存、能源 |
+| C 普通能源 | 能源：[固定燃烧](factory-fixed-burn-energy-v1.md) | 生产、世界与存档 |
+| D1 开拓回报 | 科技成长与探索：[后续节点](factory-research-and-progression-v1.md) | 资源与生产 |
+| D2 测控优化 | 能源：[后续储能 / PWM](factory-fixed-burn-energy-v1.md) | 科技等级、独立存档版本 |
+| E 整段收口 | 视觉与交付验证：本文检查与保留边界 | 所有主线，Windows / 用户证据分别记录 |
+| R1-A–D 视觉准备 | 视觉与交付验证：[R1 方案](factory-camera-and-representative-scene-v1.md) | 核心外形、设备与场景 |
+
+[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)主要归属世界与存档，横跨 B1 / B2 / C 及后续版本；不另造一个独立实施阶段。R1-A 样板结果不能代签 R1-B–D 或 B1 等正式玩法。
+
 ## 状态与参数等级
 
 - **已确认方向**：生产经营 / 探索关系、Godot 3D / GDScript、唯一核心、每物品 99,999、分级研究、固定燃烧与可选进阶控制。

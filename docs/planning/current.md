@@ -8,6 +8,8 @@
 
 **R1-A 镜头基线已由萝卜SAMA选定：C2 透视正向、默认 21 格、跟随角色，距离 / 高度可调。** 活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，独立样板同步默认值并保留滚轮。不改正式玩法与存档；新核心、贴图、研究和固定燃烧仍为后续设计。镜头选择不代替新核心 / 美术验收。
 
+规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
+
 ## 当前顺位
 
 1. 同步产品、世界观、视觉、技术与历史文档适用范围，消除旧像素 ARPG 与现行 3D 工厂口径冲突；不改写历史验证事实。
