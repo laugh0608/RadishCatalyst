@@ -3,6 +3,7 @@ extends "res://scripts/factory/model.gd"
 ## Geometry-only review fixture; never advanced, serialized or passed to a Store.
 var board_id := "P"
 var core_reserved := Rect2(-3, -3, 6, 6)
+var belts_connected := true
 
 
 func _init() -> void:
@@ -21,10 +22,11 @@ func set_board(value: String) -> void:
 		add_sample("storage", 1, 6)
 		add_sample("cell_generator", 7, 5)
 		add_sample("power_junction", 2, 3)
-		for x in range(-2, 2): add_sample("belt", x, -4, 1)
-		for z in range(-2, 2):
-			add_sample("belt", -4, z, 0 if z in [-2, 1] else 2)
-			add_sample("belt", 3, z, 0)
+		if belts_connected:
+			for x in range(-2, 2): add_sample("belt", x, -4, 1)
+			for z in range(-2, 2):
+				add_sample("belt", -4, z, 0 if z in [-2, 1] else 2)
+				add_sample("belt", 3, z, 0)
 		actor.x = -1.0
 		actor.z = 5.0
 	else:
@@ -71,9 +73,14 @@ func distance_to_sample(e: Dictionary) -> float:
 	return rect_distance(Vector2(actor.x, actor.z), Rect2(e.x, e.z, shape.w, shape.d))
 
 
-func nearest_sample() -> int:
+func nearest_sample(include_core := false) -> int:
 	var found := -1
 	var distance := 2.00001
+	if include_core and board_id == "P":
+		var core_distance := rect_distance(Vector2(actor.x, actor.z), core_reserved)
+		if core_distance < distance:
+			distance = core_distance
+			found = -2
 	for e in entities:
 		if e.type == "belt": continue
 		var next := distance_to_sample(e)
@@ -81,3 +88,10 @@ func nearest_sample() -> int:
 			distance = next
 			found = e.id
 	return found
+
+
+func toggle_core_belts() -> void:
+	var previous_actor := actor.duplicate(true)
+	belts_connected = not belts_connected
+	set_board(board_id)
+	actor.assign(previous_actor)

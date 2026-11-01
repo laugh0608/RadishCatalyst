@@ -47,6 +47,8 @@ def glb_metadata(path):
 
 def classify(path):
     """Explicit current ownership; not inferred from a lack of references."""
+    if path.startswith("client/assets/prototypes/base_core_outline/"):
+        return "core-outline-prototype", "experiment"
     if path.startswith("client/assets/factory/"):
         folder = Path(path).parent.name
         group = "base" if folder == "factory" else folder
@@ -120,6 +122,8 @@ def dynamic_sites(path, family, texts):
 
 
 def producer_candidates(family, path):
+    if family == "core-outline-prototype":
+        return ["tools/factory-content/export-core-outline.mjs"]
     if path in SOURCE_LINKS and family == "slice-world":
         name = "build_native_redraw.py" if path.endswith("outpost_core_repaired.png") else "build_support_device_normalization.py"
         return [str(Path(SOURCE_LINKS[path]).parent / name)]

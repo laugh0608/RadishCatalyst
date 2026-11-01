@@ -1,0 +1,593 @@
+{
+  "purpose": "R1-B prototype silhouette only; no gameplay, fine materials or textures",
+  "source": "Repository-authored editable geometry; no external asset pack",
+  "license": "Project-authored; existing Three.js MIT dependency",
+  "command": "node tools/factory-content/export-core-outline.mjs outline-03 --publish-prototype",
+  "three_version": "185",
+  "status": "outline candidate; owner review pending",
+  "files": {
+    "core-outline.glb": {
+      "bytes": 417300,
+      "sha256": "c4d86e97315fc8cbf6823de2ab3f9077cf3706ecf411bbbb2e575908a8d64bb3",
+      "root": "BaseCore",
+      "footprint": [
+        6,
+        6
+      ],
+      "bounds": {
+        "min": [
+          -3,
+          -3.5762786065873797e-9,
+          -3
+        ],
+        "max": [
+          3,
+          2.799999952316284,
+          3
+        ]
+      },
+      "materials": 4,
+      "textures": 0,
+      "variants": {
+        "1": {
+          "surfaces": 4,
+          "triangles": 3522
+        },
+        "2": {
+          "surfaces": 4,
+          "triangles": 3846
+        }
+      }
+    }
+  },
+  "ports": [
+    {
+      "id": "IN_N0",
+      "role": "input",
+      "point": [
+        -1.5,
+        0.31,
+        -3
+      ],
+      "normal": [
+        0,
+        -1
+      ],
+      "probe": [
+        -1.5,
+        0.34,
+        -2.57
+      ],
+      "probe_samples": [
+        [
+          -1.5,
+          0.34,
+          -2.57
+        ],
+        [
+          -1.5,
+          0.34,
+          -2.75
+        ],
+        [
+          -1.5,
+          0.34,
+          -2.3899999999999997
+        ],
+        [
+          -1.68,
+          0.34,
+          -2.57
+        ],
+        [
+          -1.32,
+          0.34,
+          -2.57
+        ]
+      ]
+    },
+    {
+      "id": "IN_N1",
+      "role": "input",
+      "point": [
+        -0.5,
+        0.31,
+        -3
+      ],
+      "normal": [
+        0,
+        -1
+      ],
+      "probe": [
+        -0.5,
+        0.34,
+        -2.57
+      ],
+      "probe_samples": [
+        [
+          -0.5,
+          0.34,
+          -2.57
+        ],
+        [
+          -0.5,
+          0.34,
+          -2.75
+        ],
+        [
+          -0.5,
+          0.34,
+          -2.3899999999999997
+        ],
+        [
+          -0.6799999999999999,
+          0.34,
+          -2.57
+        ],
+        [
+          -0.32,
+          0.34,
+          -2.57
+        ]
+      ]
+    },
+    {
+      "id": "IN_N2",
+      "role": "input",
+      "point": [
+        0.5,
+        0.31,
+        -3
+      ],
+      "normal": [
+        0,
+        -1
+      ],
+      "probe": [
+        0.5,
+        0.34,
+        -2.57
+      ],
+      "probe_samples": [
+        [
+          0.5,
+          0.34,
+          -2.57
+        ],
+        [
+          0.5,
+          0.34,
+          -2.75
+        ],
+        [
+          0.5,
+          0.34,
+          -2.3899999999999997
+        ],
+        [
+          0.32,
+          0.34,
+          -2.57
+        ],
+        [
+          0.6799999999999999,
+          0.34,
+          -2.57
+        ]
+      ]
+    },
+    {
+      "id": "IN_N3",
+      "role": "input",
+      "point": [
+        1.5,
+        0.31,
+        -3
+      ],
+      "normal": [
+        0,
+        -1
+      ],
+      "probe": [
+        1.5,
+        0.34,
+        -2.57
+      ],
+      "probe_samples": [
+        [
+          1.5,
+          0.34,
+          -2.57
+        ],
+        [
+          1.5,
+          0.34,
+          -2.75
+        ],
+        [
+          1.5,
+          0.34,
+          -2.3899999999999997
+        ],
+        [
+          1.32,
+          0.34,
+          -2.57
+        ],
+        [
+          1.68,
+          0.34,
+          -2.57
+        ]
+      ]
+    },
+    {
+      "id": "IN_W0",
+      "role": "input",
+      "point": [
+        -3,
+        0.31,
+        -1.5
+      ],
+      "normal": [
+        -1,
+        0
+      ],
+      "probe": [
+        -2.57,
+        0.34,
+        -1.5
+      ],
+      "probe_samples": [
+        [
+          -2.57,
+          0.34,
+          -1.5
+        ],
+        [
+          -2.75,
+          0.34,
+          -1.5
+        ],
+        [
+          -2.3899999999999997,
+          0.34,
+          -1.5
+        ],
+        [
+          -2.57,
+          0.34,
+          -1.32
+        ],
+        [
+          -2.57,
+          0.34,
+          -1.68
+        ]
+      ]
+    },
+    {
+      "id": "IN_W1",
+      "role": "input",
+      "point": [
+        -3,
+        0.31,
+        1.5
+      ],
+      "normal": [
+        -1,
+        0
+      ],
+      "probe": [
+        -2.57,
+        0.34,
+        1.5
+      ],
+      "probe_samples": [
+        [
+          -2.57,
+          0.34,
+          1.5
+        ],
+        [
+          -2.75,
+          0.34,
+          1.5
+        ],
+        [
+          -2.3899999999999997,
+          0.34,
+          1.5
+        ],
+        [
+          -2.57,
+          0.34,
+          1.68
+        ],
+        [
+          -2.57,
+          0.34,
+          1.32
+        ]
+      ]
+    },
+    {
+      "id": "OUT_E0",
+      "role": "output",
+      "point": [
+        3,
+        0.31,
+        -1.5
+      ],
+      "normal": [
+        1,
+        0
+      ],
+      "probe": [
+        2.57,
+        0.34,
+        -1.5
+      ],
+      "probe_samples": [
+        [
+          2.57,
+          0.34,
+          -1.5
+        ],
+        [
+          2.75,
+          0.34,
+          -1.5
+        ],
+        [
+          2.3899999999999997,
+          0.34,
+          -1.5
+        ],
+        [
+          2.57,
+          0.34,
+          -1.68
+        ],
+        [
+          2.57,
+          0.34,
+          -1.32
+        ]
+      ]
+    },
+    {
+      "id": "OUT_E1",
+      "role": "output",
+      "point": [
+        3,
+        0.31,
+        -0.5
+      ],
+      "normal": [
+        1,
+        0
+      ],
+      "probe": [
+        2.57,
+        0.34,
+        -0.5
+      ],
+      "probe_samples": [
+        [
+          2.57,
+          0.34,
+          -0.5
+        ],
+        [
+          2.75,
+          0.34,
+          -0.5
+        ],
+        [
+          2.3899999999999997,
+          0.34,
+          -0.5
+        ],
+        [
+          2.57,
+          0.34,
+          -0.6799999999999999
+        ],
+        [
+          2.57,
+          0.34,
+          -0.32
+        ]
+      ]
+    },
+    {
+      "id": "OUT_E2",
+      "role": "output",
+      "point": [
+        3,
+        0.31,
+        0.5
+      ],
+      "normal": [
+        1,
+        0
+      ],
+      "probe": [
+        2.57,
+        0.34,
+        0.5
+      ],
+      "probe_samples": [
+        [
+          2.57,
+          0.34,
+          0.5
+        ],
+        [
+          2.75,
+          0.34,
+          0.5
+        ],
+        [
+          2.3899999999999997,
+          0.34,
+          0.5
+        ],
+        [
+          2.57,
+          0.34,
+          0.32
+        ],
+        [
+          2.57,
+          0.34,
+          0.6799999999999999
+        ]
+      ]
+    },
+    {
+      "id": "OUT_E3",
+      "role": "output",
+      "point": [
+        3,
+        0.31,
+        1.5
+      ],
+      "normal": [
+        1,
+        0
+      ],
+      "probe": [
+        2.57,
+        0.34,
+        1.5
+      ],
+      "probe_samples": [
+        [
+          2.57,
+          0.34,
+          1.5
+        ],
+        [
+          2.75,
+          0.34,
+          1.5
+        ],
+        [
+          2.3899999999999997,
+          0.34,
+          1.5
+        ],
+        [
+          2.57,
+          0.34,
+          1.32
+        ],
+        [
+          2.57,
+          0.34,
+          1.68
+        ]
+      ]
+    },
+    {
+      "id": "OUT_W0",
+      "role": "output",
+      "point": [
+        -3,
+        0.31,
+        -0.5
+      ],
+      "normal": [
+        -1,
+        0
+      ],
+      "probe": [
+        -2.57,
+        0.34,
+        -0.5
+      ],
+      "probe_samples": [
+        [
+          -2.57,
+          0.34,
+          -0.5
+        ],
+        [
+          -2.75,
+          0.34,
+          -0.5
+        ],
+        [
+          -2.3899999999999997,
+          0.34,
+          -0.5
+        ],
+        [
+          -2.57,
+          0.34,
+          -0.32
+        ],
+        [
+          -2.57,
+          0.34,
+          -0.6799999999999999
+        ]
+      ]
+    },
+    {
+      "id": "OUT_W1",
+      "role": "output",
+      "point": [
+        -3,
+        0.31,
+        0.5
+      ],
+      "normal": [
+        -1,
+        0
+      ],
+      "probe": [
+        -2.57,
+        0.34,
+        0.5
+      ],
+      "probe_samples": [
+        [
+          -2.57,
+          0.34,
+          0.5
+        ],
+        [
+          -2.75,
+          0.34,
+          0.5
+        ],
+        [
+          -2.3899999999999997,
+          0.34,
+          0.5
+        ],
+        [
+          -2.57,
+          0.34,
+          0.6799999999999999
+        ],
+        [
+          -2.57,
+          0.34,
+          0.32
+        ]
+      ]
+    }
+  ],
+  "sources": {
+    "tools/factory-content/export-core-outline.mjs": "588a85a4b443aef1801c148e1e3d6412feb6006eade52fbd8a40b8ddc94923c9",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/world-model.mjs": "bcab6045dd7218eca4d8dfeb8b63a93c58740f419b518ff8975818e725001412",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  },
+  "geometry_notes": "Four visible material batches; I and II alternatives share a common root/ports/envelope. Flat rough opaque materials, no glow."
+}

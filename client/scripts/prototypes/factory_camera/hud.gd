@@ -12,6 +12,8 @@ var marker_points: Array[Vector3] = []
 var ports_visible := true
 var camera_buttons: Array[Button] = []
 var board_buttons: Array[Button] = []
+var core_study := false
+var core_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -32,7 +34,8 @@ func _ready() -> void:
 	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	column.add_theme_constant_override("separation", 6)
 	var title := Label.new()
-	title.text = "  异星催化 · 镜头与尺度试玩    R1-A / 隔离样板 / 不保存世界"
+	title.text = "  异星催化 · 新核心轮廓样板    R1-B / 无核心玩法 / 不保存世界" if core_study \
+		else "  异星催化 · 镜头与尺度试玩    R1-A / 隔离样板 / 不保存世界"
 	column.add_child(title)
 	var row := HFlowContainer.new()
 	column.add_child(row)
@@ -54,6 +57,18 @@ func _ready() -> void:
 	button(tools, "截图与记录", "capture", null)
 	button(tools, "1100×720", "window", Vector2i(1100, 720))
 	button(tools, "1440×900", "window", Vector2i(1440, 900))
+	if core_study:
+		ports_visible = false
+		var core_row := HFlowContainer.new()
+		column.add_child(core_row)
+		core_buttons.append(button(core_row, "结构 I", "tier", 1))
+		core_buttons.append(button(core_row, "结构 II", "tier", 2))
+		button(core_row, "邻带接入 / 移开", "core_belts", null)
+		button(core_row, "端口 ID", "core_names", null)
+		button(core_row, "占地框", "core_frame", null)
+		for side in [["南", "S"], ["北", "N"], ["西", "W"], ["东", "E"]]:
+			var shortcut := button(core_row, side[0] + "侧观察点", "approach", side[1])
+			shortcut.tooltip_text = "位置跳转，便于同条件观察；行走验证请使用 WASD。"
 	viewport.name = "CameraStudyViewport"
 	viewport.own_world_3d = true
 	viewport.gui_disable_input = true
@@ -138,9 +153,11 @@ func ui_point(point: Vector2) -> Vector2:
 
 
 func refresh(view: Node3D, board: RefCounted, selected: int, measure: bool,
-		cell: Vector2i, direction: int, paused: bool, notice: String) -> void:
+		cell: Vector2i, direction: int, paused: bool, notice: String, selected_port := "") -> void:
 	for i in 3: camera_buttons[i].disabled = view.preset == i
 	for i in 2: board_buttons[i].disabled = board.board_id == ["P", "D"][i]
+	if core_study:
+		for i in 2: core_buttons[i].disabled = view.core.tier == i + 1
 	for i in markers.size():
 		var point: Vector2 = ui_point(view.project(marker_points[i]))
 		markers[i].visible = ports_visible and board.board_id == "P" \
@@ -152,9 +169,15 @@ func refresh(view: Node3D, board: RefCounted, selected: int, measure: bool,
 		board.actor.x, board.actor.z, " | 移动已暂停" if paused else ""]
 	var selected_text := "点击设备查看轮廓；核心口位仅为密度标尺，非运行核心。"
 	if selected == -2: selected_text = "核心预留 6×6：本批仅检查占地与 12 口标尺，实际模型和遮挡留待 R1-B。"
+	if core_study:
+		selected_text = "核心结构 %s · 6×6 / 12 口 · %s · 点击模型或 F 近选，无库存 / 研究 / 供电玩法。" % [
+			"I" if view.core.tier == 1 else "II", "邻带接入" if board.belts_connected else "空口"]
+		if board.board_id == "D": selected_text = "密集板仅作设备对照；核心轮廓在主板 P 中显示。"
+		if not selected_port.is_empty(): selected_text = "已选端口 " + selected_port + " · 仅几何锚点，无物流配置。"
 	for entity in board.entities:
 		if entity.id == selected:
 			selected_text = "%s (%d, %d) · 距离 %.1f 格 · %s" % [entity.type, entity.x, entity.z,
 				board.distance_to_sample(entity), "可接近" if board.distance_to_sample(entity) <= 2 else "需走近"]
 	if measure: selected_text = "测量 (%d,%d) / 方向 %d：%s" % [cell.x, cell.y, direction, board.measure_cell(cell)]
+	if core_study: selected_text = selected_text.replace("核心预留占地", "核心轮廓占地")
 	detail.text = "  " + (notice if not notice.is_empty() else selected_text)

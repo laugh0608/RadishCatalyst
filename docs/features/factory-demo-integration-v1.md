@@ -17,7 +17,7 @@
 | [能源](factory-fixed-burn-energy-v1.md) | 固定燃烧、供需 / 弃能、自救、后续储能与控制边界 |
 | [存档](../architecture/factory-integrated-demo-save-v1.md) | 独立身份、权威字段、守恒、严格恢复、旧世界保护 |
 | [布局与预算](../reference/factory-integrated-demo-layout-and-budget.md) | 候选坐标、端口、物料 / 电力 / 供给核算与证据等级 |
-| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 透视正向 / 21 格 / 跟随；新核心 / 材质仍为设计，未制作 |
+| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 / 21 格 / 跟随；R1-B 轮廓可试玩但端口边缘遮挡未通过，待路线复盘；精细材质未制作 |
 
 <a id="capability-slices"></a>
 

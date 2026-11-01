@@ -6,7 +6,7 @@
 
 **统一 Demo 与第一轮成长：设计基线同步及实施合同细化。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-A 镜头基线已由萝卜SAMA选定：C2 透视正向、默认 21 格、跟随角色，距离 / 高度可调。** 活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，独立样板同步默认值并保留滚轮。不改正式玩法与存档；新核心、贴图、研究和固定燃烧仍为后续设计。镜头选择不代替新核心 / 美术验收。
+**R1-B 轮廓候选可试玩，端口边缘遮挡未通过，等待路线复盘确认。** 活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，本次按 C2 / 21 格 / 跟随制作导入轮廓，已有占地、端口坐标与绕行证据，但不判 R1-B 退出。不接精细材质、核心玩法或存档；研究和固定燃烧仍为后续设计。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
@@ -17,7 +17,7 @@
 3. 复核新档自举、研究与升级无循环、核心多口物流、固定燃烧守恒、断燃料恢复和旧世界保留；列清仍需客户端 / 窗口验证的事项，交付可审阅实施包。
 4. 获得后续代码授权后，按「核心与成长 → 普通能源与真实扩建 → 开拓回报 → 可选测控 → 整段收口」推进，同一世界接续，每批交付可玩结果。
 
-11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。[R1-A](../features/factory-camera-and-representative-scene-v1.md)已获 C2 方向选择，下一步明确按该镜头制作 R1-B 新核心结构的范围。原 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
+11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 当前候选通过占地 / 锚点和角色采样，但后仓储块 / 前角支座仍遮托盘边缘，按[两次失败复盘与建议收尾包](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)等待萝卜SAMA确认。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 
@@ -28,8 +28,8 @@
 - 既有二维、基础 / V5 / E1 / V7 / V8 和工程世界保留原规则；未经明确转换合同不迁移、不自动插核心、不消费亲测进度。
 - 多人、战斗扩展、随机地图、多星球、交易、离线收益、自动蓝图、物流桥、全量长期科技树及 1,000 台 / 10,000 带仍未纳入；不新增后端或外部依赖。
 - Godot 3D / 工业科幻方向保留；主视角已选 C2 透视正向、默认 21 格跟随，滚轮调距离 / 高度，见[视觉方向](../product/visual-and-ui-direction.md)。精细模型和全部资产量产不作为本轮合同完成条件。安装依赖、打包、分发、推送与发布仍须另行授权。
-- 资产已按正式 / 共用 / 保留二维 / 实验 / 历史候选建立引用与[来源映射](../reference/asset-source-and-export-map.md)；当前仅盘点，不搬迁、删除、重导出或重导入。旧路线的待退役候选不等于已批准删除。
-- R1-A 样板已交付并获镜头选择；R1-B / C / D 尚未获实施授权。[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)仍待制作审阅，后续按[已选镜头](../reference/factory-camera-study-layout-and-framing.md)复核，既有玩法 / 存档不因视觉样板提前发布。
+- 资产已按正式 / 共用 / 保留二维 / 实验 / 历史候选建立引用与[来源映射](../reference/asset-source-and-export-map.md)；既有资产不搬迁、删除、重导出或重导入。R1-B 仅新增自有原型核心、制作源 / 来源清单及导入配置；旧路线的待退役候选不等于已批准删除。
+- R1-A 已交付并获镜头选择；R1-B 已授权，具体范围见[轮廓实施](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。R1-C / D 仍未授权。[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)中的精细材质留待后续，既有玩法 / 存档不因视觉样板提前发布。
 
 ## 已有能力与证据
 
@@ -47,4 +47,4 @@ E1 材料 / 构件制造、E2 电芯 / 本机启停、V8 待机 / 图标 / 统�
 | D4-X Windows / PowerShell、目标硬件 | 暂缓 / 待验继续保留；macOS 开发机成绩不代签 |
 | 保存停顿、输入 / 原生切窗、统计规模与精细美术 | 根据复现与新路径影响处理，不例行重跑历史长测 |
 
-当前退出条件：R1-A 入口、已选参数、原图、原生路径和未验项可追溯；距离 / 高度调节保持俯角与 FOV。R1-B / C / D 和正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。
+当前退出条件：R1-A 已选参数与证据可追溯；R1-B 按停手规则保留失败候选、具体交点和建议收尾包，复盘决策确认前不继续第三次几何调整。R1-C / D 和正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。

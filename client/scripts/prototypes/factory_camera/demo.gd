@@ -18,18 +18,22 @@ var screenshot_root := ""
 var events: Array[Dictionary] = []
 var captures := 0
 var input_moves := 0
+var core_study := false
+var selected_port := ""
 
 
 func _ready() -> void:
 	name = "CameraStudy"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	view.core_study = core_study
+	hud.core_study = core_study
 	add_child(hud)
 	hud.viewport.add_child(view)
 	view.set_board_target(board.board_id)
 	hud.action.connect(act)
 	hud.world_input.connect(world_input)
 	get_window().close_requested.connect(write_review)
-	print("CAMERA_STUDY_READY: isolated Boot; P/D fixtures; no world save")
+	print("CORE_OUTLINE_READY" if core_study else "CAMERA_STUDY_READY", ": isolated Boot; P/D fixtures; no world save")
 
 
 func _process(delta: float) -> void:
@@ -45,7 +49,7 @@ func _process(delta: float) -> void:
 	view.logical_pixel_scale = float(hud.viewport.size.y) / maxf(hud.image.size.y, 1)
 	view.draw_board(board, selected, measuring, cell, direction)
 	if Time.get_ticks_msec() > notice_until: notice = ""
-	hud.refresh(view, board, selected, measuring, cell, direction, paused, notice)
+	hud.refresh(view, board, selected, measuring, cell, direction, paused, notice, selected_port)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -67,23 +71,52 @@ func act(kind: String, value: Variant) -> void:
 			board.set_board(str(value))
 			view.set_board_target(board.board_id)
 			selected = -1
+			selected_port = ""
 		"span": view.span = clampf(float(value), View.MIN_SPAN, View.MAX_SPAN)
 		"follow": view.follow = not view.follow
 		"reset":
 			board.set_board(board.board_id)
 			selected = -1
+			selected_port = ""
 		"measure": measuring = not measuring
 		"rotate": direction = (direction + 1) % 4
-		"nearest": selected = board.nearest_sample()
+		"nearest":
+			selected = board.nearest_sample(core_study)
+			selected_port = ""
 		"grid": view.grid_enabled = not view.grid_enabled
 		"ports": hud.ports_visible = not hud.ports_visible
 		"pause": paused = not paused
+		"tier":
+			assert(core_study)
+			view.focus_highlight.clear()
+			view.core.set_tier(int(value))
+		"core_belts":
+			assert(core_study)
+			board.toggle_core_belts()
+		"core_names":
+			assert(core_study)
+			view.core.toggle_names()
+		"core_frame":
+			assert(core_study)
+			view.core_frame = not view.core_frame
+		"approach":
+			assert(core_study)
+			if board.board_id == "P":
+				var points := {"S": Vector2(0, 4.6), "N": Vector2(0, -4.6), "W": Vector2(-4.6, 0), "E": Vector2(4.6, 0)}
+				var point: Vector2 = points[str(value)]
+				assert(not board.blocked_for_actor(point.x, point.y))
+				board.actor.x = point.x
+				board.actor.z = point.y
+				board.actor.target = null
+				selected = -1
+				selected_port = ""
 		"window":
 			get_window().mode = Window.MODE_WINDOWED
 			get_window().size = value
 		"cancel":
 			measuring = false
 			selected = -1
+			selected_port = ""
 		"capture": capture.call_deferred()
 		_: push_error("Unknown camera study action: " + kind)
 	record(kind, value)
@@ -102,8 +135,10 @@ func world_input(event: InputEvent) -> void:
 				MOUSE_BUTTON_LEFT:
 					if not measuring:
 						selected = view.hit(point)
-						if selected < 0 and ground != null and board.board_id == "P" \
+						if not core_study and selected < 0 and ground != null and board.board_id == "P" \
 								and board.core_reserved.has_point(Vector2(ground.x, ground.z)): selected = -2
+						selected_port = view.core.port_at(view.camera, point, 14 * view.logical_pixel_scale) \
+							if core_study and selected == -2 else ""
 					record("measure_click" if measuring else "select", [cell.x, cell.y, selected])
 
 
@@ -119,7 +154,7 @@ func state() -> Dictionary:
 	for a in hud.marker_points.size():
 		for b in range(a + 1, hud.marker_points.size()):
 			minimum_gap = minf(minimum_gap, view.project(hud.marker_points[a]).distance_to(view.project(hud.marker_points[b])))
-	return {"camera": view.camera_state(), "board": board.board_id,
+	var snapshot := {"camera": view.camera_state(), "board": board.board_id,
 		"actor": [board.actor.x, board.actor.z], "selected": selected, "measuring": measuring,
 		"cell": [cell.x, cell.y], "direction": direction, "paused": paused,
 		"window": [get_window().size.x, get_window().size.y],
@@ -128,6 +163,14 @@ func state() -> Dictionary:
 		"port_output_marker_ui_size": 18, "port_icons_are_density_examples": true,
 		"renderer": RenderingServer.get_current_rendering_method(),
 		"world_saved": false, "events": events}
+	if core_study:
+		snapshot["core"] = view.core.review(view.camera, board.actor) if board.board_id == "P" \
+			else {"model": view.core.MODEL_PATH, "tier": view.core.tier, "probe_scope": "not sampled: core hidden on dense board", "gameplay_connected": false}
+		snapshot["core"]["shown_on_board"] = board.board_id == "P"
+		snapshot["core"]["belts_connected"] = board.belts_connected
+		snapshot["core"]["selected_port"] = selected_port
+		snapshot["core"]["frame_visible"] = view.core_frame
+	return snapshot
 
 
 func write_review() -> void:

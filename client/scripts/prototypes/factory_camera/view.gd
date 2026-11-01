@@ -16,6 +16,9 @@ var board_target := Vector3(0, 0.25, 1)
 var reserved := Node3D.new()
 var preview := Node3D.new()
 var grid_enabled := false
+var core_study := false
+var core: Node3D
+var core_frame := true
 
 
 func _ready() -> void:
@@ -52,6 +55,12 @@ func _ready() -> void:
 		_overlay_box(grid, Vector3(i, 0.035, 0), Vector3(0.014, 0.006, 24), mat)
 		_overlay_box(grid, Vector3(0, 0.035, i), Vector3(24, 0.006, 0.014), mat)
 	get_viewport().size_changed.connect(sync_camera)
+	if core_study:
+		core = preload("res://scripts/prototypes/factory_camera/core_outline.gd").new()
+		add_child(core)
+		if not core.prepared:
+			resource_error = core.resource_error
+			return
 	prepared = true
 	sync_camera()
 
@@ -94,14 +103,16 @@ func _rebuild(model: RefCounted) -> void:
 		models[e.id] = {"root": root, "focus_parts": parts, "hit_parts": parts}
 	if model.board_id == "P":
 		footprint(reserved, Vector2i(-3, -3), {"w": 6, "d": 6}, select_mat)
-		var caption := Label3D.new()
-		caption.font = preload("res://assets/fonts/NotoSansSC-wght.ttf")
-		caption.text = "核心预留 6×6\n轮廓模型尚未制作"
-		caption.font_size = 28
-		caption.pixel_size = 0.014
-		caption.position = Vector3(0, 0.08, 0)
-		caption.rotation_degrees.x = -90
-		reserved.add_child(caption)
+		if not core_study:
+			var caption := Label3D.new()
+			caption.font = preload("res://assets/fonts/NotoSansSC-wght.ttf")
+			caption.text = "核心预留 6×6\n轮廓模型尚未制作"
+			caption.font_size = 28
+			caption.pixel_size = 0.014
+			caption.position = Vector3(0, 0.08, 0)
+			caption.rotation_degrees.x = -90
+			reserved.add_child(caption)
+	if core_study: core.visible = model.board_id == "P"
 	last_revision = model.revision
 
 
@@ -119,8 +130,11 @@ func draw_board(model: RefCounted, selected: int, measure: bool, cell: Vector2i,
 	var gait: float = sin(actor.walk * 7) * 0.48 if actor.moving else 0.0
 	for i in limbs.size(): limbs[i].rotation.x = gait * (1 if i < 2 else -1) * (1 if i % 2 == 0 else -1)
 	body.position.y = absf(sin(actor.walk * 7)) * 0.035 if actor.moving else 0
-	focus_highlight.sync(models.get(selected, {}), logical_pixel_scale)
+	var selected_visual: Dictionary = models.get(selected, {})
+	if core_study and selected == -2 and core.visible: selected_visual = core.visual()
+	focus_highlight.sync(selected_visual, logical_pixel_scale)
 	grid.visible = measure or grid_enabled
+	if core_study: reserved.visible = core_frame or measure or grid_enabled
 	var key := str([measure, cell, dir, model.revision])
 	if key != ghost_key:
 		ghost_key = key
@@ -129,6 +143,17 @@ func draw_board(model: RefCounted, selected: int, measure: bool, cell: Vector2i,
 			var mat := valid_mat if model.measure_cell(cell).begins_with("空格") else invalid_mat
 			footprint(preview, cell, {"w": 1, "d": 1}, mat)
 			arrow(preview, cell, dir, mat)
+
+
+func hit(screen: Vector2) -> int:
+	var candidate := super.hit(screen)
+	if not core_study or not core.is_visible_in_tree(): return candidate
+	var origin := camera.project_ray_origin(screen)
+	var direction := camera.project_ray_normal(screen)
+	var nearest: float = core.ray_distance(core.parts, origin, direction)
+	if nearest == INF: return candidate
+	if candidate < 0 or nearest < core.ray_distance(models[candidate].hit_parts, origin, direction): return -2
+	return candidate
 
 
 func set_board_target(value: String) -> void:
