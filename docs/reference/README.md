@@ -19,6 +19,7 @@
 
 ## Historical / External References
 
+- [Riftbreaker Camera And Visual Study](riftbreaker-camera-and-visual-study.md)
 - [Endfield Production Planning Study](endfield-production-planning-study.md)
 - [Factory Game Production Study](factory-game-production-study.md)
 - [Chemical Automation Game Outline](chemical-automation-game-outline.md)
