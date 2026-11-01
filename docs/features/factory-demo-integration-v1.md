@@ -2,7 +2,7 @@
 
 更新时间：2026-11-01
 
-状态：**方向与设计工作已获确认；正式玩法仍为合同细化，另获授权的 R1-A 独立镜头样板已交付。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**方向已确认、合同已完成首轮细化，正式玩法未实施；R1-A 镜头已选，R1-B 轮廓可试玩但端口边缘遮挡未通过。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 

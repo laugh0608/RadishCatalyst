@@ -21,6 +21,8 @@
 
 正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。独立低投入交互样板使用 `bash tools/factory-content/refinement-demo.sh`；两件自有模型导出和 `check-refinement.gd` 定向检查也见该文。样板通过双根隔离 Boot 挂载、内存运行，不接入正式新世界菜单或保存规则；不支持上述四个入口的 `--verify` 约定，开窗前仍须告知。
 
+R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用 `sh tools/factory-content/core-study.sh`；macOS 可双击同名 `.command`，均先显示准备页，默认 C2 / 21 格 / 跟随。R1-A 54 项回归通过，R1-B 当前 1,051 项中 96 项端口边缘失败，不属于正式玩法。两者独立双根、不运行生产 / Store，具体操作、来源、日志 / 截图和失败结果见 [Factory Content](factory-content/README.md) 与 [R1 专题](../docs/features/factory-camera-and-representative-scene-v1.md)。检查退出码和错误日志都须核对，不将候选能打开或旧证据通过当作 R1-B 验收。
+
 ## 正式工厂定向检查
 
 以下均使用已安装 Godot，启动前先告知；存档与日志仅写忽略的运行检查目录。完整隔离要求见 [Godot Runtime Verification Guide](../docs/reference/godot-runtime-verification-guide.md)，实际覆盖由脚本及当批日志确认。

@@ -17,12 +17,14 @@
 
 ## 当前接续事项
 
-资产盘点 `2fe4beb7`、R1 设计 `31efe2ae`、R1-A `e0f1cf34` 已提交。当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随，保留 R1-A 原入口。当前候选占地、12 口坐标与绕行有证据，但五点端口遮挡检查仍失败，先审阅[具体失败与建议收尾包](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)，不继续同类调参。[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)中的精细材质未实施，不迁删旧资产。
+11 月 1 日日终：R1-B 已提交为 `ce37059b`，今天停止开发；收尾建议仅记入接续事项，不视为第三次几何调整已获授权。原图、失败条件和复盘见[R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。
 
-1. 真相源同步及四类合同首轮已完成；依[总合同](../features/factory-demo-integration-v1.md)审阅核心足印 / 端口 / 库存和研究 / 升级事务。S0 / S1 离线几何已通过，继续核对能源 / 构件并行布局与供给成本，不重复宣称自然路径通过。
-2. 复核完整电池链 + 其他生产的峰值 / 平均 / 待机、首颗与恢复路径；明确固定燃烧的实际释能 / 弃能，避免沿用 V8 供用相等的全部前提。
-3. 复核新世界身份、严格字段、研究 / 升级消费账与固定燃烧余时；后续储能 / 控制单独版本化，不静默改变已经发布的规则。
-4. R1-A 已完成隔离 Boot 与镜头方向选择；R1-B 当前 1,051 项检查中有 96 项端口边缘失败，不判通过，下一步由萝卜SAMA确认是否执行仅内收后仓储块 / 前角支座的明确收尾包。新整合世界的跨进程存读、自然生产及目标平台仍待后续实现验证。
+当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
+
+1. 下次先确认 R1-B 的明确收尾包：仅内收后仓储块 / 前角支座，保持 C2、6×6、12 口 / 接带高、I / II 包围与当前材质预算。不新增贴图、消隐或核心玩法。
+2. 获确认后按同一 1,051 项条件复核，重点看 `IN_N0 / IN_N3` 内沿与 `IN_W1 / OUT_E3` 前边缘，再补默认起点、近身、四侧 / 四角及最小窗口原图；96 项失败是多种镜头 / 位置 / 等级下的边缘断言，不是 96 个端口。通过后再由萝卜SAMA审阅轮廓。
+3. R1-B 收口后再明确 R1-C / D 授权。正式整合仍未实现，不把 I / II 网格切换当升级、不把接带外观当物流，也不把角色样点当全身可见率。
+4. 保留[总合同](../features/factory-demo-integration-v1.md)的并行构件布局 / 自举与能源预算审阅；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
 5. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 
 ## 边界与验证

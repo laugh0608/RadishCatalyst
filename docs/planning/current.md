@@ -12,10 +12,10 @@
 
 ## 当前顺位
 
-1. 同步产品、世界观、视觉、技术与历史文档适用范围，消除旧像素 ARPG 与现行 3D 工厂口径冲突；不改写历史验证事实。
-2. 完成[核心合同](../features/factory-base-core-v1.md)、[科技树合同](../features/factory-research-and-progression-v1.md)、[能源合同](../features/factory-fixed-burn-energy-v1.md)、[存档合同](../architecture/factory-integrated-demo-save-v1.md)，以[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)统一参数和证据等级。
-3. 复核新档自举、研究与升级无循环、核心多口物流、固定燃烧守恒、断燃料恢复和旧世界保留；列清仍需客户端 / 窗口验证的事项，交付可审阅实施包。
-4. 获得后续代码授权后，按「核心与成长 → 普通能源与真实扩建 → 开拓回报 → 可选测控 → 整段收口」推进，同一世界接续，每批交付可玩结果。
+1. 下次开工先审阅 R1-B 收尾建议：只内收后仓储块 / 前角支座，保持 C2、6×6、12 口坐标 / 高度、I / II 包围和材质预算；路线决策待萝卜SAMA确认，今晚不执行第三次调整。
+2. 获确认后按相同 1,051 项条件、默认起点 / 四角 / 近身与最小窗口复测；保留当前 96 项端口边缘失败和原图，不靠换镜头、消隐、隐藏标记或放宽采样通过。
+3. R1-B 通过并获轮廓认可后，再明确 R1-C 代表材质与 R1-D 联合审阅范围；当前不开精细材质或核心玩法。
+4. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。并行构件布局 / 自举预算仍需复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 当前候选通过占地 / 锚点和角色采样，但后仓储块 / 前角支座仍遮托盘边缘，按[两次失败复盘与建议收尾包](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)等待萝卜SAMA确认。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
