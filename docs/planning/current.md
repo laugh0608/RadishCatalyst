@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-10-27
+更新时间：2026-11-01
 
 ## 当前阶段
 
@@ -14,7 +14,7 @@
 
 1. **关系方案**：[生产内容扩展 V1](../features/factory-production-expansion-v1.md)提出 15 种物品、14 个加工配方、3 类新增加工设备与电芯发电机；成品分别用于制造构件、供电和开拓高产矿点。[六款游戏对照](../reference/factory-game-production-study.md)已补官方资料与 Wiki，修正副产物出口、一次性需求和高产矿价值的推断；具体供给 / 消费仍待试玩。
 2. **E1 材料与扩建**：[实施合同](../features/factory-production-expansion-e1.md)与[两份布局 / 成本吞吐比较](../reference/factory-production-expansion-e1-layout.md)10 月 22 日已按确认合同实现，直接路线自然制造并放下第二炉，独立恢复后混料回用再产两包；三设备、165 起步构件、326 总拥有量和独立 schema 6 已落地。当前短试玩反馈已定位完成配额导致的停线，并按确认整改电力常显、默认连线开关、仅键盘移动与配额说明；接续混料半批复测，操作代价与节材感受仍待反馈。具体接续见 [Daily Start](daily-start.md#next-day-tasks)。
-3. **E2 能源循环**：[实施合同](../features/factory-production-expansion-e2.md)已实现；10 月 27 日按确认的[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)接入 V8 待机耗电、准入口图标和统一高亮，开发机定向验证通过。基础供电仍为 240 kW；V8 同源自然四包对照为关闭 G 56.40 秒、开启 G 41.65 秒，约缩短 26.2%，不等于首次施工收益。原 C / D 亲测入口仍是 V7，下次先准备独立 V8 副本，再收集瞄准、耗电理解和补电收益反馈；具体接续见 [Daily Start](daily-start.md#next-day-tasks)，新旧证据见 [W44](../devlogs/2026-W44.md)。
+3. **E2 能源循环**：[实施合同](../features/factory-production-expansion-e2.md)已实现；10 月 27 日按确认的[能源与焦点反馈](../features/factory-energy-and-focus-feedback-v1.md)接入 V8 待机耗电、准入口图标和统一高亮，开发机定向验证通过。基础供电仍为 240 kW；V8 同源自然四包对照为关闭 G 56.40 秒、开启 G 41.65 秒，约缩短 26.2%，不等于首次施工收益。11 月 1 日已从成功父档准备独立 V8 练习 / C 待机 / D 收益入口并完成启动、窗口与原生操作验证；旧 V7 入口及用户进度保留。接续收集瞄准、耗电理解和补电收益反馈，具体见 [Daily Start](daily-start.md#next-day-tasks)，证据见 [W44](../devlogs/2026-W44.md)。
 4. **E3 开拓回报（后续提案）**：结合 E2 短试玩再细化生产开拓用品、固定支路与高产原料回流合同，确认后实施；当前不直接进入 E3 编码。
 
 每批按“完整可玩用途 → 短试玩 → 调整”推进；不先堆大量无用途的物品，也不把旧包逐项精细验收排在内容开发之前。物料、存读和关键操作仍做与变更风险匹配的检查；具体范围见专题，不例行重跑历史完整自然流程或四档长测。

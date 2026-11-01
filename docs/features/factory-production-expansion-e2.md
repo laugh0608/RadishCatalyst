@@ -1,6 +1,6 @@
 # Factory Production Expansion E2
 
-更新时间：2026-10-27
+更新时间：2026-11-01
 
 状态：**2026-10-23 已按确认合同实现并通过开发机定向工程验证；短试玩、Windows 与目标硬件验证仍保留。** 承接[生产内容扩展 V1](factory-production-expansion-v1.md)与已实现的 [E1](factory-production-expansion-e1.md)。本文定义玩家流程、运行与存档合同；坐标、构件清单见 [E2 布局](../reference/factory-production-expansion-e2-layout.md)，算式、供能能力与限制见 [E2 能量收支](../reference/factory-production-expansion-e2-energy-balance.md)。
 
@@ -171,6 +171,8 @@ G 主面板显示未激活件数、余能 kJ、当前输出 / 120 kW、网络缺
 - C→D 工程脚本含备建 / 搬迁约 16.4 分钟；它证明完整链可行，不证明从启动点 5–10 分钟感知收益或新手建线体验。下一步短试玩应观察逐步扩建的首次收益、施工成本和停机恢复是否直观；Windows / PowerShell 与 E3 未验、未实现。
 
 ### 独立短试玩（2026-10-27）
+
+以下为保留的旧 V7 入口。2026-11-01 已另备独立 V8 练习 / C / D 副本，待机耗电亲测使用[能源与焦点反馈的新版入口](factory-energy-and-focus-feedback-v1.md#v8-playtest)，不自动转换本节旧进度。
 
 亲测根为 `tools/runtime-intake/review-worlds/factory-production-expansion-e2/`；本地 `README.md` 给出操作、坐标、配额与重置说明。默认会话 `playtest-20261027-ready`（原 `playtest-20261027` 进度保留） 的 C / D 分别复制成功自然批次 `boot-write-20261023-b` / `boot-read-20261023-a`，每份保留五个存档文件及来源 SHA-256，双根隔离，不覆盖 E1 或验收父档。
 
