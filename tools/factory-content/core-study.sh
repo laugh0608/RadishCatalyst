@@ -8,6 +8,13 @@ if [ ! -x "${godot_exe}" ]; then
   exit 2
 fi
 session="review-$(date '+%Y%m%d-%H%M%S')-$$"
-logs="${repo_root}/tools/runtime-intake/check-runs/factory-core-outline-v1/${session}"
+topic=factory-core-outline-v1
+if [ "$#" -eq 1 ] && [ "$1" = "--materials" ]; then
+  topic=factory-material-study-v1
+elif [ "$#" -ne 0 ]; then
+  echo "Usage: core-study.sh [--materials]" >&2
+  exit 2
+fi
+logs="${repo_root}/tools/runtime-intake/check-runs/${topic}/${session}"
 mkdir -p "${logs}"
-exec "${godot_exe}" --path "${repo_root}/client" --log-file "${logs}/godot.log" --script "${script_dir}/core-study.gd" -- "${session}"
+exec "${godot_exe}" --path "${repo_root}/client" --log-file "${logs}/godot.log" --script "${script_dir}/core-study.gd" -- "${session}" "$@"

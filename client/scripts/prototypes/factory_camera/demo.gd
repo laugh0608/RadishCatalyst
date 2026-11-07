@@ -19,6 +19,7 @@ var events: Array[Dictionary] = []
 var captures := 0
 var input_moves := 0
 var core_study := false
+var material_study := false
 var selected_port := ""
 
 
@@ -26,7 +27,9 @@ func _ready() -> void:
 	name = "CameraStudy"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	view.core_study = core_study
+	view.material_study = material_study
 	hud.core_study = core_study
+	hud.material_study = material_study
 	add_child(hud)
 	hud.viewport.add_child(view)
 	if core_study and view.prepared:
@@ -71,6 +74,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func act(kind: String, value: Variant) -> void:
 	match kind:
 		"camera": view.preset = int(value)
+		"material": view.set_material_mode(int(value))
 		"board":
 			board.set_board(str(value))
 			view.set_board_target(board.board_id)
@@ -88,7 +92,9 @@ func act(kind: String, value: Variant) -> void:
 			selected = board.nearest_sample(core_study)
 			selected_port = ""
 		"grid": view.grid_enabled = not view.grid_enabled
-		"ports": hud.ports_visible = not hud.ports_visible
+		"ports":
+			hud.ports_visible = not hud.ports_visible
+			if material_study and hud.ports_visible and view.core.names_visible: view.core.toggle_names()
 		"pause": paused = not paused
 		"tier":
 			assert(core_study)
@@ -100,6 +106,7 @@ func act(kind: String, value: Variant) -> void:
 		"core_names":
 			assert(core_study)
 			view.core.toggle_names()
+			if material_study and view.core.names_visible: hud.ports_visible = false
 		"core_frame":
 			assert(core_study)
 			view.core_frame = not view.core_frame
@@ -167,6 +174,10 @@ func state() -> Dictionary:
 		"port_output_marker_ui_size": 18, "port_icons_are_density_examples": true,
 		"renderer": RenderingServer.get_current_rendering_method(),
 		"world_saved": false, "events": events}
+	if material_study:
+		snapshot["material_mode"] = View.Materials.MODES[view.material_mode]
+		snapshot["port_markers_visible"] = hud.ports_visible
+		snapshot["port_names_visible"] = view.core.names_visible
 	if core_study:
 		snapshot["core"] = view.core.review(view.camera, board.actor) if board.board_id == "P" \
 			else {"model": view.core.MODEL_PATH, "tier": view.core.tier, "probe_scope": "not sampled: core hidden on dense board", "gameplay_connected": false}

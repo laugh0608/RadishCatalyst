@@ -44,6 +44,12 @@ macOS 双击 `core-study.command` 或执行 `sh tools/factory-content/core-study
 
 核心无窗口检查：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-core-outline.gd --log-file <ignored-log> -- <batch>`（绝对路径）；双根位于检查 batch 下。`outline-06` 的 1,360 项覆盖四面锚点、直带朝向、标尺与原遮挡采样组合；旧候选的检查结果分别保留。原图 / 逐图 JSON 为 `assets/art-intake/factory-core-outline-v1/<session>/`，入口日志 / 定向结果为 `tools/runtime-intake/check-runs/factory-core-outline-v1/`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-core-outline-v1/<session>/`，均忽略提交。采样只证明指定核心网格的指定点，不当成全身 / 全场景可见率或性能。
 
+## R1-C / D 代表材质
+
+macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-study.sh --materials`。在原核心和代表反应器上比较 M0、M1 岩土及 M1 工作面。最小窗口的口位标尺和端口 ID 分开查看。旧核心轮廓入口继续可用。
+
+贴图源运行 `python3 tools/factory-content/export-representative-materials.py <new-batch> --copy-to-study`。需先导入 Godot，启动前告知。定向入口为 `check-material-study.gd -- <new-batch>`，无窗口时给 Godot 加 `--headless`。窗口验证去掉 `--headless`，并在脚本用户参数中追加 `--window`。证据位于 `tools/runtime-intake/check-runs/factory-material-study-v1/` 与 `assets/art-intake/factory-material-study-v1/`。见[样板复测](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-material-review)。
+
 ## 低投入交互样板
 
 `node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。

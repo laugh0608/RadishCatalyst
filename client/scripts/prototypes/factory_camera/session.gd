@@ -4,7 +4,9 @@ const Boot := preload("res://scenes/boot/Boot.tscn")
 const Demo := preload("res://scripts/prototypes/factory_camera/demo.gd")
 
 
-static func open(tree: SceneTree, isolated_root: String, screenshots: String, core_study := false) -> Dictionary:
+static func open(tree: SceneTree, isolated_root: String, screenshots: String,
+		core_study := false, material_study := false) -> Dictionary:
+	assert(not material_study or core_study)
 	var boot := Boot.instantiate()
 	boot.slice_save_catalog = SliceSaveCatalog.new(isolated_root.path_join("slice"))
 	boot.factory_save_root = isolated_root.path_join("factory")
@@ -16,6 +18,7 @@ static func open(tree: SceneTree, isolated_root: String, screenshots: String, co
 	boot.startup_menu.hide()
 	var demo := Demo.new()
 	demo.core_study = core_study
+	demo.material_study = material_study
 	demo.output_root = isolated_root
 	demo.screenshot_root = screenshots
 	boot.add_child(demo)

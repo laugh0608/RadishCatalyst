@@ -9,6 +9,7 @@ const CAMERAS := [
 const MIN_SPAN := 16.0
 const DEFAULT_SPAN := 21.0
 const MAX_SPAN := 28.0
+const Materials := preload("res://scripts/prototypes/factory_camera/material_study.gd")
 var preset := 2
 var span := DEFAULT_SPAN
 var follow := true
@@ -19,6 +20,10 @@ var grid_enabled := false
 var core_study := false
 var core: Node3D
 var core_frame := true
+var material_study := false
+var material_mode := 0
+var material_review: Materials
+var yard_parts: Array[Node] = []
 
 
 func _ready() -> void:
@@ -37,6 +42,9 @@ func _ready() -> void:
 	yard.scale = Vector3(64.0 / 20.0, 1, 64.0 / 13.0)
 	yard.position.z = -0.5 * yard.scale.z
 	_disable_transparent_shadows(yard)
+	if material_study:
+		material_review = Materials.new()
+		yard_parts = yard.find_children("*", "MeshInstance3D", true, false)
 	_build_lighting()
 	add_child(camera)
 	camera.current = true
@@ -100,6 +108,10 @@ func _rebuild(model: RefCounted) -> void:
 		for part in parts:
 			if not mesh_faces.has(part.mesh.get_instance_id()): mesh_faces[part.mesh.get_instance_id()] = part.mesh.get_faces()
 		models[e.id] = {"root": root, "focus_parts": parts, "hit_parts": parts}
+		if material_study and e.type in ["reactor", "belt", "power_junction", "cell_generator"]:
+			var group := "reactor" if e.type == "reactor" else "shared"
+			models[e.id]["material_group"] = group
+			if material_mode != 0: material_review.apply(parts, group, material_mode)
 	if model.board_id == "P":
 		footprint(reserved, Vector2i(-3, -3), {"w": 6, "d": 6}, select_mat)
 		if not core_study:
@@ -113,6 +125,17 @@ func _rebuild(model: RefCounted) -> void:
 			reserved.add_child(caption)
 	if core_study: core.visible = model.board_id == "P"
 	last_revision = model.revision
+
+
+func set_material_mode(mode: int) -> void:
+	assert(material_study and mode >= 0 and mode < Materials.MODES.size())
+	if material_mode == mode: return
+	material_mode = mode
+	material_review.apply(yard_parts, "yard", mode)
+	material_review.apply(core.parts, "core", mode)
+	for instance in models.values():
+		if instance.has("material_group"):
+			material_review.apply(instance.focus_parts, instance.material_group, mode)
 
 
 func draw_board(model: RefCounted, selected: int, measure: bool, cell: Vector2i, dir: int) -> void:

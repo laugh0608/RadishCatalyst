@@ -32,7 +32,9 @@ tools/visual-studies/web-topdown-3d/ 的自有几何 / 材质 / 生产定义
 
 执行形式为 `node <上述 .mjs 路径>`，均可能覆盖输出，本轮未执行。核对后续模型替换时还须记录 GLB 内节点名 / 材质、Godot 导入配置及 UID；角色视图按节点名绑定身体 / 四肢，外形相近不能保证动画接线相容。
 
-R0 盘点时 27 个客户端 GLB 元数据均未包含图像、纹理或法线贴图条目；后续新增的 R1-B 轮廓也无贴图。当前候选含 16 命名端口与 I / II 变体，共 5 网格 / 4 材质、每级 4 可见表面；可编辑源、GLB、命令 / 依赖与哈希随来源清单保存，Godot 导入配置独立提交。细节贴图、烘焙源与贴图导出步骤留待 R1-C，不新增 DCC 依赖。
+R0 盘点时 27 个客户端 GLB 元数据均未包含图像、纹理或法线贴图条目；后续新增的 R1-B 轮廓也无贴图。当前候选含 16 命名端口与 I / II 变体，共 5 网格 / 4 材质、每级 4 可见表面；可编辑源、GLB、命令 / 依赖与哈希随来源清单保存，Godot 导入配置独立提交。R1-C 贴图单独绑定，保留原 GLB 与 UV。
+
+R1-C 独立样板材质由 `python3 tools/factory-content/export-representative-materials.py <batch> --copy-to-study` 生成。每批先保存在 `assets/art-intake/2026-11-07-factory-representative-assets/<batch>/`，样板副本位于 `client/assets/prototypes/factory_material_study/`。当前 `material-02` 有四张 sRGB 颜色贴图和一张 +Y 法线图，均为 256²，启用 mipmaps。来源和文件哈希随清单保存。
 
 ## 共用与工程资源
 

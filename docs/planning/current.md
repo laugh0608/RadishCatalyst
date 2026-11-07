@@ -6,14 +6,14 @@
 
 **统一 Demo 与第一轮成长：设计基线同步及实施合同细化。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** 原 12 口遮挡复测与新 16 口证据分列，样板使用直带，南侧低支座与北侧外角装饰对位。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，正式核心、研究、固定燃烧与存档仍属合同设计。
+**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，正式核心、研究、固定燃烧与存档仍属合同设计。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
 ## 当前顺位
 
-1. 确认 [R1-C 代表材质与 R1-D 联合审阅](../features/factory-camera-and-representative-scene-v1.md#分步交付与顺序)的范围。R1-C 以 `outline-06` 为几何基线做 M0 / M1 同场对照，R1-D 接续复核移动、密集产线、近身、建造、最小窗口及性能增量。
-2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。按四面端口重算 S0 / [S1-P](../reference/factory-integrated-demo-layout-and-budget.md#s1-parallel) 布线，实际供给、操作量和扩建收益待复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
+1. 将认可的 [R1-C / D 材质与场景对照](../features/factory-camera-and-representative-scene-v1.md#r1-material-review)转成 R2 首件资产规范。
+2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 已完成离线布线复算，实际供给、操作量和扩建收益待复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
@@ -27,7 +27,7 @@
 - 多人、战斗扩展、随机地图、多星球、交易、离线收益、自动蓝图、物流桥、全量长期科技树及 1,000 台 / 10,000 带仍未纳入；不新增后端或外部依赖。
 - Godot 3D / 工业科幻方向保留；主视角已选 C2 透视正向、默认 21 格跟随，滚轮调距离 / 高度，见[视觉方向](../product/visual-and-ui-direction.md)。精细模型和全部资产量产不作为本轮合同完成条件。安装依赖、打包、分发、推送与发布仍须另行授权。
 - 资产已按正式 / 共用 / 保留二维 / 实验 / 历史候选建立引用与[来源映射](../reference/asset-source-and-export-map.md)；既有资产不搬迁、删除、重导出或重导入。R1-B 仅新增自有原型核心、制作源 / 来源清单及导入配置；旧路线的待退役候选不等于已批准删除。
-- R1-A 已交付并获镜头选择；R1-B 已授权，具体范围见[轮廓实施](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。R1-C / D 仍未授权。[核心 / 材质需求](../design/factory-representative-asset-brief-v1.md)中的精细材质留待后续，既有玩法 / 存档不因视觉样板提前发布。
+- R1-A 已交付并获镜头选择；R1-B 已授权，具体范围见[轮廓实施](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。R1-C / D 已按确认范围做独立样板。材质审阅与正式玩法实施分开。
 
 ## 已有能力与证据
 
@@ -45,4 +45,4 @@ E1 材料 / 构件制造、E2 电芯 / 本机启停、V8 待机 / 图标 / 统�
 | D4-X Windows / PowerShell、目标硬件 | 暂缓 / 待验继续保留；macOS 开发机成绩不代签 |
 | 保存停顿、输入 / 原生切窗、统计规模与精细美术 | 根据复现与新路径影响处理，不例行重跑历史长测 |
 
-当前退出条件：R1-A 已选参数与证据可追溯；R1-B 已获萝卜SAMA认可，分别保留旧结构和新四面端口证据。R1-C / D 和正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。
+当前退出条件：R1-A 已选参数与证据可追溯；R1-B 已获萝卜SAMA认可，分别保留旧结构和新四面端口证据。R1-C / D 已完成代表品质审阅，开发机证据保留适用范围。正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。

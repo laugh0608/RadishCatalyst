@@ -14,6 +14,8 @@ var camera_buttons: Array[Button] = []
 var board_buttons: Array[Button] = []
 var core_study := false
 var core_buttons: Array[Button] = []
+var material_study := false
+var material_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -36,6 +38,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "  异星催化 · 新核心轮廓样板    R1-B / 无核心玩法 / 不保存世界" if core_study \
 		else "  异星催化 · 镜头与尺度试玩    R1-A / 隔离样板 / 不保存世界"
+	if material_study: title.text = "  异星催化 · 代表材质与场景对照    R1-C / D · 隔离样板"
 	column.add_child(title)
 	var row := HFlowContainer.new()
 	column.add_child(row)
@@ -45,6 +48,9 @@ func _ready() -> void:
 		board_buttons.append(button(row, "主板 P" if id == "P" else "密集板 D", "board", id))
 	button(row, "固定 / 跟随", "follow", null)
 	button(row, "回到起点", "reset", null)
+	if material_study:
+		for i in 3:
+			material_buttons.append(button(row, ["M0 原材质", "M1 岩土", "M1 工作面"][i], "material", i))
 	var tools := HFlowContainer.new()
 	column.add_child(tools)
 	for span in [16, 21, 28]:
@@ -52,7 +58,8 @@ func _ready() -> void:
 		zoom_button.tooltip_text = "观察距离：滚轮向上拉近 / 降低，向下拉远 / 升高；俯角与透视强度保持不变。"
 	button(tools, "B 格位测量", "measure", null)
 	button(tools, "网格", "grid", null)
-	button(tools, "口位标尺", "ports", null)
+	var marker_button := button(tools, "口位标尺", "ports", null)
+	if material_study: marker_button.tooltip_text = "查看入料标记与四个出料物品示例；与端口 ID 分开显示。"
 	button(tools, "暂停移动", "pause", null)
 	button(tools, "截图与记录", "capture", null)
 	button(tools, "1100×720", "window", Vector2i(1100, 720))
@@ -64,7 +71,8 @@ func _ready() -> void:
 		core_buttons.append(button(core_row, "结构 I", "tier", 1))
 		core_buttons.append(button(core_row, "结构 II", "tier", 2))
 		button(core_row, "邻带接入 / 移开", "core_belts", null)
-		button(core_row, "端口 ID", "core_names", null)
+		var names_button := button(core_row, "端口 ID", "core_names", null)
+		if material_study: names_button.tooltip_text = "查看端口名称；与口位标尺分开显示。"
 		button(core_row, "占地框", "core_frame", null)
 		for side in [["南", "S"], ["北", "N"], ["西", "W"], ["东", "E"]]:
 			var shortcut := button(core_row, side[0] + "侧观察点", "approach", side[1])
@@ -167,6 +175,7 @@ func refresh(view: Node3D, board: RefCounted, selected: int, measure: bool,
 		cell: Vector2i, direction: int, paused: bool, notice: String, selected_port := "") -> void:
 	for i in 3: camera_buttons[i].disabled = view.preset == i
 	for i in 2: board_buttons[i].disabled = board.board_id == ["P", "D"][i]
+	for i in material_buttons.size(): material_buttons[i].disabled = view.material_mode == i
 	if core_study:
 		for i in 2: core_buttons[i].disabled = view.core.tier == i + 1
 	for i in markers.size():
