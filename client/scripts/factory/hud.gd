@@ -421,6 +421,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			if locked and id != "":
 				var node: Dictionary = model.research_nodes[id]
 				buttons[type].tooltip_text = "先在基地核心研究%s · %s" % [node.name, Items.describe(node.cost)]
+			elif type == Integrated.Timed.TYPE:
+				buttons[type].tooltip_text = "单槽后进前出 · 仅在设定窗口内按额度放行 · 无需供电"
 			elif type in ["reactor", "crusher", "assembler"]:
 				buttons[type].tooltip_text = ""
 		var name: String = "采集器" if integrated and type == "collector" else Model.CATALOG[type].name
@@ -429,7 +431,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if not ui.tool.is_empty():
 		cell_x.set_value_no_signal(ui.cell.x)
 		cell_z.set_value_no_signal(ui.cell.y)
-		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger", "admission_gate"]
+		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 		buttons.rotate.text = "方向：" + DIRECTIONS[ui.dir]
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		var replacement: Dictionary = model.placement_replacement(ui.tool, ui.cell)
@@ -472,7 +474,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
+		buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))

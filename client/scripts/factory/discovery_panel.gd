@@ -3,6 +3,7 @@ extends Control
 signal device_action(name: String, id: int)
 signal closed
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Dispatch := Rules.Integrated.Timed
 const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
@@ -42,6 +43,7 @@ var scroll := ScrollContainer.new()
 var item_labels := {}
 var guide_overview := Label.new()
 var elapsed := 0.0
+var dispatch_controls := preload("res://scripts/factory/timed_dispatch_controls.gd").new()
 var admission_controls := preload("res://scripts/factory/admission_controls.gd").new()
 
 
@@ -71,6 +73,8 @@ func _ready() -> void:
 	header.add_child(runtime)
 	button(header, "pause", "暂停", func(): device_action.emit("pause", selected))
 	button(header, "close", "关闭  ×  Esc", close_panel)
+	layout.add_child(dispatch_controls)
+	dispatch_controls.applied.connect(apply)
 	layout.add_child(admission_controls)
 	admission_controls.applied.connect(apply)
 	body.add_theme_constant_override("separation", 24)
@@ -240,11 +244,12 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	bag_item = ""
 	device_item = ""
 	recipe_key = ""
+	dispatch_controls.config_key = ""
 	admission_controls.config_key = ""
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
 	result_label.text = "点选物品，再取出或放入。产线持续运行；在制材料需取消本批后返还。" if device_only else "背包按物料汇总；容量按件数计算。走近设备后可取放物品。" if inventory_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
-	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate"]:
+	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate", Dispatch.TYPE]:
 		result_label.text = "物料自动通过附件；空载时可旋转，回收时整件返还内部物料。"
 	elif device_only and model.by_id(selected).type == Rules.Integrated.Storage.TYPE:
 		result_label.text = "同网发电余电自动充入，供电不足时放电。停用保留电量，带电回收需确认。"
@@ -328,6 +333,9 @@ func refresh() -> void:
 		summary.text += "\n高产炭矿支路 · " + ("已开启 · 炭矿 1 件 / 5 秒" if d.passages[Frontier.PASSAGE] else "背包胶囊 %d / %d · %s" % [model.bag.get(Frontier.CAPSULE, 0), Frontier.OPEN_COST, "可永久打通" if status.ok else status.reason])
 		guide_overview.text += "\n高产矿接回炭粉产线，可持续供给电芯和混料炉。"
 	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage", "cell_generator"]
+	dispatch_controls.visible = device_only and e.type == Dispatch.TYPE
+	if dispatch_controls.visible:
+		dispatch_controls.refresh(model, e)
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
@@ -373,7 +381,7 @@ func refresh() -> void:
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
 	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
-	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
+	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate", Dispatch.TYPE]
 	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
 	if e.type == Rules.Integrated.Storage.TYPE:
 		buttons.salvage.text = "回收储能设施"

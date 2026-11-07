@@ -4,7 +4,7 @@ repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 godot_bin="${GODOT_EXE:-/Applications/Godot.app/Contents/MacOS/Godot}"
 mode="${1:-state}"
 batch="${2:-$mode-$(date +%s)-$$}"
-case "$mode" in state|window|storage-state|storage-window|play) ;; *) echo 'Usage: sh tools/check-factory-grid-controls.sh [state|window|storage-state|storage-window|play] [batch]' >&2; exit 2 ;; esac
+case "$mode" in state|window|storage-state|storage-window|timed-state|timed-window|play) ;; *) echo 'Usage: sh tools/check-factory-grid-controls.sh [state|window|storage-state|storage-window|timed-state|timed-window|play] [batch]' >&2; exit 2 ;; esac
 case "$batch" in *[!a-zA-Z0-9_-]*|'') echo 'Invalid batch name' >&2; exit 2 ;; esac
 if [ "$mode" = play ]; then
   run_root="$repo_root/tools/runtime-intake/review-worlds/factory-grid-controls-v1/$batch"
@@ -36,19 +36,11 @@ check_script=res://scripts/checks/factory_grid_controls_check.gd
 if [ "$mode" = play ]; then
   run_godot "play-$(date +%s)-$$" --script "$check_script" -- "--batch=$batch" --play
 else
-  if [ "$mode" = state ] || [ "$mode" = storage-state ]; then
-    set -- --headless --quit-after 1200
-  else
-    set --
-  fi
-  case "$mode" in storage-*)
-    run_godot write "$@" --script "$check_script" -- "--batch=$batch" --storage
-    test -f "$run_root/expected.json"
-    run_godot read "$@" --script "$check_script" -- "--batch=$batch" --storage --read ;;
-  *)
-    run_godot write "$@" --script "$check_script" -- "--batch=$batch"
-    test -f "$run_root/expected.json"
-    run_godot read "$@" --script "$check_script" -- "--batch=$batch" --read ;;
-  esac
+  case "$mode" in *state) set -- --headless --quit-after 1200 ;; *) set -- ;; esac
+  set -- "$@" --script "$check_script" -- "--batch=$batch"
+  case "$mode" in storage-*) set -- "$@" --storage ;; timed-*) set -- "$@" --timed ;; esac
+  run_godot write "$@"
+  test -f "$run_root/expected.json"
+  run_godot read "$@" --read
   test -f "$run_root/restore.json"
 fi

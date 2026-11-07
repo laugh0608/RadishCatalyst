@@ -315,7 +315,7 @@ func _cancel() -> void:
 
 func _turn() -> void:
 	_sync_replacement_direction()
-	if ui.tool in ["belt", "splitter", "merger", "admission_gate"]:
+	if ui.tool in ["belt", "splitter", "merger", "admission_gate", Model.DiscoveryRules.Integrated.Timed.TYPE]:
 		ui.dir = (ui.dir + 1) % 4
 	elif ui.selected != -1:
 		var result := model.rotate(ui.selected)

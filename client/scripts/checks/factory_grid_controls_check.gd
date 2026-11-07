@@ -8,6 +8,7 @@ const Compare := preload("res://scripts/checks/factory_expansion_compare.gd")
 const Codec := Store.Codec
 const Controls := Codec.V11.Controls
 const StoragePath := preload("res://scripts/checks/factory_grid_storage_path.gd")
+const TimedPath := preload("res://scripts/checks/factory_timed_dispatch_path.gd")
 const NAME := "核心 III 升级与存读"
 
 var driver := Driver.new()
@@ -15,6 +16,7 @@ var boot: Node
 var evidence := ""
 var windowed := false
 var storage := false
+var timed := false
 
 
 func _init() -> void:
@@ -25,6 +27,7 @@ func run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var playing := "--play" in args
 	storage = "--storage" in args
+	timed = "--timed" in args
 	for arg in args:
 		if arg.begins_with("--batch="):
 			var batch := arg.trim_prefix("--batch=")
@@ -72,17 +75,21 @@ func _click(button: Button) -> void:
 		await driver.settle()
 
 
+func _version() -> int:
+	return Codec.V13.VERSION if timed else Codec.V12.VERSION if storage else Codec.V11.VERSION
+
+
 func _write() -> void:
 	var menu: Control = boot.factory_menu
-	var supply := Codec.V12.Buffer.SUPPLY_ID if storage else Controls.SUPPLY_ID
-	var version := Codec.V12.VERSION if storage else Codec.V11.VERSION
-	var pin := Codec.V12.PIN if storage else Codec.V11.PIN
+	var supply := Codec.V13.Dispatch.SUPPLY_ID if timed else Codec.V12.Buffer.SUPPLY_ID if storage else Controls.SUPPLY_ID
+	var version := _version()
+	var pin := Codec.V13.PIN if timed else Codec.V12.PIN if storage else Codec.V11.PIN
 	var index := -1
 	for i in menu.world_type.item_count:
 		if menu.world_type.get_item_metadata(i) == supply:
 			index = i
 	driver.expect(index >= 0 and not Store.new(Store.DEFAULT_ROOT, false, false, true).allow_controls,
-		"schema 11 creation is debug-isolated")
+		"selected D2 creation is debug-isolated")
 	if index < 0:
 		return
 	var ordinary := Store.new(boot.factory_save_root, false, true)
@@ -92,7 +99,7 @@ func _write() -> void:
 	await driver.shot("01-create")
 	await _click(menu.create_button)
 	var world: Control = boot.factory_world
-	driver.expect(world != null and world.initialized, "Boot creates schema 11")
+	driver.expect(world != null and world.initialized, "Boot creates the selected D2 version")
 	if world == null or not world.initialized:
 		return
 	world._set_paused(true)
@@ -163,6 +170,8 @@ func _write() -> void:
 	await driver.shot("03-core-iii")
 	if storage:
 		await StoragePath.new(self, journey).exercise()
+	if timed:
+		await TimedPath.new(self, journey).exercise()
 	await _click(world.hud.buttons["return"])
 	driver.expect(boot.factory_world == null, "save and return releases the world: " + world.failure_dialog.dialog_text if boot.factory_world != null else "save and return releases the world")
 	if boot.factory_world != null:
@@ -175,6 +184,8 @@ func _write() -> void:
 	_bad_saves(candidate.document, initial, id)
 	if storage:
 		StoragePath.new(self, journey).validate_saved(candidate.document, id)
+	if timed:
+		TimedPath.new(self, journey).validate_saved(candidate.document, id)
 	model.advance(30.0, 600)
 	var after := Codec.snapshot(model, id, NAME, candidate.document.sequence)
 	var file := FileAccess.open(evidence.path_join("expected.json"), FileAccess.WRITE)
@@ -218,7 +229,7 @@ func _bad_saves(document: Dictionary, initial: Dictionary, id: String) -> void:
 func _read() -> void:
 	var expected: Variant = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("expected.json")))
 	var menu: Control = boot.factory_menu
-	driver.expect(expected is Dictionary and menu.worlds.size() == 1 and menu.worlds[0].schema == (Codec.V12.VERSION if storage else Codec.V11.VERSION), "isolated menu lists the expected checkpoint")
+	driver.expect(expected is Dictionary and menu.worlds.size() == 1 and menu.worlds[0].schema == _version(), "isolated menu lists the expected checkpoint")
 	if not expected is Dictionary or menu.worlds.size() != 1:
 		return
 	menu.list.select(0)
@@ -240,8 +251,26 @@ func _read() -> void:
 	var before := Codec.snapshot(model, expected.id, NAME, world.store.sequence)
 	before.state.remainder_s -= startup
 	driver.expect(Compare.equivalent(before, expected.before), "complete saved snapshot is restored")
-	await driver.shot("04-restored-iii")
-	model.advance(30.0, 600)
+	var resume_steps := 600
+	if timed:
+		var gate: Dictionary = model.entity_at(TimedPath.GATE_CELL)
+		driver.expect(gate.type == Codec.V13.Dispatch.TYPE and gate.active and gate.phase_ticks == 2399
+			and gate.sent == 1 and gate.cargo == TimedPath.CELL, "C1 resumes with saved phase, used quota and staged cell")
+		if windowed:
+			await driver.world_click(TimedPath.GATE_CELL, 0.3)
+		else:
+			world._open_device(gate.id)
+		driver.expect(world.discovery_panel.dispatch_controls.visible, "restored C1 panel opens from the factory")
+		await driver.shot("06-timed-restored")
+		world.discovery_panel.close_panel()
+		model.advance(model.STEP, 1)
+		driver.expect(gate.phase_ticks == 0 and gate.sent == 0 and gate.cargo == TimedPath.CELL, "resumed last closed tick only rolls over")
+		model.advance(model.STEP, 1)
+		driver.expect(gate.phase_ticks == 1 and gate.sent == 1 and gate.cargo.is_empty(), "resumed first open tick delivers the staged cell")
+		resume_steps -= 2
+	else:
+		await driver.shot("04-restored-iii")
+	model.advance(resume_steps * model.STEP, resume_steps)
 	var after := Codec.snapshot(model, expected.id, NAME, world.store.sequence)
 	after.state.remainder_s -= startup
 	driver.expect(Compare.equivalent(after, expected.after) and model.material_balance().balanced, "30-second resumed trajectory and material ledger match")

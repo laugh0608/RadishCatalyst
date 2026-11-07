@@ -13,7 +13,7 @@ func _init() -> void:
 
 
 func placement_replacement(type: String, cell: Vector2i) -> Dictionary:
-	if type not in ["splitter", "merger", "admission_gate"] or not kits.has(type):
+	if type not in ["splitter", "merger", "admission_gate", DiscoveryRules.Integrated.Timed.TYPE] or not kits.has(type):
 		return {}
 	var target := entity_at(cell)
 	return target if target.get("type", "") == "belt" else {}

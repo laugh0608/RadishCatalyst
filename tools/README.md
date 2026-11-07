@@ -28,6 +28,7 @@ R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用
 - D1 开拓工厂用 `sh tools/check-factory-frontier.sh state <新批次>` 复算布局，从空档验证 X2、R13 / R14、支路回流、普通 / 高产矿对照和跨进程 schema 10。改用 `window` 加查窗口研究、开路、存读与截图。手动用 `sh tools/check-factory-frontier.sh play <亲测批次>` 创建或继续同一隔离档。
 - D2 核心 III 用 `sh tools/check-factory-grid-controls.sh state <新批次>` 检查自然生产所得的升级材料、严格解码和独立进程继续。改用 `window` 检查正式菜单、等级页提交和 III 外观。手动用 `sh tools/check-factory-grid-controls.sh play <亲测批次>` 新建或继续 schema 11 隔离档。
 - D2 独立储能用同一入口的 `storage-state` / `storage-window` 检查空仓、实际充放、七炉产出对照、统计账和 schema 12 存读。手动入口选「测控工厂 · E2 独立储能隔离复核」。
+- D2 C1 节拍调度用 `timed-state` / `timed-window` 检查自然电芯进料、下游堵塞、窗口边沿、本机停复与 schema 13 的独立进程继续。手动入口选「测控工厂 · C1 节拍调度隔离复核」。
 
 - 整合工厂 C 用 `sh tools/check-factory-integrated-c.sh state` 在两个进程验证写入、恢复与后续轨迹，`window` 复核 Boot 新建、发电机、保存返回和继续。`play current` 使用稳定隔离目录，可用同一命令跨进程继续。验证批次位于 `tools/runtime-intake/check-runs/factory-integrated-c-v1/`，亲测根位于 `tools/runtime-intake/review-worlds/factory-integrated-c-v1/`。
 

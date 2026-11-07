@@ -3,6 +3,7 @@ extends RefCounted
 const Frontier := preload("res://data/factory/frontier_rules.gd")
 const Controls := preload("res://data/factory/grid_controls_rules.gd")
 const Storage := preload("res://data/factory/grid_storage_rules.gd")
+const Timed := preload("res://data/factory/timed_dispatch_rules.gd")
 const RULESET_ID := "factory_integrated_foundation_v1"
 const BURN_TICKS := 1200
 const MAP_ID := "factory_integrated_yard_64_v1"
@@ -31,7 +32,7 @@ const CELLS := [
 
 
 static func matches_supply(supply: String) -> bool:
-	return supply in [SUPPLY_ID, Frontier.SUPPLY_ID, Controls.SUPPLY_ID, Storage.SUPPLY_ID]
+	return supply in [SUPPLY_ID, Frontier.SUPPLY_ID, Controls.SUPPLY_ID, Storage.SUPPLY_ID, Timed.SUPPLY_ID]
 
 
 static func ports(origin: Vector2i, role: String) -> Array[Dictionary]:

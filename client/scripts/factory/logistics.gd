@@ -9,10 +9,11 @@ const Integrated := preload("res://data/factory/integrated_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Admission := preload("res://scripts/factory/admission.gd")
+const Timed := Integrated.Timed
 
 
 static func transport(e: Dictionary) -> bool:
-	return e.get("type", "") in ["belt", "splitter", "merger", "admission_gate"]
+	return e.get("type", "") in ["belt", "splitter", "merger", "admission_gate", Timed.TYPE]
 
 
 static func ports(model: RefCounted, e: Dictionary, role: String) -> Array[Dictionary]:
@@ -25,7 +26,7 @@ static func ports(model: RefCounted, e: Dictionary, role: String) -> Array[Dicti
 		return result
 	var dir: int = e.get("dir", 0)
 	var sides: Array = []
-	if e.type == "admission_gate":
+	if e.type in ["admission_gate", Timed.TYPE]:
 		sides = [2] if role == "input" else [0]
 	elif e.type == "splitter":
 		sides = [2] if role == "input" else [0, 3, 1]
@@ -87,6 +88,10 @@ static func input_connection(model: RefCounted, target: Dictionary, input: Dicti
 
 
 static func output_status(model: RefCounted, source: Dictionary, output: Dictionary, item: String) -> Dictionary:
+	if source.type == Timed.TYPE:
+		var reason := dispatch_reason(source)
+		if not reason.is_empty():
+			return {"ok": false, "reason": reason}
 	var connection := output_connection(model, output)
 	if not connection.ok:
 		return connection
@@ -98,6 +103,11 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 	if target.type == "admission_gate":
 		var reason := Admission.receive_reason(target, item)
 		if not reason.is_empty(): return {"ok": false, "reason": reason}
+	if target.type == Timed.TYPE:
+		if not target.active:
+			return {"ok": false, "reason": "节拍器未启用"}
+		if not item.is_empty() and item != target.filter_item:
+			return {"ok": false, "reason": "节拍器只收 " + Items.NAMES[target.filter_item]}
 	if transport(target):
 		if not target.cargo.is_empty():
 			return {"ok": false, "reason": "目标已满"}
@@ -117,7 +127,7 @@ static func step(model: RefCounted, dt: float) -> void:
 			continue
 		var item: String
 		if transport(source):
-			if source.cargo.is_empty():
+			if source.cargo.is_empty() or (source.type == Timed.TYPE and not source.active):
 				continue
 			source.progress = minf(1.0, source.progress + dt)
 			if source.progress < 1.0 - 1e-9:
@@ -274,6 +284,8 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 	if transport(source):
 		if source.type == "admission_gate" and source.quota_mode == "quota":
 			source.quota_used += 1
+		if source.type == Timed.TYPE:
+			source.sent += 1
 		source.cargo = ""
 		source.batch = 0
 		source.progress = 0.0
@@ -309,6 +321,10 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 	if belt_input_conflict(model, e):
 		return {"kind": "blocked", "label": BELT_CONFLICT}
+	if e.type == Timed.TYPE:
+		var reason := dispatch_reason(e)
+		if not reason.is_empty():
+			return {"kind": "waiting", "label": reason}
 	if e.cargo.is_empty():
 		if e.type == "admission_gate":
 			var input: Dictionary = ports(model, e, "input")[0]
@@ -331,6 +347,18 @@ static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 		if state.reason not in reasons:
 			reasons.append(state.reason)
 	return {"kind": "blocked", "label": "全部出口未连接" if reasons == ["未连接"] else " / ".join(reasons)}
+
+
+static func dispatch_reason(e: Dictionary) -> String:
+	if e.filter_item.is_empty():
+		return "待设置节拍"
+	if not e.active:
+		return "节拍已停用 · 相位与货物保留"
+	if e.phase_ticks >= e.window_s * Timed.TICKS_PER_SECOND:
+		return "等待下一放行窗口"
+	if e.sent >= e.quota:
+		return "本窗额度已用完"
+	return ""
 
 
 static func port_text(model: RefCounted, e: Dictionary) -> String:

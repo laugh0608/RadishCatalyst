@@ -11,6 +11,7 @@ const Stats := V6.Stats
 const Entity := V6.Entity
 const Ledger := V6.Ledger
 const Burn := preload("res://scripts/factory/save/fixed_burn_validator.gd")
+const TimedValidator := preload("res://scripts/factory/save/timed_dispatch_validator.gd")
 const VERSION := 9
 const EXTRA := ["extracted_by_item", "completed_by_recipe", "assembly_counts", "batch_recipes", "core", "research"]
 const STATE := ["simulation_tick", "remainder_s", "next_id", "next_batch", "generated", "completed",
@@ -229,6 +230,7 @@ static func _load_entities(model: RefCounted, s: Dictionary) -> Dictionary:
 		match type:
 			Energy.GENERATOR: valid = _generator(source, model)
 			Integrated.Storage.TYPE: valid = _storage(source, int(s.next_id))
+			Integrated.Timed.TYPE: valid = TimedValidator.validate(source, int(s.next_batch), model)
 			_: valid = Entity.validate(source, int(s.next_id), int(s.next_batch), model, true, true)
 		if not valid.ok:
 			return valid
@@ -243,7 +245,7 @@ static func _load_entities(model: RefCounted, s: Dictionary) -> Dictionary:
 			return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
-		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used", "burn_remaining_ticks", "stored_j"]:
+		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used", "burn_remaining_ticks", "stored_j", "period_s", "window_s", "quota", "phase_ticks", "sent"]:
 			if e.has(key): e[key] = int(e[key])
 		for key in ["buffer", "input", "output", "invested", "items", "fuel"]:
 			if e.has(key): e[key] = V2.normalize_items(e[key])

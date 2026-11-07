@@ -30,6 +30,7 @@ tools/visual-studies/web-topdown-3d/ 的自有几何 / 材质 / 生产定义
 | R1-B core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype]` | 自有轮廓源；先写 `assets/art-intake/2026-11-01-core-outline/<batch>/`，显式发布只写 `client/assets/prototypes/base_core_outline/`，仅 R1-B 样板读取；`outline-06` 四面端口与四角装饰已获轮廓认可；用途限独立样板 |
 | D2 core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> --grid-controls` | 复用四面轮廓和 16 锚点，加 III 模块。导出证据在 `tools/runtime-intake/design-references/factory-grid-controls/`，运行模型写 `client/assets/factory/grid-controls/`，由支持核心 III 的 D2 隔离档加载 |
 | D2 grid buffer 1 GLB | `node tools/factory-content/export-grid-buffer.mjs` | 自有三模块储能模型，2×2 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 E2 加载 |
+| D2 timed dispatch 1 GLB | `node tools/factory-content/export-timed-dispatch.mjs` | 自有时钟盖与滚轮接口模型，1×1 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 C1 加载 |
 | 其余工厂图标 8 SVG | 已跟踪可编辑 SVG，未找到覆盖这些当前文件的独立导出清单 | `item_slot`、建造 / 准入口各自读取；以当前资源为编辑源，作者历史 / 新导出器缺口不补猜测 |
 
 执行形式为 `node <上述 .mjs 路径>`，均可能覆盖输出，本轮未执行。核对后续模型替换时还须记录 GLB 内节点名 / 材质、Godot 导入配置及 UID；角色视图按节点名绑定身体 / 四肢，外形相近不能保证动画接线相容。

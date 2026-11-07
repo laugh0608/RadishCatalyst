@@ -7,6 +7,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const ItemSlot := preload("res://scripts/factory/item_slot.gd")
 const DevicePreview := preload("res://scripts/factory/device_preview.gd")
+const Dispatch := Rules.Integrated.Timed
 const Buffer := Rules.Integrated.Storage
 const COLORS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 var compact := true
@@ -136,6 +137,8 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		progress.show()
 		progress.value = e.progress * 100
 		production.text = model.Admission.quantities(e)
+	elif e.type == Dispatch.TYPE:
+		_show_dispatch(model, e)
 	elif e.type in ["splitter", "merger"]:
 		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Items.NAMES.get(e.cargo, "空"))
 		_card("output", "在途物料", "")
@@ -191,6 +194,25 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		label.visible = not label.text.is_empty()
 
 
+func _show_dispatch(model: RefCounted, e: Dictionary) -> void:
+	_card("process", "单槽行程", "")
+	_card("output", "槽内物料", Items.NAMES.get(e.cargo, "空") if compact or e.cargo.is_empty() else "")
+	progress.show()
+	progress.value = e.progress * 100
+	if e.period_s > 0:
+		var phase: float = e.phase_ticks * model.STEP
+		production.text = "相位 %.2f / %d 秒 · 窗口 %d 秒 · 本周期已送 %d / %d 件" % [phase, e.period_s, e.window_s, e.sent, e.quota]
+		if e.active:
+			production.text += " · %.2f 秒后开下一窗" % (e.period_s - phase)
+	var outputs: Array = model.Logistics.ports(model, e, "output")
+	var connection: Dictionary = model.Logistics.output_connection(model, outputs[0])
+	if connection.ok and connection.target.type == "cell_generator":
+		var generator: Dictionary = connection.target
+		production.text += "\n下游发电机 · 缓存 %d / %d 件 · 剩余燃烧 %.2f 秒" % [
+			Items.count(generator.fuel), Rules.Energy.FUEL_CAPACITY, generator.burn_remaining_ticks * model.STEP]
+		production.text = production.text.strip_edges()
+
+
 func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 	preview.show_device(e.type, e.get("dir", 0))
 	for role in slots:
@@ -202,7 +224,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"reactor", "crusher", "refinery", "assembler":
 					stock = e[role]
 					required = model.recipes[e.recipe_id][role]
-				"splitter", "merger", "admission_gate":
+				"splitter", "merger", "admission_gate", Dispatch.TYPE:
 					if role == "output" and not e.cargo.is_empty():
 						stock = {e.cargo: 1}
 				"cell_generator":
@@ -224,7 +246,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 			var capacity := "%d / 200 件" % Items.count(e.items)
 			values[role].text = "暂无物品\n" + capacity if e.items.is_empty() else capacity
 			values[role].show()
-		elif e.type in ["cell_generator", Buffer.TYPE]:
+		elif e.type in ["cell_generator", Buffer.TYPE, Dispatch.TYPE]:
 			values[role].show()
 		elif e.type == "collector" and role == "output":
 			values[role].text = "%d / 50 件" % Items.count(e.buffer)

@@ -1,5 +1,6 @@
 extends SubViewportContainer
 
+const Dispatch := preload("res://data/factory/timed_dispatch_rules.gd")
 const Buffer := preload("res://data/factory/grid_storage_rules.gd")
 
 ## A cached, isolated view of the existing asset; redraw only on device change/resize.
@@ -52,6 +53,8 @@ func show_device(kind: String, direction := 0) -> void:
 		path = "res://assets/factory/expansion/" + kind + ".glb"
 	elif kind == "cell_generator":
 		path = "res://assets/factory/energy/cell_generator.glb"
+	elif kind == Dispatch.TYPE:
+		path = Dispatch.MODEL_PATH
 	elif kind == Buffer.TYPE:
 		path = Buffer.MODEL_PATH
 	elif kind in ["power_source", "power_junction"]:
@@ -66,7 +69,7 @@ func show_device(kind: String, direction := 0) -> void:
 	assert(packed != null, "Missing device preview: " + path)
 	asset = packed.instantiate()
 	scene.add_child(asset)
-	if kind in ["belt", "splitter", "merger", "admission_gate"]:
+	if kind in ["belt", "splitter", "merger", "admission_gate", Dispatch.TYPE]:
 		asset.rotation.y = -direction * PI / 2
 	var bounds := AABB()
 	var first := true

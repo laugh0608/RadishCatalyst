@@ -1,0 +1,32 @@
+{
+  "source": "Project-authored 1×1 timed dispatch gate with a single item route",
+  "files": {
+    "timed-dispatch.glb": {
+      "bytes": 76648,
+      "sha256": "d3fb98f793f809fbcead13029260f85f2e1835f129a1e9d1323f23a286b3a244",
+      "footprint": [
+        1,
+        1
+      ],
+      "bounds": {
+        "min": [
+          -0.5,
+          0.0009999992325901985,
+          -0.36000001430511475
+        ],
+        "max": [
+          0.5,
+          0.6725000143051147,
+          0.36000001430511475
+        ]
+      }
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-timed-dispatch.mjs": "cb0278fe0cfd381aeac4e407d042e8fc9bc03a444b9f0519499213a500e0bc99",
+    "tools/factory-content/routing-parts.mjs": "cfadb6be160535f36a8fabf179ea9d888e143e30227cb013ae3b986e513bd3a8",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}

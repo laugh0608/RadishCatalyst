@@ -61,7 +61,7 @@ func _read(file_path: String, id: String) -> Dictionary:
 		return Codec.failure("开拓工厂存档须从隔离入口继续。", true)
 	if json.data is Dictionary and not allow_controls:
 		var schema: Variant = json.data.get("save_schema_version")
-		if schema == Codec.V11.VERSION or schema == Codec.V12.VERSION:
+		if schema == Codec.V11.VERSION or schema == Codec.V12.VERSION or schema == Codec.V13.VERSION:
 			return Codec.failure("测控工厂存档须从隔离入口继续。", true)
 	var result := Codec.decode(json.data, id)
 	if json.data is Dictionary:
@@ -106,6 +106,8 @@ func list_worlds() -> Array[Dictionary]:
 				entry.name = entry.title + " · 核心 III · 隔离复核"
 			elif entry.schema == Codec.V12.VERSION:
 				entry.name = entry.title + " · E2 独立储能 · 隔离复核"
+			elif entry.schema == Codec.V13.VERSION:
+				entry.name = entry.title + " · C1 节拍调度 · 隔离复核"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -318,7 +320,7 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
 	if supply == Codec.V10.Frontier.SUPPLY_ID and not allow_frontier:
 		return Codec.failure("开拓工厂须从隔离入口新建。", true)
-	if supply in [Codec.V11.Controls.SUPPLY_ID, Codec.V12.Buffer.SUPPLY_ID] and not allow_controls:
+	if supply in [Codec.V11.Controls.SUPPLY_ID, Codec.V12.Buffer.SUPPLY_ID, Codec.V13.Dispatch.SUPPLY_ID] and not allow_controls:
 		return Codec.failure("测控工厂须从隔离入口新建。", true)
 	if supply == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("工程规模验证只能从隔离检查入口创建。", true)
@@ -366,7 +368,9 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	expected_main_hash = ""
 	loaded = true
 	var model: RefCounted
-	if supply == Codec.V12.Buffer.SUPPLY_ID:
+	if supply == Codec.V13.Dispatch.SUPPLY_ID:
+		model = Codec.V13.TimedModel.new()
+	elif supply == Codec.V12.Buffer.SUPPLY_ID:
 		model = Codec.V12.StorageModel.new()
 	elif supply == Codec.V11.Controls.SUPPLY_ID:
 		model = Codec.V11.ControlsModel.new()
@@ -410,7 +414,7 @@ func _write(file_path: String, content: String) -> Dictionary:
 func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 	if model.supply_id == Codec.V10.Frontier.SUPPLY_ID and not allow_frontier:
 		return Codec.failure("开拓工厂须从隔离入口保存。", true)
-	if model.supply_id in [Codec.V11.Controls.SUPPLY_ID, Codec.V12.Buffer.SUPPLY_ID] and not allow_controls:
+	if model.supply_id in [Codec.V11.Controls.SUPPLY_ID, Codec.V12.Buffer.SUPPLY_ID, Codec.V13.Dispatch.SUPPLY_ID] and not allow_controls:
 		return Codec.failure("测控工厂须从隔离入口保存。", true)
 	if model.supply_id == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("当前会话不允许写入工程身份。", true)

@@ -9,7 +9,7 @@ const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
-const ROUTING_ATTACHMENTS := ["splitter", "merger", "admission_gate"]
+const ROUTING_ATTACHMENTS := ["splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 var resource_error := ""
 var prepared := false
 var camera := Camera3D.new()
@@ -113,6 +113,11 @@ func _ready() -> void:
 			assets.admission_gate = load(ASSET_ROOT + "admission/admission-gate.glb")
 			if not assets.admission_gate is PackedScene:
 				resource_error = "缺少物品准入口模型"
+				return
+		if world_model.kits.has(Integrated.Timed.TYPE):
+			assets[Integrated.Timed.TYPE] = load(Integrated.Timed.MODEL_PATH)
+			if not assets[Integrated.Timed.TYPE] is PackedScene:
+				resource_error = "缺少节拍调度器模型"
 				return
 		if world_model.has_method("assemble"):
 			for kind in ["crusher", "refinery", "assembler", "iron-ore", "carbon-ore"]:
@@ -696,7 +701,7 @@ func _sync_production(model: RefCounted) -> void:
 			if model.has_method("power_state"):
 				match e.type:
 					"reactor", "crusher", "refinery", "assembler": progress = e.progress / model.recipes[e.recipe_id].seconds if e.processing else (1.0 if not e.output.is_empty() else 0.0)
-					"splitter", "merger", "admission_gate": progress = e.progress
+					"splitter", "merger", "admission_gate", Integrated.Timed.TYPE: progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
 					Integrated.Storage.TYPE: progress = e.stored_j / float(Integrated.Storage.CAPACITY_J)
