@@ -23,7 +23,14 @@
 
 正式菜单新增整合工厂选项，旧世界继续沿各自身份；隔离复核使用相同菜单和 Store，仅切换存档根。S1-P 完整路线已对比新进程恢复的完整快照和继续 30 模拟秒的结果，见[正式入口记录](../devlogs/2026-W45.md#foundation-acceptance)。亲测档可用同一批次跨进程继续，命令见 [Tools](../../tools/README.md#正式工厂定向检查)。
 
-D1 使用独立 schema 10 身份，经隔离入口创建和继续。其权威字段、定义摘要及读取边界见[开拓回报存档身份](../features/factory-research-and-progression-v1.md#d1-frontier-identity)。D2 核心 III 使用独立 schema 11，E2 使用独立 schema 12，C1 使用独立 schema 13。对应字段与定义摘要见[储能交付](../features/factory-grid-controls-d2.md#d2-storage-delivery)及[节拍调度交付](../features/factory-grid-controls-d2.md#d2-timed-dispatch-delivery)。
+| 隔离内容 | 存档身份 | 入口与规则 |
+| --- | --- | --- |
+| [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-identity) | schema 10 | `check-factory-frontier.sh play`，新建使用普通带单入口，既有原规则 ID 按各自摘要继续 |
+| [D2 核心 III](../features/factory-grid-controls-d2.md#d2-core-iii-delivery) | schema 11 | `check-factory-grid-controls.sh play`，选择核心 III |
+| [D2 E2 独立储能](../features/factory-grid-controls-d2.md#d2-storage-delivery) | schema 12 | 同一测控入口，选择 E2 |
+| [D2 C1 节拍调度](../features/factory-grid-controls-d2.md#d2-timed-dispatch-delivery) | schema 13 | 同一测控入口，选择 C1，含核心 III 与 E2 |
+
+Store 按上下文授权隔离版本的新建、继续和保存。不同版本及 schema 10 的两种物流身份分别校验定义摘要，同身份备份才可用于恢复。
 
 ## 权威字段
 
@@ -68,7 +75,7 @@ D1 使用独立 schema 10 身份，经隔离入口创建和继续。其权威字
 
 ## 固定燃烧与能源账
 
-G 的 `burn_remaining_ticks` 取 `0..burn_duration_ticks`；候选 60 秒为 1,200 tick，不接受浮点或超时。未激活燃料总数 ≤5；本步激活只扣一次，初始剩余 0。G 停机 / 暂停 / 离线保留整数余时。
+G 的 `burn_remaining_ticks` 取 `0..burn_duration_ticks`；已验收的 60 秒为 1,200 tick，不接受浮点或超时。未激活燃料总数 ≤5；本步激活只扣一次，初始剩余 0。G 停机 / 暂停 / 离线保留整数余时。
 
 ```text
 激活颗数×单颗能量 = fuel_released_kj + Σ(余时 tick×STEP×额定 kW) + discarded_kj
@@ -98,4 +105,4 @@ base_supplied_kj + fuel_released_kj = used_kj + spill_kj
 
 文件故障：创建锁 / 写入锁、写 / 读回 / 备份 / 发布失败、活动源变化、错误定义哈希不回退；旧 1–8 / 二维 / 工程入口分别保护。
 
-跨进程：保存核心多口不同冷却、I→II / 已研究集合、R12 半批、G 剩余 1 tick 和完整燃料；完整快照一致，后续同一模拟输入轨迹一致。实际 Boot、原生保存返回 / 关闭、窗口与用户理解另列。未来储能 / 控制版须增加空储能冷启动与相位恢复，不以本版证据代签。
+跨进程：保存核心多口不同冷却、I→II / 已研究集合、R12 半批、G 剩余 1 tick 和完整燃料；完整快照一致，后续同一模拟输入轨迹一致。实际 Boot、原生保存返回 / 关闭、窗口与用户理解另列。储能、节拍和后续控制分别按 D2 合同验收。空储能、放电中恢复、节拍边沿恢复的运行证据见 [W45](../devlogs/2026-W45.md)。

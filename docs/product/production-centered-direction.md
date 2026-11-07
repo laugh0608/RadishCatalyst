@@ -1,6 +1,6 @@
 # Production-Centered Direction
 
-更新时间：2026-11-01
+更新时间：2026-11-07
 
 ## 决策用途
 
@@ -16,9 +16,7 @@
 
 萝卜SAMA已确认[统一 Demo 与第一轮成长基线](../planning/demo-consolidation-proposal.md)。产品继续以化工生产经营为核心；工程开拓员恢复前哨，探索 / 样本 / 工艺与生产能力相互驱动。技术沿 Godot 4.x / GDScript / 20 Hz 权威模型，画面沿风格化工业科幻 3D；亲测已选 C2 透视正向 / 21 格 / 跟随，详见[产品定义](project-definition.md)、[世界观](worldbuilding-premise.md)与[视觉方向](visual-and-ui-direction.md)。
 
-核心 / 科技树 / 固定燃烧 / 存档合同已完成首轮细化，正式玩法仍未实施；另获授权的 R1-A 镜头样板已交付，R1-B 核心轮廓收尾与审阅状态见 [Current Plan](../planning/current.md)。唯一核心、每物品 99,999 上限、多口仓储、分级研究与普通连续燃料发电仍为设计；储能 / 节拍 / 条件控制为后续可选进阶支线。起步电力按布局 / 核算确定，不直接照搬参考游戏。细节见[整合总合同](../features/factory-demo-integration-v1.md)。
-
-E1 / E2 / V8 已实现的能力与工程证据保留，E3 开拓回报接入新主线设计；新规则尚未实现，旧档保持。原 D4 保留项不作为设计前置，也不标通过。当前顺位及明确不做统一见 [Current Plan](../planning/current.md)。上文 9 月接续与原首包记录描述历史时点，不覆盖本次确认。
+11 月 7 日基础整合通过联合首程，正式新档包含唯一核心、每物品 99,999 上限、多口仓储、分级研究和连续供燃。D1 将原 E3 开拓回报接入独立世界，D2 的储能和节拍作为可选进阶支线。旧 E1 / E2 / V8 与 D4 保留各自规则和验证记录。产品方向及验收范围见[整合总合同](../features/factory-demo-integration-v1.md)，实施顺位见 [Current Plan](../planning/current.md)。
 
 能力与阶段分别管理：生产物流、能源、科技成长与探索、设备交互、世界与存档、视觉与交付验证的主要归属统一见[能力专题地图](../features/README.md)；统一 Demo 是跨能力阶段包，不为每个阶段复制能力规划。
 

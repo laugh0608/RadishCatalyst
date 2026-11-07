@@ -4,7 +4,7 @@
 
 ## 当前适用范围
 
-萝卜SAMA已确认[整合基线](../planning/demo-consolidation-proposal.md)中的 **Godot 3D / 风格化工业科幻**方向；2026-11-01 亲测 R1-A 后选定 **C2 透视正向、默认 21 格、跟随角色**作为后续镜头基线，并要求距离 / 高度可调。正式旧世界尚保留原镜头；本次选择不等于新核心 / 材质已验收。本篇统一气质与 UI，具体素材、足印及可见验收见功能合同。
+萝卜SAMA已确认[整合基线](../planning/demo-consolidation-proposal.md)中的 **Godot 3D / 风格化工业科幻**方向；2026-11-01 亲测 R1-A 后选定 **C2 透视正向、默认 21 格、跟随角色**作为后续镜头基线，并要求距离 / 高度可调。正式整合工厂已使用该镜头，旧规则世界沿用各自的视角。本篇统一气质与 UI，具体素材、足印及可见验收见功能合同。
 
 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)只服务保留二维切片；旧像素角色 / ARPG HUD 的代表稿与机械参数不约束新 3D 世界，不改写其历史证据。
 

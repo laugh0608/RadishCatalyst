@@ -8,7 +8,7 @@
 
 ## 子文档
 
-- [Integrated Demo Save V1](factory-integrated-demo-save-v1.md)：新整合世界核心 / 研究 / 固定燃烧的设计合同，预留 schema 9、未实现；现行 V8 等旧世界保持原合同。
+- [Integrated Demo Save V1](factory-integrated-demo-save-v1.md)：基础整合 schema 9 的核心、研究、固定燃烧与严格恢复合同，附 D1 / D2 隔离身份索引。
 
 - [Factory World State And Save V1](factory-world-state-and-save-v1.md)：正式三维工厂入口、权威状态与独立 schema 1，以及各后续身份的路由；保留旧二维世界，当前未实现多人。
 - [Factory Energy Save V8](factory-energy-save-v8.md)：当前新建 E2 的待机能量账、严格恢复与 E1 / V7 显式复制；旧 [V7](factory-energy-save-v7.md) 原规则继续。

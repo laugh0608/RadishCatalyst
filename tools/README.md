@@ -21,12 +21,14 @@
 
 正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。独立低投入交互样板使用 `bash tools/factory-content/refinement-demo.sh`；两件自有模型导出和 `check-refinement.gd` 定向检查也见该文。样板通过双根隔离 Boot 挂载、内存运行，不接入正式新世界菜单或保存规则；不支持上述四个入口的 `--verify` 约定，开窗前仍须告知。
 
-R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用 `sh tools/factory-content/core-study.sh`；macOS 可双击同名 `.command`，均先显示准备页，默认 C2 / 21 格 / 跟随。R1-A 54 项回归通过，R1-B 当前 1,051 项中 96 项端口边缘失败，不属于正式玩法。两者独立双根、不运行生产 / Store，具体操作、来源、日志 / 截图和失败结果见 [Factory Content](factory-content/README.md) 与 [R1 专题](../docs/features/factory-camera-and-representative-scene-v1.md)。检查退出码和错误日志都须核对，不将候选能打开或旧证据通过当作 R1-B 验收。
+R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用 `sh tools/factory-content/core-study.sh`，R1-C / D 材质对照追加 `--materials`。macOS 提供对应的 `.command` 准备页入口。样板默认 C2 / 21 格 / 跟随。R1-A 54 项回归通过，R1-B 的 `outline-06` 1,360 项通过，轮廓和 R1-C / D 代表品质已获认可。旧候选的失败与本轮证据分别保留。见 [Factory Content](factory-content/README.md) 与 [R1 专题](../docs/features/factory-camera-and-representative-scene-v1.md)。
 
 ## 正式工厂定向检查
 
+从普通 Boot 可以新建或继续 schema 9。下列复核脚本使用隔离根，`state` 和 `window` 的结果位于 `tools/runtime-intake/check-runs/`，`play` 使用 `tools/runtime-intake/review-worlds/`。运行 Godot 前先告知。工厂格式与旧二维版本分别识别。见[运行时验证指南](../docs/reference/godot-runtime-verification-guide.md)。
+
 - D1 开拓工厂用 `sh tools/check-factory-frontier.sh state <新批次>` 复算布局，从空档验证 X2、R13 / R14、支路回流、普通 / 高产矿对照和跨进程 schema 10。改用 `window` 加查窗口研究、开路、存读与截图。手动用 `sh tools/check-factory-frontier.sh play <亲测批次>` 创建或继续同一隔离档。
-- D2 核心 III 用 `sh tools/check-factory-grid-controls.sh state <新批次>` 检查自然生产所得的升级材料、严格解码和独立进程继续。改用 `window` 检查正式菜单、等级页提交和 III 外观。手动用 `sh tools/check-factory-grid-controls.sh play <亲测批次>` 新建或继续 schema 11 隔离档。
+- D2 核心 III 用 `sh tools/check-factory-grid-controls.sh state <新批次>` 检查自然生产所得的升级材料、严格解码和独立进程继续。改用 `window` 检查正式菜单、等级页提交和 III 外观。手动用 `sh tools/check-factory-grid-controls.sh play <亲测批次>`，新建时选择「测控工厂 · 核心 III 隔离复核」，继续时选已有世界。
 - D2 独立储能用同一入口的 `storage-state` / `storage-window` 检查空仓、实际充放、七炉产出对照、统计账和 schema 12 存读。手动入口选「测控工厂 · E2 独立储能隔离复核」。
 - D2 C1 节拍调度用 `timed-state` / `timed-window` 检查自然电芯进料、下游堵塞、窗口边沿、本机停复与 schema 13 的独立进程继续。手动入口选「测控工厂 · C1 节拍调度隔离复核」。
 

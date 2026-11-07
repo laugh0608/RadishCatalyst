@@ -4,7 +4,7 @@
 
 - [Daily Start](daily-start.md)
 - [Current Plan](current.md)
-- [Demo Consolidation Baseline](demo-consolidation-proposal.md)：已确认的整合设计基线；正式玩法仍冻结，R1-A / B 独立样板按另行授权实施，状态以 Current Plan 为准。
+- [Demo Consolidation Baseline](demo-consolidation-proposal.md)：已确认的产品、技术和视觉设计基线。交付状态见 [Current Plan](current.md)。
 - [Project Purpose And Solo AI Development Review](project-purpose-and-solo-ai-development-review.md)
 - [Milestone Review Checklist](milestone-review-checklist.md)
 

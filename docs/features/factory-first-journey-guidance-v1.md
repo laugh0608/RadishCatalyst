@@ -1,6 +1,8 @@
 # Factory First Journey Guidance V1
 
-更新时间：2026-10-12
+更新时间：2026-11-07
+
+本文维护旧勘探工厂的首程基线。整合工厂从首件板材回仓开始，引导随实际进度派生，定位以随角色移动的小地图为主。见[联合首程复核](factory-demo-integration-v1.md#joint-first-run)。
 
 ## 授权、玩家结果与介质
 

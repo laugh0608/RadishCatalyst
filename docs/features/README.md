@@ -35,7 +35,7 @@
 
 | 子专题 / 切片 | 任务状态与验收来源 | 阶段 / 协同 |
 | --- | --- | --- |
-| 固定燃烧与后续测控 | [固定燃烧合同](factory-fixed-burn-energy-v1.md) | 新整合 C / D2；研究与存档 |
+| 固定燃烧与测控 | [固定燃烧合同](factory-fixed-burn-energy-v1.md)、[D2 测控](factory-grid-controls-d2.md) | 整合 C / D2，协同研究与存档 |
 | 既有电网与范围供电 | [电网](factory-power-and-grid-v1.md)、[范围供电与拾取](factory-range-power-and-pickup-v1.md) | 旧 D3 / D4；拾取交互协同设备主线 |
 | 电芯及能耗反馈 | [E2 内容切片](factory-production-expansion-e2.md)、[V8 能源与焦点反馈](factory-energy-and-focus-feedback-v1.md) | 旧 E2 / V8；设备交互 |
 

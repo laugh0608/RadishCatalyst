@@ -8,6 +8,8 @@
 
 生产内容世界使用独立 [E1 schema 6](../features/factory-production-expansion-e1.md) 和新版 [E2 schema 8](factory-energy-save-v8.md)。第四个新建入口创建 V8 / 待机耗电世界；旧 [E2 schema 7](factory-energy-save-v7.md)继续原规则，E1 / V7 均可显式复制为独立 V8 并保留源档。这是限定复制事务，不改变本文首包 schema 1 的原规则；界面图标与焦点不改变旧档身份。
 
+11 月 7 日正式菜单新增「整合工厂 · 核心研究与固定燃烧」。基础整合为 schema 9，D1 开拓和 D2 测控分隔离身份。各版本的状态和读写边界见[整合存档合同](factory-integrated-demo-save-v1.md#身份与发布边界)。
+
 10 月 17 日新增的[工程规模身份](factory-engineering-scale-v1.md)复用 schema 5，固定工程地图 / 供给并由隔离检查入口启用；默认菜单仍创建普通世界。工程与普通 V5 的严格身份分派、Store 上下文及备份隔离见 [V5 增量](factory-admission-save-v5.md#工程身份增量)，不把工程规模上界推广到本篇 schema 1 或普通 V5。
 
 承接 [Factory Foundation And Persistence V1](../features/factory-foundation-and-persistence-v1.md)，定义 Godot 3D 工厂的状态权威、新旧世界边界和保存 / 恢复合同。功能与规模以该专题为准；本文不包含多人实现、离线收益、旧世界导入或量产美术规范。
@@ -106,7 +108,7 @@ JSON 的整数语义须显式校验，不能用强制取整接受 1.5 个物品�
 
 ## 保存、恢复与失败合同
 
-以下文件协议由两种工厂共用；快照内容分派到对应的 schema 1–5 校验入口；字段严格性与自动电网 / 附件增量分别按版本执行。
+工厂共用以下文件协议。Store 按身份分派到对应 codec，字段和语义边界由各版本合同规定。
 
 ### 保存时机
 

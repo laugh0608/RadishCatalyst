@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 开拓回报接入独立 schema 10 隔离档。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 开拓回报和 D2 核心 III、E2、C1 已接入各自隔离档。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 
@@ -31,7 +31,7 @@
 | [B2 研究 / 等级](factory-research-and-progression-v1.md#b2-delivery) | 科技成长：[科技树](factory-research-and-progression-v1.md) | 核心库存、能源 |
 | [C 普通能源](factory-fixed-burn-energy-v1.md#c-delivery) | 能源：[固定燃烧](factory-fixed-burn-energy-v1.md) | 生产、世界与存档 |
 | D1 开拓回报 | 科技成长与探索：[D1 开拓回报](factory-research-and-progression-v1.md#d1-frontier-reward) | 资源与生产 |
-| D2 测控优化 | 能源：[D2 评审稿](factory-grid-controls-d2.md) | 科技等级、独立存档版本 |
+| D2 测控优化 | 能源：[D2 测控专题](factory-grid-controls-d2.md) | 科技等级、独立存档版本 |
 | E 整段收口 | 视觉与交付验证：本文检查与保留边界 | 所有主线，Windows / 用户证据分别记录 |
 | R1-A–D 视觉准备 | 视觉与交付验证：[R1 方案](factory-camera-and-representative-scene-v1.md) | 核心外形、设备与场景 |
 
@@ -41,8 +41,8 @@
 
 - **已确认方向**：生产经营 / 探索关系、Godot 3D / GDScript、唯一核心、每物品 99,999、分级研究、固定燃烧与可选进阶控制。
 - **本轮合同规则**：子合同写明的命令、事务、可见反馈与失败处理；实现状态以各包及其验证记录为准。
-- **基础整合已验收**：核心 6×6 / 四面各三进一出，360 kW，G 每颗 120 kW × 60 秒；起步供给和首包研究 / 升级成本绑定已验证的 schema 9 定义摘要。X2 和 III 档沿后续内容评审。
-- **实施前门槛**：三料电芯链已有离线几何样板，S1-P 留有原端口布局的离线几何，四面版 S0 / S1-P 已通过离线布线与带数核算，实际供给、操作量和初期收益仍需补证。发现数值需实质改规则 / 身份时，更新合同再确认；本轮不以缺运行环境为理由伪造完成。
+- **基础整合已验收**：核心 6×6 / 四面各三进一出，360 kW，G 每颗 120 kW × 60 秒；起步供给和首包研究 / 升级成本绑定已验证的 schema 9 定义摘要。X2 和 III 档分别由 D1 与 D2 隔离版本交付。
+- **布局与证据**：原端口布局留存离线核算，四面 S1-P 已用于基础整合的连续供燃和首程验证。D2 长期负载的产出和耗芯仍需真实对照。实质改变规则或身份时，更新合同并确认范围。
 
 ## 玩家路径与内容发布边界
 
@@ -82,6 +82,8 @@
 ## 当前交付状态
 
 B1 / B2 / C 已共同通过首程验收。正式 Boot 的工厂世界菜单选择「整合工厂 · 核心研究与固定燃烧」即可新建；保存后从工厂目录继续。旧世界入口按原身份继续。正式菜单复测和范围见 [W45 周志](../devlogs/2026-W45.md#foundation-acceptance)。
+
+D1 已完成普通矿与高产矿的持续回流对照，完整玩家路径与公开入口仍待验收。D2 已完成核心 III、独立储能及节拍调度的开发机定向与跨进程验证。C2、C3 和长期分段负载实收对照尚待实施。隔离入口及身份见[整合存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)。
 
 <a id="joint-first-run"></a>
 
