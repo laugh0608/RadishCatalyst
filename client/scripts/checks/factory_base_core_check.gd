@@ -4,6 +4,7 @@ const Model := preload("res://scripts/factory/integrated_model.gd")
 const View := preload("res://scripts/factory/view.gd")
 const Route := preload("res://scripts/checks/factory_base_core_route.gd")
 const Store := preload("res://scripts/factory/save/store.gd")
+const PowerRange := preload("res://scripts/factory/power_range.gd")
 var failures: Array[String] = []
 var checks := 0
 
@@ -21,6 +22,7 @@ func expect(condition: bool, message: String) -> void:
 
 func run() -> void:
 	_contract()
+	_junction_preview()
 	_arbitration()
 	_output_backpressure()
 	var route := _natural_route()
@@ -53,6 +55,24 @@ func _contract() -> void:
 	model.actor.z += 4
 	model.bag.iron_ore = 199
 	expect(model.transfer(core.id, "iron_ore", false, true).get("amount", 0) == 1 and model.bag.iron_ore == 200, "manual withdrawal clamps to bag capacity")
+
+
+func _junction_preview() -> void:
+	var model := Model.new()
+	var far := Vector2i(-22, 25)
+	var link := PowerRange.junction_link(model, far)
+	expect(link.node.id == model.core.id and link.rank == PowerRange.Link.UNREACHABLE and link.distance > 12.0,
+		"the preview distinguishes an out-of-range core")
+	var isolated: Dictionary = model.place("power_junction", Vector2i(-23, 25)).entity
+	var revision: int = model.revision
+	link = PowerRange.junction_link(model, far)
+	expect(link.node.id == isolated.id and link.rank == PowerRange.Link.NO_SUPPLY and link.distance == 1.0,
+		"the nearby isolated node can connect without supplying power")
+	link = PowerRange.junction_link(model, Vector2i(-17, 25))
+	expect(link.node.id == model.core.id and link.rank == PowerRange.Link.POWERED,
+		"a farther live core is preferred over a closer unpowered node")
+	expect(model.revision == revision and model.power_links.is_empty() and model.statistics.ticks == 0,
+		"placement advice does not add links, entities, or simulation ticks")
 
 
 func _belt(model: RefCounted, cell: Vector2i, dir: int) -> Dictionary:

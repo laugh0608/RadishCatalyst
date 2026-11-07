@@ -6,6 +6,7 @@ const Parts := preload("res://scripts/factory/overlays.gd")
 const STEPS := 128
 const CONSUMER_COLOR := Color("73ddd0")
 const NODE_COLOR := Color("f0c16b")
+enum Link {POWERED, NO_SUPPLY, UNREACHABLE}
 var key := ""
 var targets := Node3D.new()
 
@@ -22,6 +23,27 @@ static func origin(model: RefCounted, ui: Dictionary) -> Dictionary:
 static func legend(automatic := false) -> String:
 	return "青色实圈：设备 %d 格 · 金色虚圈：节点 %d 格 · 灰段：矿壳阻挡 · %s" % [Grid.Rules.CONSUMER_RANGE, Grid.Rules.NODE_RANGE,
 		"范围内自动接电，需连通启用电源" if automatic else "放置后需接线"]
+
+
+static func junction_link(model: RefCounted, cell: Vector2i) -> Dictionary:
+	var from := {"type": "power_junction", "x": cell.x, "z": cell.y}
+	var center := Grid.center(from)
+	var best := {}
+	model.power_state()
+	for e in model.entities:
+		if not Grid.is_node(e):
+			continue
+		var distance := center.distance_to(Grid.center(e))
+		var reachable: bool = Grid.reachability(from, e, model.discovery.passages, model.map_id).ok
+		var powered: bool = model.grid.groups[model.grid.membership[e.id]].capacity_kw > 0.0
+		# Prefer a connection that can supply power, then a usable line into an empty network.
+		var rank := Link.UNREACHABLE
+		if reachable:
+			rank = Link.POWERED if powered else Link.NO_SUPPLY
+		if best.is_empty() or rank < best.rank or (rank == best.rank and (
+			distance < best.distance or (distance == best.distance and e.id < best.node.id))):
+			best = {"node": e, "distance": distance, "rank": rank}
+	return best
 
 
 func _ready() -> void:

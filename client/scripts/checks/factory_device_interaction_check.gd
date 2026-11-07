@@ -368,12 +368,16 @@ func _target_and_liveness(panel: Control) -> void:
 	var e: Dictionary = model.place("storage", Vector2i(0, 2)).entity
 	expect(Target.resolve(model, e.id).kind == "device", "preferred nearby device wins over sample")
 	panel.show_device(model, e.id)
+	expect(panel.bag_empty.visible and panel.item_button("crystal", false) == null, "empty backpack and warehouse have no item tiles")
 	e.items = {"crystal": 2}
 	panel.refresh()
-	expect("可取 2" in panel.item_labels.crystal.text, "device quantities reflect current authoritative inventory")
+	expect("可取 2" in panel.item_labels.crystal.text and panel.item_button("catalyst", false) == null,
+		"warehouse shows only actual stock and its quantities")
 	e.items.crystal = 1
 	panel.buttons.crystal_take_all.pressed.emit()
 	expect(model.bag.get("crystal", 0) == 1 and "已转移 1 件" in panel.result_label.text, "take all uses execution inventory rather than last rendered count")
+	expect(panel.bag_slots.crystal.visible and not panel.bag_empty.visible and panel.item_button("crystal", false) == null,
+		"withdrawing the last item removes the warehouse tile and shows the backpack tile")
 	model.actor.x = -25
 	panel.refresh()
 	expect(not panel.visible, "loss of proximity closes device panel")
@@ -419,6 +423,8 @@ func _nearby_and_slots(panel: Control) -> void:
 	panel.show_inventory(model)
 	expect(panel.inventory_only and not panel.pauses_production() and not panel.device_content.visible, "standalone inventory is read-only and does not pause production")
 	expect(not panel.buttons.crystal_put_all.is_visible_in_tree() and panel.bag_slots.crystal.amount == 3, "standalone inventory has real quantities and no remote device actions")
+	expect(panel.bag_slots.crystal.visible and not panel.bag_slots.crust_sample.visible and not panel.bag_empty.visible,
+		"standalone backpack only shows carried items")
 	panel.close_panel()
 
 

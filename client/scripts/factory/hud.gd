@@ -25,6 +25,7 @@ var inspector_scroll := ScrollContainer.new()
 var placement_reason := Label.new()
 var connection_preview := Label.new()
 var connection_preview_slot := VBoxContainer.new()
+var power_connection := Label.new()
 var assembly_row := HBoxContainer.new()
 var assembly_target := OptionButton.new()
 var assembly_info := Label.new()
@@ -271,6 +272,9 @@ func _build_footer(parent: Node) -> void:
 	power_help.add_theme_color_override("font_color", Color("b1d5cb"))
 	rows.add_child(power_help)
 	power_help.hide()
+	power_connection.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rows.add_child(power_connection)
+	power_connection.hide()
 	var last := HBoxContainer.new()
 	rows.add_child(last)
 	build_help.text = "WASD 移动 · 拖动铺带 · Q / E 转角 · 滚轮缩放"
@@ -375,6 +379,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	connection_preview.hide()
 	connection_preview_slot.hide()
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
+	power_connection.hide()
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
 	for type in Model.CATALOG.keys():
@@ -405,6 +410,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			var recovered := Items.contents(replacement)
 			placement_reason.text = "替换传送带 · 返还带 ×1" + ("" if recovered.is_empty() else " · 物料回收至背包")
 		buttons.place.disabled = not valid.ok
+		if ui.tool == "power_junction" and model.automatic_power:
+			_show_junction_link(model, ui.cell, valid.ok)
 		if Model.DiscoveryRules.routing_world(model.supply_id):
 			var preview := {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}
 			var connections: String = model.Logistics.preview_text(model, preview)
@@ -482,6 +489,31 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		buttons.guide_action.hide()
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"
+
+
+func _show_junction_link(model: RefCounted, cell: Vector2i, valid: bool) -> void:
+	power_connection.show()
+	power_connection.add_theme_color_override("font_color", Color("b1d5cb"))
+	power_connection.text = "接电预览 · 选择可放置位置"
+	if not valid:
+		return
+	var link := PowerRange.junction_link(model, cell)
+	if link.is_empty():
+		power_connection.text = "接电预览 · 场内暂无电源或节点"
+		return
+	var limit: float = PowerRange.Grid.Rules.NODE_RANGE
+	var state := "可自动接入"
+	var color := Color("9de5d5")
+	match link.rank:
+		PowerRange.Link.NO_SUPPLY:
+			state = "可连通，上游无电"
+			color = Color("f0c16b")
+		PowerRange.Link.UNREACHABLE:
+			state = "超出范围" if link.distance > limit + 1e-9 else "矿壳阻挡"
+			color = Color("ff967f")
+	power_connection.add_theme_color_override("font_color", color)
+	power_connection.text = "接电预览 · %s #%d · %.2f / %.0f 格 · %s" % [
+		Model.CATALOG[link.node.type].name, link.node.id, link.distance, limit, state]
 
 
 func _sync_assembly(model: RefCounted) -> void:

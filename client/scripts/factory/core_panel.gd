@@ -12,9 +12,11 @@ signal pause_requested
 
 var model: RefCounted
 var tabs := TabContainer.new()
-var inventory: OptionButton
-var inventory_counts: Label
-var inventory_summary: Label
+var inventory_slots := {"core": {}, "bag": {}}
+var inventory_empty := {}
+var inventory_selection: Label
+var bag_capacity: Label
+var selected_item := ""
 var transfer_buttons := {}
 var outputs := {}
 var inputs := {}
@@ -34,10 +36,10 @@ var assembly_button: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
-	offset_left = -560
+	offset_left = -850
 	offset_right = -20
 	offset_top = 74
-	offset_bottom = -202
+	offset_bottom = -142
 	var frame := StyleBoxFlat.new()
 	frame.bg_color = Color("142528")
 	frame.border_color = Color("60766b")
@@ -116,30 +118,23 @@ func _label(parent: Node, caption: String) -> Label:
 	return label
 
 
-func _item_options(choice: OptionButton, allow_sample: bool) -> void:
+func _output_items(choice: OptionButton) -> void:
 	choice.add_theme_constant_override("icon_max_width", 22)
-	if not allow_sample:
-		choice.add_item("未配置")
-		choice.set_item_metadata(0, "")
+	choice.add_item("未配置")
+	choice.set_item_metadata(0, "")
 	for item in model.item_ids:
-		if item == "crust_sample" and not allow_sample:
+		if item == "crust_sample":
 			continue
 		choice.add_icon_item(Slots.TEXTURES[item], Items.NAMES[item])
 		choice.set_item_metadata(choice.item_count - 1, item)
 
 
 func _build_inventory() -> void:
-	inventory = OptionButton.new()
-	inventory_counts = Label.new()
-	inventory_summary = Label.new()
-	var content := _tab("库存")
-	_label(content, "每种物品最多 99,999 件 · 可近身手动取放")
-	inventory_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(inventory_summary)
-	_item_options(inventory, true)
-	inventory.item_selected.connect(func(_index): refresh())
-	content.add_child(inventory)
-	content.add_child(inventory_counts)
+	var content := VBoxContainer.new()
+	content.name = "库存"
+	tabs.add_child(content)
+	_label(content, "拖到对侧转移物品，按剩余容量移动。点击物品也可用下方按钮单件取放。")
+	inventory_selection = _label(content, "")
 	var row := HBoxContainer.new()
 	content.add_child(row)
 	for mode in ["存入 1", "存入全部", "取出 1", "取出全部"]:
@@ -148,8 +143,93 @@ func _build_inventory() -> void:
 		row.add_child(button)
 		var putting: bool = mode.begins_with("存入")
 		var all_items: bool = mode.ends_with("全部")
-		button.pressed.connect(func(): _transfer(putting, all_items))
+		button.pressed.connect(func(): _transfer(selected_item, putting, all_items))
 		transfer_buttons[mode] = button
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(scroll)
+	var sides := HBoxContainer.new()
+	sides.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sides.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sides.add_theme_constant_override("separation", 12)
+	scroll.add_child(sides)
+	_inventory_side(sides, "core", "核心库存")
+	_inventory_side(sides, "bag", "背包")
+
+
+func _inventory_side(parent: Control, side: String, caption: String) -> void:
+	var frame := PanelContainer.new()
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.custom_minimum_size.y = 150
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("1c3231")
+	style.border_color = Color("4a6963")
+	style.set_border_width_all(1)
+	style.set_content_margin_all(10)
+	style.set_corner_radius_all(5)
+	frame.add_theme_stylebox_override("panel", style)
+	frame.set_drag_forwarding(Callable(), _can_drop_inventory.bind(side), _drop_inventory.bind(side))
+	parent.add_child(frame)
+	var contents := VBoxContainer.new()
+	contents.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(contents)
+	var header := _label(contents, caption)
+	header.add_theme_font_size_override("font_size", 20)
+	var capacity := _label(contents, "单种最多 99,999 件" if side == "core" else "")
+	if side == "bag":
+		bag_capacity = capacity
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	contents.add_child(grid)
+	for item in model.item_ids:
+		var slot := Slots.new()
+		slot.item_id = item
+		slot.pressed.connect(_select_inventory_item.bind(item))
+		slot.set_drag_forwarding(_drag_inventory.bind(side, item), _can_drop_inventory.bind(side), _drop_inventory.bind(side))
+		grid.add_child(slot)
+		slot.custom_minimum_size = Vector2(78, 80)
+		inventory_slots[side][item] = slot
+	var empty := _label(contents, "暂无物品")
+	empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	empty.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inventory_empty[side] = empty
+
+
+func _drag_inventory(_position: Vector2, side: String, item: String) -> Variant:
+	var stock: Dictionary = model.core.items if side == "core" else model.bag
+	if stock.get(item, 0) <= 0:
+		return null
+	var preview := TextureRect.new()
+	preview.texture = Slots.TEXTURES[item]
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.size = Vector2(52, 52)
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	set_drag_preview(preview)
+	return {"panel": get_instance_id(), "side": side, "item": item}
+
+
+func _can_drop_inventory(_position: Vector2, data: Variant, side: String) -> bool:
+	var source := "bag" if side == "core" else "core"
+	return (is_visible_in_tree() and tabs.current_tab == 0 and data is Dictionary and data.get("panel") == get_instance_id()
+		and data.get("side") == source and data.get("item") in model.item_ids)
+
+
+func _drop_inventory(position: Vector2, data: Variant, side: String) -> void:
+	if _can_drop_inventory(position, data, side):
+		selected_item = data.item
+		_transfer(selected_item, side == "core", true)
+
+
+func _select_inventory_item(item: String) -> void:
+	selected_item = item
+	_refresh_inventory()
 
 
 func _build_interfaces() -> void:
@@ -165,7 +245,7 @@ func _build_interfaces() -> void:
 		_label(row, port.name)
 		var item := OptionButton.new()
 		item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_item_options(item, false)
+		_output_items(item)
 		row.add_child(item)
 		var enabled := CheckBox.new()
 		enabled.text = "启用"
@@ -297,13 +377,7 @@ func refresh(paused := false) -> void:
 		return
 	pause_button.text = "恢复生产" if paused else "暂停生产"
 	_refresh_progression()
-	var item: String = inventory.get_selected_metadata()
-	var available: int = model.core.items.get(item, 0)
-	var in_bag: int = model.bag.get(item, 0)
-	inventory_summary.text = "核心：%s" % Items.describe(model.core.items)
-	inventory_counts.text = "核心 %d 件　背包 %d 件（%d / 200）" % [available, in_bag, Items.count(model.bag)]
-	for mode in transfer_buttons:
-		transfer_buttons[mode].disabled = (in_bag == 0 or available >= Core.ITEM_LIMIT) if mode.begins_with("存入") else (available == 0 or Items.count(model.bag) >= 200)
+	_refresh_inventory()
 	for id in outputs:
 		var row: Dictionary = outputs[id]
 		var config: Dictionary = model.core.outputs[id]
@@ -317,10 +391,32 @@ func refresh(paused := false) -> void:
 		row.status.text = "%d · %s" % [row.port.index % 3 + 1, text]
 
 
-func _transfer(putting: bool, all_items: bool) -> void:
-	var changed: Dictionary = model.transfer(model.core.id, inventory.get_selected_metadata(), putting, all_items)
-	result.text = ("已%s %d 件" % ["存入" if putting else "取出", changed.amount]) if changed.ok else changed.reason
-	refresh()
+func _refresh_inventory() -> void:
+	var bag_count := Items.count(model.bag)
+	bag_capacity.text = "容量 %d / 200 件" % bag_count
+	var in_core: int = model.core.items.get(selected_item, 0)
+	var in_bag: int = model.bag.get(selected_item, 0)
+	if in_core == 0 and in_bag == 0:
+		selected_item = ""
+	for side in inventory_slots:
+		var stock: Dictionary = model.core.items if side == "core" else model.bag
+		inventory_empty[side].visible = stock.is_empty()
+		for item in inventory_slots[side]:
+			var slot: Button = inventory_slots[side][item]
+			var amount: int = stock.get(item, 0)
+			slot.visible = amount > 0
+			if slot.amount != amount:
+				slot.update_amount(amount)
+			slot.mark_selected(item == selected_item)
+	inventory_selection.text = "请选择物品" if selected_item.is_empty() else "已选：" + Items.NAMES[selected_item]
+	for mode in transfer_buttons:
+		transfer_buttons[mode].disabled = (in_bag == 0 or in_core >= Core.ITEM_LIMIT) if mode.begins_with("存入") else (in_core == 0 or bag_count >= 200)
+
+
+func _transfer(item: String, putting: bool, all_items: bool) -> void:
+	var changed: Dictionary = model.transfer(model.core.id, item, putting, all_items)
+	result.text = ("已%s %s ×%d" % ["存入" if putting else "取出", Items.NAMES[item], changed.amount]) if changed.ok else changed.reason
+	_refresh_inventory()
 
 
 func _apply(id: String) -> void:

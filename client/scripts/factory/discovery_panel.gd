@@ -22,6 +22,7 @@ var heading := Label.new()
 var runtime := Label.new()
 var summary := Label.new()
 var inventory := Label.new()
+var bag_empty := Label.new()
 var result_label := Label.new()
 var recipe := OptionButton.new()
 var recipe_ids: Array[String] = []
@@ -90,6 +91,8 @@ func _ready() -> void:
 	bag_grid.add_theme_constant_override("h_separation", 10)
 	bag_grid.add_theme_constant_override("v_separation", 10)
 	bag_content.add_child(bag_grid)
+	bag_empty.text = "暂无物品"
+	bag_content.add_child(bag_empty)
 	for item in Items.NAMES:
 		var slot := ItemSlot.new()
 		slot.item_id = item
@@ -300,7 +303,11 @@ func refresh() -> void:
 		close_panel()
 		return
 	heading.text = "%s  #%d" % [Rules.CATALOG[e.type].name, e.id] if device_only else "背包" if inventory_only else "工艺、物料与矿道"
-	inventory.text = "背包  ·  %d / 200 件" % Items.count(model.bag)
+	var bag_count := Items.count(model.bag)
+	inventory.text = "背包  ·  %d / 200 件" % bag_count
+	bag_empty.visible = bag_count == 0
+	if model.bag.get(bag_item, 0) <= 0:
+		bag_item = ""
 	var integrated: bool = model.supply_id == Rules.Integrated.SUPPLY_ID
 	guide_overview.text = "样本支持核心的样本工艺研究。试制消耗唯一实物。" if integrated else Guidance.overview(model)
 	summary.text = "外矿道：%s　内矿道：%s" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
@@ -324,25 +331,25 @@ func refresh() -> void:
 		buttons.cancel_batch.disabled = not e.processing
 	var contents := Items.contents(e) if stores_items else {}
 	for item in Items.NAMES:
-		var known: bool = model.item_known(item)
+		var bag_amount: int = model.bag.get(item, 0)
 		var available: int = contents.get(item, 0) - e.get("invested", {}).get(item, 0)
-		if bag_item.is_empty() and known:
+		if bag_item.is_empty() and bag_amount > 0:
 			bag_item = item
-		bag_slots[item].visible = known
-		bag_slots[item].update_amount(model.bag.get(item, 0))
+		bag_slots[item].visible = bag_amount > 0
+		bag_slots[item].update_amount(bag_amount)
 		bag_slots[item].mark_selected(bag_item == item)
-		bag_rows[item].visible = known and bag_item == item
-		bag_labels[item].text = "%s   ×%d" % [Items.NAMES[item], model.bag.get(item, 0)]
+		bag_rows[item].visible = bag_amount > 0 and bag_item == item
+		bag_labels[item].text = "%s   ×%d" % [Items.NAMES[item], bag_amount]
 		for action in ["put_one", "put_all"]:
 			buttons[item + "_" + action].visible = stores_items
-			buttons[item + "_" + action].disabled = not stores_items or model.bag.get(item, 0) == 0 or model.input_room(e, item, true) <= 0
+			buttons[item + "_" + action].disabled = not stores_items or bag_amount == 0 or model.input_room(e, item, true) <= 0
 		var has_slot: bool = stores_items and item_button(item, false) != null
 		if device_item.is_empty() and has_slot:
 			device_item = item
 		rows[item].visible = has_slot and device_item == item
 		item_labels[item].text = "%s · 可取 %d" % [Items.NAMES[item], available]
 		for action in ["take_one", "take_all"]:
-			buttons[item + "_" + action].disabled = available <= 0 or Items.count(model.bag) >= 200
+			buttons[item + "_" + action].disabled = available <= 0 or bag_count >= 200
 	device_summary.select_item(device_item)
 	if not device_only:
 		return

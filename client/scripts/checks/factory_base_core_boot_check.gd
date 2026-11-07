@@ -89,6 +89,7 @@ func _review_path(model: RefCounted) -> void:
 		var belt: Dictionary = model.entity_at(cell)
 		driver.expect(world.view.models[belt.id].mask == 4, "straight belt at core port %s" % str(cell))
 	await driver.shot("01-spawn")
+	await _power_placement_path(model)
 	var start_z: float = model.actor.z
 	await driver.key(KEY_S, true)
 	await create_timer(0.23).timeout
@@ -141,6 +142,26 @@ func _review_path(model: RefCounted) -> void:
 	await _inventory_receipt_path(model)
 
 
+func _power_placement_path(model: RefCounted) -> void:
+	var hud: Control = world.hud
+	var entity_count: int = model.entities.size()
+	await driver.click(hud.buttons.power_junction)
+	hud.cell_x.value = -6
+	hud.cell_z.value = 18
+	await driver.settle(10)
+	driver.expect(hud.power_connection.visible and "基地核心" in hud.power_connection.text
+		and "可自动接入" in hud.power_connection.text, "node placement names the powered core and its distance")
+	await driver.shot("01a-powered-junction")
+	hud.cell_x.value = -5
+	hud.cell_z.value = 8
+	await driver.settle(10)
+	driver.expect("超出范围" in hud.power_connection.text and hud.power_connection.get_theme_color("font_color") == Color("ff967f")
+		and not hud.buttons.place.disabled, "out-of-range warning is red and still permits building")
+	await driver.shot("01b-junction-out-of-range")
+	await driver.key(KEY_ESCAPE)
+	driver.expect(not hud.power_connection.visible and model.entities.size() == entity_count, "cancel clears preview without adding a node")
+
+
 func _inventory_receipt_path(model: RefCounted) -> void:
 	var core: Dictionary = model.core
 	driver.expect(root.has_focus(), "window is focused before final inventory input")
@@ -151,22 +172,71 @@ func _inventory_receipt_path(model: RefCounted) -> void:
 	driver.expect(world.core_panel.visible and world.ui.selected == core.id, "F opens core after return without moving materials by hand")
 	if not world.core_panel.visible:
 		return
-	world.core_panel.tabs.current_tab = 0
-	var inventory: OptionButton = world.core_panel.inventory
-	for i in inventory.item_count:
-		if inventory.get_item_metadata(i) == "metal_plate":
-			inventory.select(i)
-			break
-	world.core_panel.refresh()
+	var panel: Control = world.core_panel
+	panel.tabs.current_tab = 0
+	await driver.click(panel.pause_button)
+	var core_plate: Button = panel.inventory_slots.core.metal_plate
+	var bag_plate: Button = panel.inventory_slots.bag.metal_plate
+	var core_ore: Button = panel.inventory_slots.core.iron_ore
+	var bag_ore: Button = panel.inventory_slots.bag.iron_ore
+	driver.expect(core_plate.visible and not panel.inventory_slots.core.crystal.visible and not bag_plate.visible
+		and panel.inventory_empty.bag.visible, "inventory only shows held stock and identifies the empty backpack")
+	await driver.click(core_plate)
 	await driver.shot("05-inventory-with-plate")
-	await driver.click(world.core_panel.transfer_buttons["取出 1"])
+	await driver.click(panel.transfer_buttons["取出 1"])
 	driver.expect(model.bag.get("metal_plate", 0) == 1, "withdraw plate by inventory button")
-	await driver.click(world.core_panel.transfer_buttons["存入 1"])
+	await driver.click(panel.transfer_buttons["存入 1"])
 	driver.expect(model.bag.is_empty() and model.material_balance().balanced, "deposit plate back; total material conserved")
-	await driver.click(world.core_panel.close_button)
+	var stock: int = core.items.metal_plate
+	await _inventory_drag(core_plate, core_ore)
+	driver.expect(core.items.metal_plate == stock and model.bag.is_empty(), "same-side drop leaves stock intact")
+	await _inventory_drag(core_plate, panel.inventory_empty.bag)
+	driver.expect(model.bag.get("metal_plate", 0) == stock and not core.items.has("metal_plate"),
+		"drag to empty backpack moves the stack into the bag")
+	driver.expect(bag_plate.visible and not core_plate.visible and not panel.inventory_empty.bag.visible,
+		"tile follows the last item to the other side")
+	await driver.shot("06-inventory-plate-in-bag")
+	await _inventory_drag(bag_plate, core_ore)
+	driver.expect(core.items.get("metal_plate", 0) == stock and model.bag.is_empty()
+		and model.material_balance().balanced, "drop anywhere on the core side and conserve stock")
+	var ore_count: int = core.items.get("iron_ore", 0)
+	driver.expect(ore_count > 1, "natural route has a multi-item stack to drag")
+	await _inventory_drag(core_ore, panel.inventory_empty.bag)
+	driver.expect(model.bag.get("iron_ore", 0) == ore_count and not core.items.has("iron_ore"), "drag moves the whole stack")
+	await _inventory_drag(bag_ore, core_plate)
+	driver.expect(core.items.get("iron_ore", 0) == ore_count and model.bag.is_empty()
+		and model.material_balance().balanced, "returning a whole stack preserves the ledger")
+	root.size = root.min_size
+	root.move_to_center()
+	await driver.settle(15)
+	var viewport_rect := Rect2(Vector2.ZERO, root.get_visible_rect().size)
+	for control in [core_plate, core_ore, panel.inventory_empty.bag]:
+		driver.expect(control.is_visible_in_tree() and viewport_rect.encloses(control.get_global_rect()),
+			"held items and the empty drop area fit the minimum window")
+	await driver.shot("07-inventory-minimum")
+	await driver.click(panel.close_button)
 	await driver.click(world.hud.buttons["return"])
 	driver.expect(boot.factory_world == null and boot.factory_menu.visible, "memory session exits through normal Boot return")
 	driver.expect(not FileAccess.file_exists(run_root.path_join("factory/autosave.json")) and boot.factory_menu.worlds.is_empty(), "no factory world was written")
+
+
+func _inventory_drag(source: Control, target: Control) -> void:
+	var from := source.get_global_rect().get_center()
+	var to := target.get_global_rect().get_center()
+	await driver.motion(from)
+	await driver.mouse(from, true)
+	var last := from
+	for at in [from.move_toward(to, 20), to]:
+		var motion := InputEventMouseMotion.new()
+		motion.position = at
+		motion.relative = at - last
+		motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+		root.push_input(motion, true)
+		last = at
+		await process_frame
+	driver.expect(root.gui_is_dragging(), "dragging the occupied material slot starts a real GUI drag")
+	await driver.mouse(to, false)
+	await driver.settle()
 
 
 func _progression_path(model: RefCounted) -> void:
@@ -266,7 +336,7 @@ func _expect_marker_clearance(id: int) -> void:
 
 
 func _finish() -> void:
-	var input := "window click, walk and F; option selection injected; only route topology prepared; production runs on the normal clock"
+	var input := "window clicks, walking, F and inventory drags; placement coordinates and output option selected by driver; production uses the window clock"
 	if framing:
 		input = "zoom buttons; four applied marker fixtures at native minimum window"
 	elif progression:

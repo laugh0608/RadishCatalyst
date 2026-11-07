@@ -207,15 +207,13 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"storage":
 					if role == "input":
 						stock = e.items
-						for known in model.item_ids:
-							if model.item_known(known):
-								required[known] = 0
 			var slot: Button = slots[role][item]
 			slot.visible = stock.has(item) or required.has(item)
 			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type in model.process_types else 0)
 		values[role].visible = false
 		if e.type == "storage" and role == "input":
-			values[role].text = "%d / 200 件" % Items.count(e.items)
+			var capacity := "%d / 200 件" % Items.count(e.items)
+			values[role].text = "暂无物品\n" + capacity if e.items.is_empty() else capacity
 			values[role].show()
 		elif e.type == "cell_generator":
 			values[role].show()
