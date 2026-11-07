@@ -7,6 +7,7 @@ const Energy := preload("res://data/factory/energy_rules.gd")
 var core: Dictionary
 var researched := {Progression.BASE: true}
 var research_nodes := Progression.NODES
+var core_upgrades := {2: {"requires": Progression.II_REQUIRES, "cost": Progression.II_COST}}
 
 
 func _init() -> void:
@@ -196,7 +197,7 @@ func research_status(id: String) -> Dictionary:
 		return failure("已完成研究")
 	var node: Dictionary = research_nodes[id]
 	if core.level < node.level:
-		return failure("需要核心 II")
+		return failure("需要核心 " + Progression.TIER_LABELS[node.level])
 	var missing := _missing_research(node.requires)
 	if not missing.is_empty():
 		return failure("先研究 " + "、".join(missing))
@@ -221,24 +222,26 @@ func research(id: String) -> Dictionary:
 func upgrade_status() -> Dictionary:
 	if not near_entity(core):
 		return failure("请走到基地核心两格内")
-	if core.level != 1:
-		return failure("核心已升至 II")
-	var missing := _missing_research(Progression.II_REQUIRES)
+	var target: int = core.level + 1
+	if not core_upgrades.has(target):
+		return failure("核心已升至 " + Progression.TIER_LABELS[core.level])
+	var upgrade: Dictionary = core_upgrades[target]
+	var missing := _missing_research(upgrade.requires)
 	if not missing.is_empty():
 		return failure("先研究 " + "、".join(missing))
-	if not Items.contains(core.items, Progression.II_COST):
-		return failure("核心缺少 " + Items.describe(missing_stock(Progression.II_COST)))
-	return success()
+	if not Items.contains(core.items, upgrade.cost):
+		return failure("核心缺少 " + Items.describe(missing_stock(upgrade.cost)))
+	return success({"level": target})
 
 
 func upgrade_core() -> Dictionary:
 	var status := upgrade_status()
 	if not status.ok:
 		return status
-	_consume_core(Progression.II_COST)
-	core.level = 2
+	_consume_core(core_upgrades[status.level].cost)
+	core.level = status.level
 	revision += 1
-	return success()
+	return status
 
 
 func assembly_status(type: String) -> Dictionary:
@@ -256,12 +259,19 @@ func assemble(type: String) -> Dictionary:
 	return _commit_assembly(type, core.items, quote) if quote.ok else quote
 
 
+func progression_payments() -> Array[Dictionary]:
+	var payments: Array[Dictionary] = []
+	for id in researched:
+		payments.append(research_nodes[id].cost)
+	for level in range(2, core.level + 1):
+		payments.append(core_upgrades[level].cost)
+	return payments
+
+
 func extra_consumption() -> Dictionary:
 	var consumed := {}
-	for id in researched:
-		Items.merge(consumed, research_nodes[id].cost)
-	if core.level >= 2:
-		Items.merge(consumed, Progression.II_COST)
+	for payment in progression_payments():
+		Items.merge(consumed, payment)
 	if statistics.totals.cells_activated > 0:
 		Items.add(consumed, Energy.CELL, statistics.totals.cells_activated)
 	return consumed

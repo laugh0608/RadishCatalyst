@@ -26,10 +26,15 @@ static func statistics(value: Variant, model: RefCounted, generator_count: int, 
 	var common := Stats.validate_timeline(base, model.time, Integrated.BASE_KW + generator_kw, request_kw, model.item_ids)
 	if not common.ok:
 		return common
-	var research_cells := 0
-	if model.researched.has(Integrated.Frontier.RESEARCH):
-		research_cells = Integrated.Frontier.NODE.cost[Energy.CELL]
-	var recent_research_cells := 0
+	var progression_cells := 0
+	var bucket_payments := {0: true}
+	for payment: Dictionary in model.progression_payments():
+		var cells: int = payment.get(Energy.CELL, 0)
+		if cells > 0:
+			progression_cells += cells
+			for subtotal in bucket_payments.keys():
+				bucket_payments[subtotal + cells] = true
+	var recent_progression_cells := 0
 	var sums := {}
 	for key in EXTRA:
 		sums[key] = 0
@@ -39,14 +44,14 @@ static func statistics(value: Variant, model: RefCounted, generator_count: int, 
 		if not _record(r, duration, generator_kw, standby_kw):
 			return failure("固定燃烧分项、弃能或待机电量不守恒。")
 		var non_fuel_cells: int = int(r.consumed.get(Energy.CELL, 0)) - int(r.cells_activated)
-		if (i == 0 and non_fuel_cells != research_cells) or (i > 0 and non_fuel_cells not in [0, research_cells]):
-			return failure("电芯消费与激活、开拓研究不一致。")
+		if (i == 0 and non_fuel_cells != progression_cells) or (i > 0 and not bucket_payments.has(non_fuel_cells)):
+			return failure("电芯消费与燃料激活、研究及升级不一致。")
 		if i > 0:
-			recent_research_cells += non_fuel_cells
+			recent_progression_cells += non_fuel_cells
 			for key in EXTRA:
 				sums[key] += r[key]
-	if recent_research_cells > research_cells or (value.ticks < 12020 and recent_research_cells != research_cells):
-		return failure("近期电芯研究消费与累计量不一致。")
+	if recent_progression_cells > progression_cells or (value.ticks < 12020 and recent_progression_cells != progression_cells):
+		return failure("近期电芯研究与升级消费和累计量不一致。")
 	for key in EXTRA:
 		var same: bool = sums[key] == value.totals[key] if key == "cells_activated" else Stats.near(sums[key], value.totals[key])
 		if (sums[key] > value.totals[key] and not same) or (value.ticks < 12020 and not same):

@@ -128,7 +128,7 @@ func _mutations(snapshot: Dictionary, id: String) -> void:
 		var d := snapshot.duplicate(true)
 		match variant:
 			"definitions": d.definitions_sha256 = "wrong"
-			"future": d.save_schema_version = Codec.V10.VERSION + 1
+			"future": d.save_schema_version = Codec.V11.VERSION + 1
 			"core": d.state.entities[0].x += 1
 			"research": d.state.research.completed.erase(Model.Progression.SAMPLE)
 			"cooldown": d.state.core.outputs.OUT_S0.cooldown_ticks = 21

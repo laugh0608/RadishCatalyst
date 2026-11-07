@@ -9,6 +9,7 @@ const MIXED := "mixed_refining"
 const REUSE := "slag_reuse"
 const II_REQUIRES := [ASSEMBLY, POWDERS, SAMPLE]
 const II_COST := {"construction_pack": 2}
+const TIER_LABELS := ["", "I", "II", "III"]
 const MAX_OWNED := 512
 
 const NODES := {

@@ -317,7 +317,7 @@ func refresh() -> void:
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
-	var frontier: bool = model.supply_id == Frontier.SUPPLY_ID
+	var frontier: bool = model.map_id == Frontier.MAP_ID
 	buttons.frontier.visible = frontier
 	if frontier:
 		var status: Dictionary = model.frontier_status()

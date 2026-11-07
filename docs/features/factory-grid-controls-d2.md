@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：设计与离线核算待萝卜SAMA评审。候选参数以下表为准。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。
+状态：萝卜SAMA确认继续推进，核心 III 和独立 schema 11 已接入隔离入口。E2 / C1–C3 按本文候选参数与顺位接续。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。
 
 ## 玩家路径
 
@@ -73,7 +73,15 @@
 
 ## 独立身份与验收
 
-D2 候选使用 `factory_3d / schema 11 / factory_integrated_grid_controls_v1`，复用 D1 的 `factory_integrated_frontier_yard_64_v1` 地图、开拓内容和单路普通带规则。供给候选 ID 为 `factory_integrated_grid_controls_starter_v1`，数量沿 D1，开局物料为零，测控设备由装配取得。独立内容摘要覆盖阶段前置、成本、构件 / 足印 / 端口、储能规格、定步控制和字段边界。隔离新建及继续，旧二维与工厂 schema 1–10 按原有完整身份继续。跨规则迁移另行评审。新档研发计划沿用既有 Store 事务、单写锁、哈希校验和同身份备份。
+<a id="d2-core-iii-delivery"></a>
+
+### 核心 III 首步交付
+
+隔离入口使用 `factory_3d / schema 11 / factory_integrated_grid_controls_v1`，地图为 `factory_integrated_frontier_yard_64_v1`，供给为 `factory_integrated_grid_controls_starter_v1`。新建从核心 I、D1 起步构件与零物料开始，使用 D1 单路普通带规则。等级页按 E1、M3 和实际库存展示可升级状态，提交后扣除 4 构件包、4 板、2 载体、2 工业电芯，维持原核心 ID、6×6 足印、16 口和 360 kW。III 顶盖显示三块琥珀色模块，旧世界加载原模型。首步只新增等级状态的合法取值，研究集合仍沿用基础与开拓已有节点。
+
+使用 `sh tools/check-factory-grid-controls.sh play <批次>` 创建或继续。当前 schema 11 定义摘要绑定 D1 单路版本和 III 升级。研究与等级消耗按已完成动作重建，固定燃烧校验分别核对电芯激活与非燃料扣料。沿用 Store 的单写锁、同身份备份和主档哈希。旧二维和工厂 schema 1–10 以原身份继续。储能和控制字段随实际功能另行版本化或经明确的存档映射接入。
+
+### 储能和控制验收边界
 
 - 持久字段包括储能实体的整数焦耳与启用状态、C1 槽内物料／入口／批次／行程、周期起点与计数、C2 来源 ID／阈值／回差锁存、C3 目标组／保留量／当前决定和下次评估 tick。保存玩家本机停机状态，运行许可由恢复的权威配置与当前拓扑派生。未装配构件无储能或控制状态。分网后暂时失效的绑定保留明确失效状态，回收目标时原子清理对应引用。
 - 全局电能账为 `核心实际供能 + G 释能 + 期初储能 = 用电 + 弃能 + 充电损耗 + 储能拆除损失 + 期末储能`。燃料余时和回收损失仍在独立燃料账，负载缺口为请求减实际用电。统计分别显示充、放、损耗、拆除损失和净储能，分网时按拓扑派生当前读数，全局历史保存一次。

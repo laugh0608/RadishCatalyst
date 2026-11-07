@@ -4,6 +4,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const PowerStatus := preload("res://scripts/factory/power_status.gd")
 const Parts := preload("res://scripts/factory/overlays.gd")
 const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Progression := preload("res://data/factory/integrated_progression.gd")
 const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
@@ -70,8 +71,9 @@ func _ready() -> void:
 	integrated_camera = world_model != null and Integrated.matches_supply(world_model.supply_id)
 	if integrated_camera:
 		yaw = 0.0
-		assets.base_core = load(Integrated.MODEL_PATH)
-		resource_error = _check_core_asset(assets.base_core)
+		var controls: bool = world_model.supply_id == Integrated.Controls.SUPPLY_ID
+		assets.base_core = load(Integrated.Controls.CORE_MODEL_PATH if controls else Integrated.MODEL_PATH)
+		resource_error = _check_core_asset(assets.base_core, world_model.core_upgrades.size() + 1)
 		if not resource_error.is_empty():
 			return
 	cargo_materials = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}
@@ -215,18 +217,23 @@ func _build_lighting() -> void:
 	sun.shadow_normal_bias = 0.06
 
 
-static func _check_core_asset(scene: Resource) -> String:
+static func _check_core_asset(scene: Resource, max_tier: int) -> String:
 	if not scene is PackedScene:
 		return "缺少基地核心模型"
 	var asset := scene.instantiate() as Node3D
 	var anchors := asset.find_child("Ports", true, false)
 	var tiers := asset.find_child("TierModules", true, false)
 	var error := ""
-	if tiers == null or not tiers.has_node("I") or not tiers.has_node("II"):
+	if tiers == null or tiers.get_child_count() != max_tier:
 		error = "基地核心缺少等级模块"
-	elif anchors == null or anchors.get_child_count() != 16:
-		error = "基地核心必须有 16 个锚点"
 	else:
+		for level in range(1, max_tier + 1):
+			if not tiers.has_node(Progression.TIER_LABELS[level]):
+				error = "基地核心缺少等级模块"
+				break
+	if error.is_empty() and (anchors == null or anchors.get_child_count() != 16):
+		error = "基地核心必须有 16 个锚点"
+	if error.is_empty():
 		for role in ["input", "output"]:
 			for port in Integrated.ports(Vector2i.ZERO, role):
 				var anchor := anchors.get_node_or_null("Port_" + port.id) as Node3D
@@ -436,8 +443,8 @@ func _build(e: Dictionary, mask: int, inlet_conflict: bool) -> Dictionary:
 		root.add_child(asset)
 		if e.type == Integrated.CORE:
 			var tiers := asset.find_child("TierModules", true, false)
-			tiers.get_node("I").visible = e.level == 1
-			tiers.get_node("II").visible = e.level == 2
+			for tier in tiers.get_children():
+				tier.visible = tier.name == Progression.TIER_LABELS[e.level]
 			result.output_icons = {}
 			for port in Integrated.ports(Vector2i.ZERO, "output"):
 				var icon := Sprite3D.new()

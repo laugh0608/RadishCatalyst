@@ -55,7 +55,7 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 
 
 static func decode_state(value: Dictionary, expected_id: String, model: RefCounted) -> Dictionary:
-	var frontier: bool = model.supply_id == Integrated.Frontier.SUPPLY_ID
+	var frontier: bool = model.map_id == Integrated.Frontier.MAP_ID
 	if not fields(value, TOP_FIELDS + ["definitions_sha256"]) or not valid_id(value.world_id) or value.world_id != expected_id:
 		return failure("整合世界字段或目录身份无效。")
 	if not value.name is String or value.name.strip_edges().is_empty() or value.name.length() > 48 or "\n" in value.name or not integer(value.sequence, 1):
@@ -148,7 +148,7 @@ static func decode_state(value: Dictionary, expected_id: String, model: RefCount
 
 
 static func _load_progression(model: RefCounted, core: Variant, research: Variant) -> Dictionary:
-	if not fields(core, ["entity_id", "level", "items", "outputs", "input_cursors", "output_cursors"]) or not integer(core.entity_id, model.core.id, model.core.id) or not integer(core.level, 1, 2):
+	if not fields(core, ["entity_id", "level", "items", "outputs", "input_cursors", "output_cursors"]) or not integer(core.entity_id, model.core.id, model.core.id) or not integer(core.level, 1, model.core_upgrades.size() + 1):
 		return failure("核心身份、字段或等级无效。")
 	if not Stats.items(core.items, Integrated.ITEM_LIMIT, model.item_ids) or not fields(core.outputs, model.core.outputs.keys()):
 		return failure("核心库存超限或出料口集合无效。")
@@ -180,8 +180,9 @@ static func _load_progression(model: RefCounted, core: Variant, research: Varian
 		var node: Dictionary = model.research_nodes[id]
 		if core.level < node.level or not node.requires.all(func(dep): return model.researched.has(dep)) or not model.research_fact_missing(id).is_empty():
 			return failure("已完成研究缺少等级、前置或发现。")
-	if core.level == 2 and not Tech.II_REQUIRES.all(func(id): return model.researched.has(id)):
-		return failure("核心 II 缺少研究前置。")
+	for level in range(2, int(core.level) + 1):
+		if not model.core_upgrades[level].requires.all(func(id): return model.researched.has(id)):
+			return failure("核心 %s 缺少研究前置。" % Tech.TIER_LABELS[level])
 	model.core.level = int(core.level)
 	model.core.items = V2.normalize_items(core.items)
 	return {"ok": true}

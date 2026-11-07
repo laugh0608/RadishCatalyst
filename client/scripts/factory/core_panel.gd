@@ -283,7 +283,8 @@ func _build_progression() -> void:
 	content = _tab("等级")
 	upgrade_details = _details(content)
 	upgrade_button = _action_button(content, "升至核心 II", func():
-		_progress_result(model.upgrade_core(), "已升至核心 II"))
+		var result: Dictionary = model.upgrade_core()
+		_progress_result(result, "已升至核心 " + Progression.TIER_LABELS[model.core.level]))
 	content = _tab("装配")
 	_label(content, "构件包从核心扣除，成品进入建造库存")
 	assembly_choice = OptionButton.new()
@@ -320,7 +321,7 @@ func _requirements(ids: Array) -> String:
 
 
 func _refresh_progression() -> void:
-	var level := "II" if model.core.level == 2 else "I"
+	var level: String = Progression.TIER_LABELS[model.core.level]
 	title.text = "基地核心 " + level
 	var id: String = research_choice.get_selected_metadata()
 	var node: Dictionary = model.research_nodes[id]
@@ -343,19 +344,21 @@ func _refresh_progression() -> void:
 成本 %s
 %s
 %s" % [
-		node.effect, "II" if node.level == 2 else "I", level, _requirements(node.requires), sample,
+		node.effect, Progression.TIER_LABELS[node.level], level, _requirements(node.requires), sample,
 		Items.describe(node.cost), payment,
 		"可提交" if state.ok else state.reason]
 	research_button.disabled = not state.ok
 	state = model.upgrade_status()
-	upgrade_details.text = "当前核心 %s
-
-核心 II 开放工业电芯、混料冶炼与矿渣回用研究。
-前置：%s
-成本：%s
-%s" % [
-		level, _requirements(Progression.II_REQUIRES), Items.describe(Progression.II_COST), "可升级" if state.ok else state.reason]
+	var target: int = model.core.level + 1
+	var upgrade: Dictionary = model.core_upgrades.get(target, {})
+	upgrade_button.visible = not upgrade.is_empty()
 	upgrade_button.disabled = not state.ok
+	upgrade_details.text = "当前核心 " + level
+	if not upgrade.is_empty():
+		upgrade_button.text = "升至核心 " + Progression.TIER_LABELS[target]
+		var effect := "核心 II 开放工业电芯、混料冶炼与矿渣回用研究。" if target == 2 else "核心 III 为电网测控做准备，核心额定功率仍为 360 kW。"
+		upgrade_details.text += "\n\n%s\n前置：%s\n成本：%s\n%s" % [
+			effect, _requirements(upgrade.requires), Items.describe(upgrade.cost), "可升级" if state.ok else state.reason]
 	var type: String = assembly_choice.get_selected_metadata()
 	state = model.assembly_status(type)
 	var owner: String = model.device_research(type)

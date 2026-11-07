@@ -8,11 +8,14 @@ import { batchStatic } from '../visual-studies/web-topdown-3d/factory.mjs';
 
 const args = process.argv.slice(2);
 const batch = args[0];
-if (!batch || !/^[a-z0-9][a-z0-9-]*$/.test(batch) || args.slice(1).some(a => a !== '--publish-prototype')) {
-  throw Error('Usage: node tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype]');
+const controls = args.includes('--grid-controls');
+if (!batch || !/^[a-z0-9][a-z0-9-]*$/.test(batch) || args.slice(1).some(a => !['--publish-prototype', '--grid-controls'].includes(a))
+    || (controls && args.includes('--publish-prototype'))) {
+  throw Error('Usage: node tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype | --grid-controls]');
 }
 const rootUrl = new URL('../../', import.meta.url);
-const out = new URL(`assets/art-intake/2026-11-01-core-outline/${batch}/`, rootUrl);
+const out = new URL(controls ? `tools/runtime-intake/design-references/factory-grid-controls/${batch}/`
+  : `assets/art-intake/2026-11-01-core-outline/${batch}/`, rootUrl);
 await fs.mkdir(out, { recursive: true });
 try { await fs.access(new URL('source-manifest.json', out)); throw Error('Use a new batch; existing evidence must not be overwritten'); }
 catch (e) { if (e.code !== 'ENOENT') throw e; }
@@ -23,7 +26,7 @@ const material = (name, color) => new THREE.MeshStandardMaterial({ name, color, 
 const mats = { shell: material('Outline_Shell', '#c9cbbb'), frame: material('Outline_Frame', '#293f43'),
   module: material('Outline_Module', '#497e79'), mark: material('Outline_Output', '#d1aa62') };
 const structure = new THREE.Group(), logistics = new THREE.Group(), marks = new THREE.Group();
-const tierI = new THREE.Group(), tierII = new THREE.Group();
+const tierI = new THREE.Group(), tierII = new THREE.Group(), tierIII = new THREE.Group();
 function mesh(parent, geometry, mat, at) {
   const part = new THREE.Mesh(geometry, mat); part.position.set(...at); parent.add(part); return part;
 }
@@ -65,12 +68,20 @@ for (const x of [-1.12, 1.12]) plain(logistics, [x, .9, 1.613], [.18, .72, .035]
 function module(parent, tier) {
   box(parent, [0, 1.76, .67], [2.75, .57, 1.64], mats.module, .11);
   for (const x of [-.8, 0, .8]) box(parent, [x, 2.095, .45], [.5, .13, .86], mats.module, .03);
-  if (tier === 2) {
+  if (tier >= 2) {
     for (const x of [-1.28, 1.28]) box(parent, [x, 1.55, 0], [.5, .58, .68], mats.module, .065);
     box(parent, [0, 2.29, .93], [1.9, .35, .5], mats.module, .065);
   }
+  if (tier === 3) {
+    box(parent, [0, 2.24, .25], [2.48, .24, .95], mats.frame, .045);
+    for (const x of [-.8, 0, .8]) {
+      plain(parent, [x, 2.41, .25], [.32, .12, .72], mats.module);
+      plain(parent, [x, 2.48, .23], [.28, .02, .52], mats.mark);
+    }
+  }
 }
 module(tierI, 1); module(tierII, 2);
+if (controls) module(tierIII, 3);
 
 const ports = [];
 for (const [side, nx, nz] of [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]]) {
@@ -104,7 +115,9 @@ function batchGroup(source, name) {
 const core = new THREE.Group(); core.name = 'BaseCore';
 core.add(batchGroup(structure, 'Structure'), batchGroup(logistics, 'LogisticsRing'));
 const tiers = new THREE.Group(); tiers.name = 'TierModules';
-tiers.add(batchGroup(tierI, 'I'), batchGroup(tierII, 'II')); core.add(tiers);
+tiers.add(batchGroup(tierI, 'I'), batchGroup(tierII, 'II'));
+if (controls) tiers.add(batchGroup(tierIII, 'III'));
+core.add(tiers);
 core.add(batchGroup(marks, 'StatusMounts'));
 const anchors = new THREE.Group(); anchors.name = 'Ports'; core.add(anchors);
 for (const port of ports) {
@@ -115,12 +128,12 @@ const bounds = () => { core.updateMatrixWorld(true); const b = new THREE.Box3().
 const fullBounds = bounds();
 if (fullBounds.min[0] < -3.00001 || fullBounds.max[0] > 3.00001 || fullBounds.min[2] < -3.00001 || fullBounds.max[2] > 3.00001 || fullBounds.min[1] < -.00001 || fullBounds.max[1] > 3.6) throw Error('Core exceeds footprint / height contract');
 const variants = {};
-for (const tier of [1, 2]) {
-  tiers.children[0].visible = tier === 1; tiers.children[1].visible = tier === 2;
+for (const tier of tiers.children.keys()) {
+  tiers.children.forEach((node, index) => { node.visible = index === tier; });
   let surfaces = 0, triangles = 0;
   core.traverseVisible(obj => { if (obj.isMesh) { surfaces++; triangles += (obj.geometry.index?.count ?? obj.geometry.attributes.position.count) / 3; } });
-  if (surfaces > 4 || triangles > 12000) throw Error(`Tier ${tier} exceeds silhouette budget`);
-  variants[tier] = { surfaces, triangles };
+  if (triangles > 12000 || surfaces > (controls && tier === 2 ? 6 : 4)) throw Error(`Tier ${tier + 1} exceeds silhouette budget`);
+  variants[tier + 1] = { surfaces, triangles };
 }
 tiers.children.forEach(c => { c.visible = true; });
 const scene = new THREE.Scene(); scene.add(core);
@@ -131,17 +144,18 @@ const sourcePaths = ['tools/factory-content/export-core-outline.mjs', 'tools/vis
   'tools/visual-studies/web-topdown-3d/node_modules/three/package.json'];
 const sources = {};
 for (const path of sourcePaths) sources[path] = hash(await fs.readFile(new URL(path, rootUrl)));
-const manifest = { purpose: 'R1-B prototype silhouette only; no gameplay, fine materials or textures',
+const manifest = { purpose: controls ? 'D2 core outline with III module and shared sixteen-port anchors' : 'R1-B prototype silhouette only; no gameplay, fine materials or textures',
   source: 'Repository-authored editable geometry; no external asset pack', license: 'Project-authored; existing Three.js MIT dependency',
   command: `node tools/factory-content/export-core-outline.mjs ${args.join(' ')}`, three_version: THREE.REVISION,
   status: 'outline candidate; owner review pending', files: { 'core-outline.glb': { bytes: bytes.length, sha256: hash(bytes),
     root: 'BaseCore', footprint: [6, 6], bounds: fullBounds, materials: 4, textures: 0, variants } }, ports, sources,
-  geometry_notes: 'Four visible material batches; I and II alternatives share a common root/ports/envelope. Flat rough opaque materials, no glow.' };
+  geometry_notes: 'Tier alternatives share a common root/ports/envelope. Flat rough opaque materials, no glow.' };
 await fs.writeFile(new URL('core-outline.glb', out), bytes);
 await fs.copyFile(new URL('tools/factory-content/export-core-outline.mjs', rootUrl), new URL('export-core-outline.mjs', out));
 await fs.writeFile(new URL('source-manifest.json', out), JSON.stringify(manifest, null, 2) + '\n');
-if (args.includes('--publish-prototype')) {
-  const target = new URL('client/assets/prototypes/base_core_outline/', rootUrl); await fs.mkdir(target, { recursive: true });
+if (controls || args.includes('--publish-prototype')) {
+  const target = new URL(controls ? 'client/assets/factory/grid-controls/' : 'client/assets/prototypes/base_core_outline/', rootUrl);
+  await fs.mkdir(target, { recursive: true });
   for (const file of ['core-outline.glb', 'source-manifest.json']) await fs.copyFile(new URL(file, out), new URL(file, target));
 }
 console.log(JSON.stringify({ batch, bytes: bytes.length, bounds: fullBounds, variants, ports: ports.length, published_prototype: args.includes('--publish-prototype') }));

@@ -28,7 +28,7 @@ static func current(model: RefCounted) -> Dictionary:
 
 
 static func integrated_location(model: RefCounted) -> Dictionary:
-	if model.supply_id == Frontier.SUPPLY_ID and model.discovery.passages.outer:
+	if model.map_id == Frontier.MAP_ID and model.discovery.passages.outer:
 		if model.discovery.passages[Frontier.PASSAGE]:
 			return _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。", {"point": Vector2(Frontier.ORE) + Vector2.ONE})
 		return _action("location", "定位炭矿支路入口", "从北侧靠近；开启需要开拓工具和 4 颗破岩胶囊。", {"point": Vector2(12, 3)})

@@ -14,6 +14,7 @@ var slice_world: SliceWorld
 var startup_menu: StartupMenu
 var factory_engineering_context := false
 var factory_frontier_context := false
+var factory_controls_context := false
 var factory_core_review := false
 var factory_save_root := "user://saves/factory/worlds"
 var factory_menu: Control
@@ -71,6 +72,7 @@ func _show_factory_menu() -> void:
 	factory_menu.save_root = factory_save_root
 	factory_menu.engineering_context = factory_engineering_context
 	factory_menu.frontier_context = factory_frontier_context
+	factory_menu.controls_context = factory_controls_context
 	factory_menu.back_requested.connect(func():
 		factory_menu.queue_free()
 		factory_menu = null

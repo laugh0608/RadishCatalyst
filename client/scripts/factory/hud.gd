@@ -402,7 +402,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
 		totals.text = "电芯已产 %d · 已激活 %d · 构件包 %d  %02d:%02d" % [model.completed_by_recipe.cell_assembly, model.statistics.totals.cells_activated, model.completed_by_recipe.construction_assembly, int(model.time) / 60, int(model.time) % 60]
 	if integrated:
-		totals.text = "核心 %s · 板材在库 %d　%02d:%02d" % ["II" if model.core.level == 2 else "I", model.core.items.get("metal_plate", 0), int(model.time) / 60, int(model.time) % 60]
+		totals.text = "核心 %s · 板材在库 %d　%02d:%02d" % [model.Progression.TIER_LABELS[model.core.level], model.core.items.get("metal_plate", 0), int(model.time) / 60, int(model.time) % 60]
 	placement_row.visible = not ui.tool.is_empty()
 	connection_preview.hide()
 	connection_preview_slot.hide()
@@ -506,13 +506,18 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 				text = "电芯供电\n装配并放置发电机，接入电芯后在设备面板启用。无负载也会燃烧。"
 		elif model.core.items.has("metal_plate") or model.researched.size() > 1:
 			text = "从产线到研究\n在核心提交板材和载体。精炼炉可切换到直接烧结，矿壳样本在外矿道入口。"
-		if model.supply_id == Integrated.Frontier.SUPPLY_ID and model.discovery.trial_completed:
+		if model.map_id == Integrated.Frontier.MAP_ID and model.discovery.trial_completed:
 			if model.discovery.passages[Integrated.Frontier.PASSAGE]:
 				text = "高产炭矿支路已开启\n已采 %d 件。接回炭粉产线，观察电芯供燃与混料产出。" % model.frontier_extracted
 			elif model.researched.has(Integrated.Frontier.RESEARCH):
 				text = "开拓高产炭矿\n打通外矿道后，携带 4 颗破岩胶囊从支路北入口开路。"
 			else:
 				text = "研究开拓工具\n在核心 II 的研究页查看解壳剂、电芯等成本。"
+		if model.supply_id == Integrated.Controls.SUPPLY_ID:
+			if model.core.level == 3:
+				text = "核心 III 已启用\n保留 360 kW 额定功率。可继续既有生产和开拓。"
+			elif model.core.level == 2 and model.researched.has(model.Progression.REUSE):
+				text = "升级核心 III\n在核心的等级页查看前置与材料。"
 		var location := Guidance.integrated_location(model)
 		buttons.guide_action.visible = ui.mission and not location.is_empty()
 		if not location.is_empty():
