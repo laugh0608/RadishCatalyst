@@ -93,7 +93,7 @@ func _natural(j: RefCounted) -> void:
 	j.make(j.reactor, "basic_catalyst", 4)
 	j.near(core)
 	expect(model.research(P.CELLS).ok and model.research(P.MIXED).ok, "E1 and M2 pay with natural materials")
-	expect(model.recipe_available("cell_assembly") and model.device_unlocked("cell_generator") and not model.placement("cell_generator", Vector2i(-16, 28)).ok, "E1 unlocks the recipe and kit; install awaits C")
+	expect(model.recipe_available("cell_assembly") and model.device_unlocked("cell_generator") and not model.placement("cell_generator", Vector2i(-16, 28)).ok, "E1 unlocks the recipe and kit without gifting a generator")
 	j.make(j.assembler, "cell_assembly")
 	j.make(j.refinery, "mixed_refining", 1, false)
 	var out: Array = model.Logistics.ports(model, j.refinery, "output")

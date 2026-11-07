@@ -342,12 +342,15 @@ func input_room(e: Dictionary, item: String, manual := false) -> int:
 			return maxi(0, int(recipes[e.recipe_id].input.get(item, 0)) * (input_batches if e.type != "reactor" else 1) - int(e.input.get(item, 0)))
 		"storage": return 200 - Items.count(e.items)
 		"base_core": return DiscoveryRules.Integrated.ITEM_LIMIT - int(e.items.get(item, 0))
+		"cell_generator": return DiscoveryRules.Energy.FUEL_CAPACITY - Items.count(e.fuel) if item == DiscoveryRules.Energy.CELL else 0
 	return 0
 
 
 ## Explicit commands cap to both inventories; failures never partially mutate.
 func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictionary:
 	var e := by_id(id)
+	if e.get("type", "") == "cell_generator":
+		return _transfer_fuel(e, item, putting, all_items)
 	if item not in item_ids or not near_entity(e):
 		return failure("请走到设备两格内，且位于同一可达区域")
 	if e.type not in process_types + ["collector", "storage", "base_core"]:
@@ -373,6 +376,18 @@ func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictiona
 		Items.add(bag, item, amount)
 		if e.type in process_types and e.output.is_empty():
 			e.output_batch = 0
+	revision += 1
+	return success({"amount": amount})
+
+
+func _transfer_fuel(e: Dictionary, item: String, putting: bool, all_items: bool) -> Dictionary:
+	if item != DiscoveryRules.Energy.CELL or not near_entity(e): return failure("请走到发电机两格内取放完整电芯；余能不能取回")
+	var room := input_room(e, item, true) if putting else 200 - Items.count(bag)
+	var available: int = bag.get(item, 0) if putting else e.fuel.get(item, 0)
+	var amount := mini(mini(room, available), DiscoveryRules.Energy.FUEL_CAPACITY if all_items else 1)
+	if amount <= 0: return failure("没有可转移的完整电芯，或容量不足")
+	Items.add(bag, item, -amount if putting else amount)
+	Items.add(e.fuel, item, amount if putting else -amount)
 	revision += 1
 	return success({"amount": amount})
 
@@ -438,7 +453,11 @@ func _sink_accepts(e: Dictionary, source: Dictionary, item: String) -> bool:
 
 
 func _receive_item(e: Dictionary, item: String) -> void:
-	Items.add(e.input if e.type in process_types else e.items, item, 1)
+	if e.type == "cell_generator":
+		assert(input_room(e, item) > 0)
+		Items.add(e.fuel, item, 1)
+	else:
+		Items.add(e.input if e.type in process_types else e.items, item, 1)
 
 
 func _output_item(e: Dictionary) -> String:

@@ -116,7 +116,7 @@ func _ready() -> void:
 				if not assets[kind] is PackedScene:
 					resource_error = "缺少生产扩建模型：" + kind
 					return
-		if world_model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
+		if world_model.supply_id in [Model.DiscoveryRules.Energy.SUPPLY_ID, Integrated.SUPPLY_ID]:
 			assets.cell_generator = load(ASSET_ROOT + "energy/cell_generator.glb")
 			if not assets.cell_generator is PackedScene:
 				resource_error = "缺少电芯发电机模型"

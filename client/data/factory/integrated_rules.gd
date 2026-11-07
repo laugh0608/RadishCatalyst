@@ -1,5 +1,7 @@
 extends RefCounted
 
+const RULESET_ID := "factory_integrated_foundation_v1"
+const BURN_TICKS := 1200
 const MAP_ID := "factory_integrated_yard_64_v1"
 const SUPPLY_ID := "factory_integrated_starter_v1"
 const CORE := "base_core"

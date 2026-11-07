@@ -314,14 +314,14 @@ func _turn() -> void:
 func _action(name: String, value: Variant) -> void:
 	if core_panel.visible:
 		return
-	if transient_review and model.kits.has(name) and (name == Model.DiscoveryRules.Energy.GENERATOR or not model.device_unlocked(name)):
+	if model.supply_id == Model.DiscoveryRules.Integrated.SUPPLY_ID and model.kits.has(name) and not model.device_unlocked(name):
 		return
 	if Model.CATALOG.has(name) and model.kits.has(name):
 		_choose(name)
 	else:
 		match name:
 			"assemble":
-				if not transient_review and model.has_method("assemble") and not model.assembly_costs.is_empty():
+				if model.supply_id != Model.DiscoveryRules.Integrated.SUPPLY_ID and model.has_method("assemble") and not model.assembly_costs.is_empty():
 					var result: Dictionary = model.assemble(hud.assembly_target.get_selected_metadata())
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
@@ -620,7 +620,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_F: _interact()
 		KEY_I: _action("inventory", null)
 		KEY_1: _action("collector", null)
-		KEY_2: _action("refinery" if transient_review else "reactor", null)
+		KEY_2: _action("refinery" if model.supply_id == Model.DiscoveryRules.Integrated.SUPPLY_ID else "reactor", null)
 		KEY_3: _action("storage", null)
 		KEY_4: _action("belt", null)
 		KEY_B: _action("build", null)

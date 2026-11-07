@@ -18,7 +18,7 @@ static func add_scaled(target: Dictionary, values: Dictionary, factor: int) -> b
 	return true
 
 
-static func validate(model: RefCounted, saved_stats: Dictionary) -> Dictionary:
+static func validate(model: RefCounted, saved_stats: Dictionary, integrated := false) -> Dictionary:
 	var produced: Dictionary = model.extracted_by_item.duplicate()
 	var consumed := {}
 	var completed := 0
@@ -38,7 +38,7 @@ static func validate(model: RefCounted, saved_stats: Dictionary) -> Dictionary:
 		if model.discovery.passages[passage] and not add_scaled(consumed, {"crust_solvent": model.DiscoveryRules.PASSAGES[passage].cost}, 1): return failure("开路消费溢出。")
 	if completed != model.completed or generated != model.generated or model.completed_by_recipe.solvent_trial != int(model.discovery.trial_completed): return failure("生产账与累计计数或唯一试制矛盾。")
 	if model.extracted_by_item.rich_crystal > 0 and not model.discovery.passages.outer: return failure("富矿提取早于开路。")
-	if not model.discovery.trial_completed and (model.completed_by_recipe.crust_solvent > 0 or model.completed_by_recipe.rich_catalyst > 0): return failure("生产早于配方解锁。")
+	if not integrated and not model.discovery.trial_completed and (model.completed_by_recipe.crust_solvent > 0 or model.completed_by_recipe.rich_catalyst > 0): return failure("生产早于配方解锁。")
 	var balance: Dictionary = model.material_balance()
 	if not balance.balanced: return failure("逐物料生产账与全世界持有量不守恒。")
 	var totals: Dictionary = saved_stats.totals

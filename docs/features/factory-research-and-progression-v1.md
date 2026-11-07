@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：七节点、核心 II 与核心装配已接入隔离 Boot，固定燃烧和正式存读接续 C。总体顺位见[整合总合同](factory-demo-integration-v1.md)，参数与无循环核算见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
+状态：七节点、核心 II 与核心装配已接入隔离 Boot，C 已在隔离整合世界接入固定燃烧与存档恢复。总体顺位见[整合总合同](factory-demo-integration-v1.md)，参数与无循环核算见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
 规划归属：[能力地图](README.md#progression)。承接 B2 / D1；D2 等级要求协同能源，首包与后续节点分别维护。
 

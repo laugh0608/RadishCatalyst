@@ -6,20 +6,20 @@
 
 **统一 Demo 与第一轮成长：隔离实现核心、研究与能源。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，B1 核心 I 与 B2 研究、核心 II 已接入隔离 Boot。C 固定燃烧与正式存读接续实施。
+**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，B1 核心 I 与 B2 研究、核心 II 已接入隔离 Boot。C 已在隔离 Boot 接入固定燃烧与 schema 9 存读。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
 ## 当前顺位
 
-1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 首包](../features/factory-base-core-v1.md#b1-first-delivery)已实现核心 I、16 口、库存与接口，隔离复核首件板材自动回仓；正式菜单尚未开放。[B2](../features/factory-research-and-progression-v1.md#b2-delivery)已验证七节点、核心 II 与自然产出的首颗电芯。下一包 C 接入[固定燃烧](../features/factory-fixed-burn-energy-v1.md)和[整合存读](../architecture/factory-integrated-demo-save-v1.md)，通过联合验证后开放正式新建。
+1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 首包](../features/factory-base-core-v1.md#b1-first-delivery)已实现核心 I、16 口、库存与接口，隔离复核首件板材自动回仓；正式菜单尚未开放。[B2](../features/factory-research-and-progression-v1.md#b2-delivery)已验证七节点、核心 II 与自然产出的首颗电芯。[C 固定燃烧](../features/factory-fixed-burn-energy-v1.md#c-delivery)和[整合存读](../architecture/factory-integrated-demo-save-v1.md)已完成开发机定向验证。接续在隔离入口做整段首程与参数审阅，通过联合门槛后开放正式新建。
 2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 已完成离线布线复算，B1 已验证 S0 的采铁直炼子路线；并行供给、玩家操作量和扩建收益待复核。后续按研究与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 
-- 唯一核心、每种物品 99,999 库存上限、多口真实物流；核心等级解锁能力，基础功率不随等级增长。起步电力由完整电池链与部分其他生产预算推导，B1 隔离入口使用候选 360 kW，完整电芯链和并行生产仍待实测。
+- 唯一核心、每种物品 99,999 库存上限、多口真实物流；核心等级解锁能力，基础功率不随等级增长。起步电力由完整电池链与部分其他生产预算推导，隔离入口采用 360 kW 候选。C 已自然产出电芯并比较 472 kW 的同源负载，持续并行生产仍待整段试玩。
 - 固定功率 / 固定燃烧时长、低负载仍耗燃料、手动停机暂停余时；普通连续供料可完成主线。独立储能 / 节拍 / 条件控制作为后续进阶支线，PWM 不作首次通关要求。
 - 核心自动出料、研究前置与材料提交、分级能力进入当前合同设计；液气 / 热管理等只留长期分支，不在本批实现。
 - 正式客户端现在仍为 V8 等既有世界规则：240 kW 基础供电、按缺口消耗电芯和原终端仓。新合同不追改旧档，独立新世界与版本身份按存档合同办理。

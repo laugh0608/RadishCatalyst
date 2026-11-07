@@ -8,7 +8,7 @@
 
 ## 当前交接
 
-- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；轮廓已按亲测反馈改为四面各三进一出，`outline-06` 已获萝卜SAMA认可。R1-C / D 代表品质已获认可。B1 核心和 B2 研究已在隔离 Boot 实现，C 接续固定燃烧与整合存读。
+- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；轮廓已按亲测反馈改为四面各三进一出，`outline-06` 已获萝卜SAMA认可。R1-C / D 代表品质已获认可。B1 核心、B2 研究与 C 固定燃烧和整合存读已在隔离 Boot 接入。
 - 核心每物品 99,999、等级解锁能力；初始电力按设备预算确定，固定燃烧与后续可选 PWM；Godot 3D / GDScript、生产经营主线与工业科幻方向已确认。
 - 主视角已选：[R1-A](../features/factory-camera-and-representative-scene-v1.md)亲测后，萝卜SAMA选 C2 透视正向、默认 21 格、跟随角色；滚轮调节距离 / 高度，保持俯角与 FOV。R1-B 保持此镜头，旧正式世界镜头尚未接入。
 - E1 / E2 / V8 及原 D3 / D4 工程能力继续复用；客户端当前仍按旧合同运行，旧档和亲测进度保留。E3 支路未实现，开路后持续收益纳入统一路线设计。
@@ -21,8 +21,8 @@
 
 当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
 
-1. [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 核心 I](../features/factory-base-core-v1.md#b1-first-delivery)与 [B2](../features/factory-research-and-progression-v1.md#b2-delivery) 已有隔离证据。下一包 C 验证发电机落位、燃烧、扩网与保存恢复。
-2. [四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 布线已复算，接续核对自举、自然供给与能源收益；360 kW 与研究 / 升级候选已在隔离模型验证，新 schema 随 C 接入。跨进程存读、自然生产与目标平台待后续正式实现验证。
+1. [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 核心 I](../features/factory-base-core-v1.md#b1-first-delivery)与 [B2](../features/factory-research-and-progression-v1.md#b2-delivery) 已有隔离证据。C 已验证发电机落位、燃烧、扩网与跨进程恢复。用 `sh tools/check-factory-integrated-c.sh play current` 进入可继续的隔离亲测。
+2. [四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 布线已复算，接续核对自举、自然供给与能源收益；360 kW 与研究 / 升级候选已在隔离模型验证，schema 9 已接入同一隔离入口。跨进程存读、自然生产与目标平台待后续正式实现验证。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 
 ## 边界与验证

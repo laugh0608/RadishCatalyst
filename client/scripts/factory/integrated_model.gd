@@ -2,6 +2,7 @@ extends "res://scripts/factory/expansion_model.gd"
 
 const Integrated := preload("res://data/factory/integrated_rules.gd")
 const Progression := preload("res://data/factory/integrated_progression.gd")
+const BurnStats := preload("res://scripts/factory/fixed_burn_statistics.gd")
 const Energy := preload("res://data/factory/energy_rules.gd")
 var core: Dictionary
 var researched := {Progression.BASE: true}
@@ -12,6 +13,8 @@ func _init() -> void:
 	map_id = Integrated.MAP_ID
 	supply_id = Integrated.SUPPLY_ID
 	kits = Integrated.SUPPLY.duplicate()
+	grid.fixed_burn = true
+	statistics = BurnStats.new()
 	kits[Energy.GENERATOR] = 0
 	assembly_costs[Energy.GENERATOR] = 3
 	assembly_counts[Energy.GENERATOR] = 0
@@ -35,17 +38,105 @@ func _init() -> void:
 func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
 	if type == Integrated.CORE:
 		return failure("基地核心由地图预置")
-	if type == Energy.GENERATOR:
-		return failure("固定燃烧阶段开放发电机安装")
 	if kits.has(type) and not device_unlocked(type):
 		return failure("该构件尚未研究")
 	return super.placement(type, cell, player)
 
 
+func _place_entity(type: String, cell: Vector2i, dir: int) -> Dictionary:
+	var result := super._place_entity(type, cell, dir)
+	if DiscoveryRules.POWER.has(type):
+		result.entity.enabled = true
+	if type == Energy.GENERATOR:
+		result.entity.merge({"enabled": false, "fuel": {}, "burn_remaining_ticks": 0})
+	return result
+
+
+func work_spec(e: Dictionary) -> Dictionary:
+	var spec := super.work_spec(e)
+	if not e.enabled:
+		spec.ready = false
+	spec.standby_kw = Energy.STANDBY_KW[e.type] if e.enabled else 0.0
+	return spec
+
+
+func set_device_enabled(id: int, enabled: bool) -> Dictionary:
+	var e := by_id(id)
+	if not DiscoveryRules.POWER.has(e.get("type", "")) and e.get("type", "") != Energy.GENERATOR:
+		return failure("请选择用电设备或电芯发电机")
+	if not near_entity(e):
+		return failure("请走到设备两格内启停")
+	if e.enabled == enabled:
+		return failure("设备已经处于所选状态")
+	e.enabled = enabled
+	revision += 1
+	if e.type == Energy.GENERATOR:
+		_refresh_automatic_power()
+	return success()
+
+
+func _commit_power(allocation: Dictionary, dt: float) -> void:
+	assert(is_equal_approx(dt, STEP))
+	for id in allocation.generators:
+		if allocation.generators[id] == 0.0:
+			continue
+		var e := by_id(id)
+		if e.burn_remaining_ticks == 0:
+			Items.add(e.fuel, Energy.CELL, -1)
+			e.burn_remaining_ticks = Integrated.BURN_TICKS
+			statistics.event("consumed", Energy.CELL, 1)
+			statistics.fuel_event("cells_activated", 1)
+		e.burn_remaining_ticks -= 1
+
+
 func salvage(id: int, confirmed := false) -> Dictionary:
 	if id == core.id:
 		return failure("基地核心不可回收")
-	return super.salvage(id, confirmed)
+	var e := by_id(id)
+	if e.get("type", "") != Energy.GENERATOR:
+		return super.salvage(id, confirmed)
+	if not near_entity(e):
+		return failure("请走到发电机两格内回收")
+	if e.enabled:
+		return failure("请先停用发电机")
+	var lost: float = e.burn_remaining_ticks * STEP * Energy.GENERATOR_KW
+	var attached := connections(id)
+	if not confirmed and (lost > 0 or not attached.is_empty()):
+		return failure("回收损失 %.1f kJ 余能并断开 %d 条连接。完整电芯退回。" % [lost, attached.size()]).merged({"needs_confirmation": true, "connections": attached})
+	var result := super.salvage(id, confirmed)
+	if result.ok and lost > 0:
+		statistics.fuel_event("discarded_kj", lost)
+	return result
+
+
+func energy_balance() -> Dictionary:
+	var remaining := 0.0
+	for e in entities:
+		if e.type == Energy.GENERATOR:
+			remaining += e.burn_remaining_ticks * STEP * Energy.GENERATOR_KW
+	return {"activated": statistics.totals.cells_activated, "released_kj": statistics.totals.fuel_released_kj,
+		"discarded_kj": statistics.totals.discarded_kj, "remaining_kj": remaining}
+
+
+func feedback(e: Dictionary) -> Dictionary:
+	if e.type == Integrated.CORE:
+		return {"kind": "ready", "label": "基础供电 %.0f kW" % Integrated.BASE_KW}
+	if e.type == Energy.GENERATOR:
+		if not e.enabled:
+			return {"kind": "waiting", "label": "已停用 · 保留燃烧余时，仍可导通"}
+		var state := power_state()
+		if state.sources[e.id] <= 0:
+			return {"kind": "waiting", "label": "燃料耗尽 · 等待完整电芯"}
+		var group: Dictionary = grid.groups[grid.membership[e.id]]
+		var released := 0.0
+		for id in group.generators:
+			released += state.sources[id]
+		return {"kind": "running", "label": "固定燃烧 · 同网当前有弃能" if released > group.request_kw + 1e-9 else "固定燃烧 · 当前释能 %.0f kW" % state.sources[e.id]}
+	var result := super.feedback(e)
+	if DiscoveryRules.POWER.has(e.type) and not e.enabled:
+		return {"kind": "ready", "label": "手动停机 · 保留进度，被动物流继续",
+			"production": "手动停机 · 保留进度，被动物流继续", "power": "已停机 · 0 kW"}
+	return result
 
 
 func device_research(type: String) -> String:
@@ -165,6 +256,8 @@ func extra_consumption() -> Dictionary:
 		Items.merge(consumed, Progression.NODES[id].cost)
 	if core.level >= 2:
 		Items.merge(consumed, Progression.II_COST)
+	if statistics.totals.cells_activated > 0:
+		consumed[Energy.CELL] = statistics.totals.cells_activated
 	return consumed
 
 

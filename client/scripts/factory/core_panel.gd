@@ -277,15 +277,13 @@ func _refresh_progression() -> void:
 	var type: String = assembly_choice.get_selected_metadata()
 	state = model.assembly_status(type)
 	var owner: String = model.device_research(type)
-	var install := "
-固定燃烧包开放安装" if type == Rules.Energy.GENERATOR else ""
 	assembly_details.text = "要求：%s
 %d 构件包 → %d 件 · 核心现有 %d 包
-总拥有量 %d / %d%s
+总拥有量 %d / %d
 %s" % [
 		_requirements([Progression.ASSEMBLY] if owner in [Progression.BASE, Progression.ASSEMBLY] else [Progression.ASSEMBLY, owner]),
 		model.assembly_costs[type], Rules.Expansion.yield_for(type), model.core.items.get("construction_pack", 0),
-		model.owned_count(), Progression.MAX_OWNED, install, "可装配" if state.ok else state.reason]
+		model.owned_count(), Progression.MAX_OWNED, "可装配" if state.ok else state.reason]
 	assembly_button.disabled = not state.ok
 
 

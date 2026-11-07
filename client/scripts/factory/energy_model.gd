@@ -63,34 +63,6 @@ func set_device_enabled(id: int, enabled: bool) -> Dictionary:
 	return success()
 
 
-func input_room(e: Dictionary, item: String, manual := false) -> int:
-	if e.type == Energy.GENERATOR:
-		return Energy.FUEL_CAPACITY - Items.count(e.fuel) if item == Energy.CELL else 0
-	return super.input_room(e, item, manual)
-
-
-func _receive_item(e: Dictionary, item: String) -> void:
-	if e.type == Energy.GENERATOR:
-		assert(item == Energy.CELL and input_room(e, item) > 0)
-		Items.add(e.fuel, item, 1)
-	else:
-		super._receive_item(e, item)
-
-
-func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictionary:
-	var e := by_id(id)
-	if e.get("type", "") != Energy.GENERATOR: return super.transfer(id, item, putting, all_items)
-	if item != Energy.CELL or not near_entity(e): return failure("请走到发电机两格内取放完整电芯；余能不能取回")
-	var room := input_room(e, item, true) if putting else 200 - Items.count(bag)
-	var available: int = bag.get(item, 0) if putting else e.fuel.get(item, 0)
-	var amount := mini(mini(room, available), Energy.FUEL_CAPACITY if all_items else 1)
-	if amount <= 0: return failure("没有可转移的完整电芯，或容量不足")
-	Items.add(bag, item, -amount if putting else amount)
-	Items.add(e.fuel, item, amount if putting else -amount)
-	revision += 1
-	return success({"amount": amount})
-
-
 func _commit_power(allocation: Dictionary, dt: float) -> void:
 	for id in allocation.generators:
 		var e := by_id(id)

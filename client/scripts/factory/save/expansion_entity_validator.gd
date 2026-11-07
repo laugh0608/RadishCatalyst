@@ -16,12 +16,12 @@ static func bounded(value: Variant, limits: Dictionary, model: RefCounted) -> bo
 	return true
 
 
-static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounted, energy := false) -> Dictionary:
+static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounted, energy := false, from_stock := false) -> Dictionary:
 	if not e is Dictionary or not e.get("type") is String or not model.kits.has(e.type):
 		return failure("未知 E1 设备类型。")
 	if e.type == Energy.GENERATOR: return generator(e, next_id, model) if energy else failure("旧世界不能含发电机。")
-	if e.type == "admission_gate": return Admission.validate(e, next_id, next_batch, model.admission_items, MINERALS)
-	if e.type in ["splitter", "merger"]: return Routing.validate(e, next_id, next_batch, model.admission_items, MINERALS)
+	if e.type == "admission_gate": return Admission.validate(e, next_id, next_batch, model.admission_items, MINERALS, from_stock)
+	if e.type in ["splitter", "merger"]: return Routing.validate(e, next_id, next_batch, model.admission_items, MINERALS, from_stock)
 	if e.type in ["power_source", "power_junction"]: return V2.validate_power_entity(e, next_id, next_batch, model)
 	var extra: Array
 	if e.type in model.process_types:
@@ -47,7 +47,7 @@ static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounte
 		if not Stats.items(e.items, 200, model.item_ids) or model.Items.count(e.items) > 200: return failure("仓储物料或容量无效。")
 	elif e.type == "belt":
 		if not integer(e.cursor, 0, next_id - 1): return failure("传送带仲裁游标无效。")
-		return Routing.validate_cargo(e, next_batch, [2, 3, 1], model.admission_items, MINERALS, false)
+		return Routing.validate_cargo(e, next_batch, [2, 3, 1], model.admission_items, MINERALS, false, from_stock)
 	return {"ok": true}
 
 

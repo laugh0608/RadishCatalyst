@@ -26,7 +26,7 @@ const NODES := {
 		"effect": "用反应器制备催化剂和解壳剂。样本用于一次试制，内矿道开放后可加工富集晶体。"},
 	CELLS: {"name": "工业电芯", "level": 2, "requires": II_REQUIRES, "sample": false,
 		"cost": {"metal_plate": 2, "porous_carrier": 1, "catalyst": 1}, "recipes": ["cell_assembly"], "devices": ["cell_generator"],
-		"effect": "用组装机生产工业电芯。核心可装配电芯发电机，固定燃烧包开放安装。"},
+		"effect": "用组装机生产工业电芯。装配并安装电芯发电机，接入燃料后可启用固定燃烧。"},
 	MIXED: {"name": "混料冶炼", "level": 2, "requires": [ASSEMBLY, POWDERS], "sample": false,
 		"cost": {"metal_plate": 4, "carbon_powder": 2}, "recipes": ["mixed_refining"], "devices": [],
 		"effect": "铁粉和炭粉联产。精炼炉主口出金属板，副口出矿渣。"},

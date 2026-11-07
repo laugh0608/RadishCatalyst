@@ -2,6 +2,7 @@ extends RefCounted
 
 const Energy := preload("res://data/factory/energy_rules.gd")
 const Rules := preload("res://data/factory/discovery_rules.gd")
+var fixed_burn := false
 var revision := -1
 var groups: Array[Dictionary] = []
 var membership := {}
@@ -149,7 +150,8 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 	rebuild(model)
 	var result := {"work": {}, "devices": {}, "sources": {}, "generators": {}, "installed_kw": 0.0,
 		"enabled_kw": 0.0, "available_kw": 0.0, "request_kw": 0.0, "supplied_kw": 0.0, "deficit_kw": 0.0,
-		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0, "standby_supplied_kw": 0.0}
+		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0, "standby_supplied_kw": 0.0,
+		"fuel_released_kw": 0.0, "spill_kw": 0.0}
 	var capacities := {}
 	for group in groups:
 		group.request_kw = 0.0
@@ -157,7 +159,10 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		group.capacity_kw = group.base_capacity_kw
 		for id in group.generators:
 			var e: Dictionary = model.by_id(id)
-			capacities[id] = minf(Energy.GENERATOR_KW, (e.remaining_kj + Energy.CELL_KJ * e.fuel.get(Energy.CELL, 0)) / dt)
+			if fixed_burn:
+				capacities[id] = Energy.GENERATOR_KW if e.burn_remaining_ticks > 0 or not e.fuel.is_empty() else 0.0
+			else:
+				capacities[id] = minf(Energy.GENERATOR_KW, (e.remaining_kj + Energy.CELL_KJ * e.fuel.get(Energy.CELL, 0)) / dt)
 			group.capacity_kw += capacities[id]
 		result.available_kw += group.capacity_kw
 		result.enabled_kw += group.nominal_kw
@@ -182,13 +187,23 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 			result.deficit_kw += demand
 	for group in groups:
 		var base: float = minf(group.base_capacity_kw, group.request_kw)
-		var gap: float = maxf(0, group.request_kw - base)
-		var generation := capped_equal_share(group.generators, capacities, gap)
-		var cells := 0.0
+		var generation := {}
+		if fixed_burn:
+			for id in group.generators:
+				generation[id] = capacities[id]
+		else:
+			generation = capped_equal_share(group.generators, capacities, maxf(0, group.request_kw - base))
+		var released := 0.0
 		for id in generation:
 			result.sources[id] = generation[id]
 			result.generators[id] = generation[id]
-			cells += generation[id]
+			released += generation[id]
+		var cells := released
+		if fixed_burn:
+			cells = minf(released, group.request_kw)
+			base = minf(group.base_capacity_kw, maxf(0.0, group.request_kw - cells))
+			result.fuel_released_kw += released
+			result.spill_kw += released - cells
 		group.supplied_kw = base + cells
 		result.base_supplied_kw += base
 		result.cell_supplied_kw += cells

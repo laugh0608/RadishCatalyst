@@ -144,7 +144,7 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	if e.type in model.process_types + ["collector"]:
 		var device: Dictionary = model.power_state().devices[e.id]
 		power.text = "供电：%s\n请求 %.1f / 实际用电 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
-		if model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power:
+		if model.supply_id == Rules.Integrated.SUPPLY_ID or (model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power):
 			power.text += "\n运行额定 %.0f / 待机额定 %.0f kW" % [device.running_kw, Rules.Energy.STANDBY_KW[e.type]]
 			production.text = ("已停机 · 0 kW" if not e.enabled else "运行" if model.work_spec(e).ready else "待机") + " · " + production.text
 		if e.power_node_id != 0:
@@ -154,11 +154,18 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
 		var output: float = state.sources[e.id]
 		_card("input", "完整电芯 · 最多 5 件", "%d / 5 件" % Items.count(e.fuel))
-		_card("process", "已激活余能", "%.1f / 7,200 kJ" % e.remaining_kj)
-		_card("output", "实际输出", "%.1f / 120 kW" % output)
 		progress.show()
-		progress.value = e.remaining_kj / 72.0
-		production.text = "当前余能约 %.1f 秒；负载变化会改变估计。" % (e.remaining_kj / output) if output > 0 else "当前不消耗 · 余能保留；完整电芯可取回。"
+		if e.has("burn_remaining_ticks"):
+			var seconds: float = e.burn_remaining_ticks * model.STEP
+			_card("process", "剩余燃烧时间", "%.2f / 60 秒" % seconds)
+			_card("output", "当前释能", "%.0f / 120 kW" % output)
+			progress.value = e.burn_remaining_ticks * 100.0 / Rules.Integrated.BURN_TICKS
+			production.text = feedback.label
+		else:
+			_card("process", "已激活余能", "%.1f / 7,200 kJ" % e.remaining_kj)
+			_card("output", "实际输出", "%.1f / 120 kW" % output)
+			progress.value = e.remaining_kj / 72.0
+			production.text = "当前余能约 %.1f 秒；负载变化会改变估计。" % (e.remaining_kj / output) if output > 0 else "当前不消耗 · 余能保留；完整电芯可取回。"
 		power.text = "同网请求 %.1f · 基础容量 %.0f · 供后缺口 %.1f kW" % [network.request_kw, network.base_capacity_kw, maxf(0, network.request_kw - network.supplied_kw)]
 	elif model.Grid.is_node(e):
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]

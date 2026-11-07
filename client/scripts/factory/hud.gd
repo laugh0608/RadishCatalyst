@@ -378,7 +378,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
 	for type in Model.CATALOG.keys():
-		buttons[type].visible = model.kits.has(type) and (type != "cell_generator" or (not integrated and model.first_expansion_placed))
+		buttons[type].visible = model.kits.has(type) and (type != "cell_generator" or (model.device_unlocked(type) if integrated else model.first_expansion_placed))
 		if not model.kits.has(type):
 			continue
 		if integrated:
@@ -457,6 +457,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		text = "首件板材回仓\n铁矿 → 核心\n精炼炉 → 板材回仓\n\n靠近核心按 F 查看库存，在接口页配置出料。用配电节点将核心电力送到矿点和精炼炉。"
 		if model.core.level == 2:
 			text = "核心 II\n在研究页解锁工业电芯、混料冶炼与矿渣回用。"
+			if model.recipe_available("cell_assembly"):
+				text = "电芯供电\n装配并放置发电机，接入电芯后在设备面板启用。无负载也会燃烧。"
 		elif model.core.items.has("metal_plate") or model.researched.size() > 1:
 			text = "从产线到研究\n在核心提交板材和载体。精炼炉可切换到直接烧结，矿壳样本在外矿道入口。"
 	elif model.has_method("power_state"):

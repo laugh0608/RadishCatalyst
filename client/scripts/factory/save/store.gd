@@ -6,6 +6,7 @@ const MAX_BYTES := 4 * 1024 * 1024
 const EnergyCopy := preload("res://scripts/factory/save/energy_copy.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 var allow_engineering := false
+var allow_integrated := false
 var root: String
 var world_id := ""
 var world_name := ""
@@ -19,9 +20,11 @@ var last_warning := ""
 var fault: Callable
 
 
-func _init(save_root: String = DEFAULT_ROOT, engineering_context := false) -> void:
-	root = ProjectSettings.globalize_path(save_root)
+func _init(save_root: String = DEFAULT_ROOT, engineering_context := false, integrated_context := false) -> void:
+	root = ProjectSettings.globalize_path(save_root).simplify_path()
 	allow_engineering = engineering_context and root != ProjectSettings.globalize_path(DEFAULT_ROOT)
+	var intake := ProjectSettings.globalize_path("res://../tools/runtime-intake").simplify_path()
+	allow_integrated = integrated_context and OS.is_debug_build() and root.begins_with(intake + "/")
 
 
 func path(name: String = "") -> String:
@@ -51,6 +54,8 @@ func _read(file_path: String, id: String) -> Dictionary:
 	var json := JSON.new()
 	if json.parse(content) != OK:
 		return _error("存档 JSON 损坏：" + json.get_error_message())
+	if json.data is Dictionary and json.data.get("save_schema_version") == Codec.V9.VERSION and not allow_integrated:
+		return Codec.failure("整合工厂候选存档只能从隔离入口继续。", true)
 	var result := Codec.decode(json.data, id)
 	if json.data is Dictionary:
 		result.declared_identity = _identity(json.data)
@@ -65,7 +70,11 @@ func _read(file_path: String, id: String) -> Dictionary:
 
 
 static func _identity(document: Dictionary) -> Array:
-	return [int(document.get("save_schema_version", -1)) if Codec.integer(document.get("save_schema_version")) else -1, document.get("ruleset_id"), document.get("map_id"), document.get("supply_id")]
+	var schema := int(document.get("save_schema_version", -1)) if Codec.integer(document.get("save_schema_version")) else -1
+	var identity := [schema, document.get("ruleset_id"), document.get("map_id"), document.get("supply_id")]
+	if schema == Codec.V9.VERSION:
+		identity.append(document.get("definitions_sha256"))
+	return identity
 
 
 func list_worlds() -> Array[Dictionary]:
@@ -83,7 +92,7 @@ func list_worlds() -> Array[Dictionary]:
 			entry.sequence = int(candidate.document.sequence)
 			entry.hash = candidate.hash
 			entry.title = candidate.document.name
-			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 能源循环 E2 · 待机耗电" if entry.schema == 8 else " · 能源循环 E2（旧规则）" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 整合工厂 · 固定燃烧" if entry.schema == 9 else " · 能源循环 E2 · 待机耗电" if entry.schema == 8 else " · 能源循环 E2（旧规则）" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -294,9 +303,11 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 
 
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
+	if supply == Codec.V9.Integrated.SUPPLY_ID and not allow_integrated:
+		return Codec.failure("整合工厂候选只能从隔离入口创建。", true)
 	if supply == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("工程规模验证只能从隔离检查入口创建。", true)
-	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]:
+	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID, Codec.V9.Integrated.SUPPLY_ID]:
 		return _error("范围供电仅适用于勘探工厂。")
 	if title.strip_edges().is_empty() or title.length() > 48 or "\n" in title:
 		return _error("请输入 1–48 个字符的单行世界名称。")
@@ -326,7 +337,7 @@ func _creation_transaction(action: Callable) -> Dictionary:
 func _create_locked(title: String, supply: String, automatic_power: bool) -> Dictionary:
 	if list_worlds().size() >= 30:
 		return _error("首包最多保留 30 个工厂世界。")
-	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]:
+	if not Codec.Rules.SUPPLIES.has(supply) and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID, Codec.V9.Integrated.SUPPLY_ID]:
 		return _error("未知供给版本。")
 	var id := Crypto.new().generate_random_bytes(16).hex_encode()
 	if DirAccess.make_dir_absolute(root.path_join(id)) != OK:
@@ -340,7 +351,9 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	expected_main_hash = ""
 	loaded = true
 	var model: RefCounted
-	if supply == Codec.V7.Energy.SUPPLY_ID:
+	if supply == Codec.V9.Integrated.SUPPLY_ID:
+		model = Codec.V9.IntegratedModel.new()
+	elif supply == Codec.V7.Energy.SUPPLY_ID:
 		model = Codec.V7.EnergyModel.new(true)
 	elif supply == Codec.V6.Expansion.SUPPLY_ID:
 		model = Codec.V6.ExpansionModel.new()
@@ -374,8 +387,8 @@ func _write(file_path: String, content: String) -> Dictionary:
 
 
 func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
-	if model.supply_id == Codec.V2.Config.Integrated.SUPPLY_ID:
-		return Codec.failure("基地核心复核仅在内存中运行。", true)
+	if model.supply_id == Codec.V9.Integrated.SUPPLY_ID and not allow_integrated:
+		return Codec.failure("当前会话不允许写入整合工厂候选。", true)
 	if model.supply_id == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("当前会话不允许写入工程身份。", true)
 	if not loaded or not _owns_lock():
@@ -383,6 +396,8 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 	if _hash(path("autosave.json")) != expected_main_hash:
 		return _error("主档被外部修改，停止覆盖；当前进度仍在内存。")
 	var document := Codec.snapshot(model, world_id, world_name, sequence + 1)
+	if not session_identity.is_empty() and (document.save_schema_version == Codec.V9.VERSION or session_identity[0] == Codec.V9.VERSION) and _identity(document) != session_identity:
+		return Codec.failure("整合工厂只能写入同一规则与定义身份。", true)
 	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID] or session_identity[3] in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]) and _identity(document) != session_identity:
 		return Codec.failure("不能转换普通、工程与内容世界身份；E1 到 E2、旧 E2 到待机新版均须显式复制。", true)
 	var valid := Codec.decode(document, world_id)
