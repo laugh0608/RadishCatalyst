@@ -4,6 +4,7 @@ const GAME_ROOT_SCENE := "res://scenes/game/GameRoot.tscn"
 const SLICE_BASE_SCENE := "res://scenes/slice/SliceWorld.tscn"
 const STARTUP_MENU_SCENE := "res://scenes/ui/StartupMenu.tscn"
 const FACTORY_SCENE := preload("res://scenes/factory/FactoryWorld.tscn")
+const CORE_RULES := preload("res://data/factory/integrated_rules.gd")
 const FACTORY_MENU := preload("res://scripts/factory/world_menu.gd")
 
 var data_registry: DataRegistry
@@ -12,6 +13,7 @@ var slice_save_service: SliceSaveService
 var slice_world: SliceWorld
 var startup_menu: StartupMenu
 var factory_engineering_context := false
+var factory_core_review := false
 var factory_save_root := "user://saves/factory/worlds"
 var factory_menu: Control
 var factory_world: Control
@@ -75,12 +77,25 @@ func _show_factory_menu() -> void:
 	add_child(factory_menu)
 
 
+# Explicitly injected by the isolated B1 launcher; no normal menu or save entry.
+func open_factory_core_review(model: RefCounted) -> bool:
+	if not OS.is_debug_build() or not factory_core_review or factory_world != null:
+		return false
+	if model.supply_id != CORE_RULES.SUPPLY_ID:
+		return false
+	if factory_menu == null:
+		_show_factory_menu()
+	_start_factory(null, model, {})
+	return factory_world != null and factory_world.initialized
+
+
 func _start_factory(store: RefCounted, model: RefCounted, candidate: Dictionary) -> void:
 	factory_menu.hide()
 	factory_world = FACTORY_SCENE.instantiate()
 	factory_world.store = store
 	factory_world.model = model
 	factory_world.candidate = candidate
+	factory_world.transient_review = factory_core_review and store == null
 	factory_world.return_requested.connect(func():
 		factory_world.queue_free()
 		factory_world = null

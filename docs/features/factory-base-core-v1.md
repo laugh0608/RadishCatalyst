@@ -1,8 +1,8 @@
 # Factory Base Core V1
 
-更新时间：2026-11-01
+更新时间：2026-11-07
 
-状态：整合基线已确认，本篇为可审阅设计合同；候选几何 / 成本见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)，尚未实现。阶段与发布边界见[总合同](factory-demo-integration-v1.md)。
+状态：核心 I、16 口物流及库存 / 接口已实现于隔离 Boot；研究、升级与正式存读待后续包。几何和成本见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。阶段与发布边界见[总合同](factory-demo-integration-v1.md)。
 
 规划归属：[能力地图](README.md#production)。承接整合 B1；库存与端口任务 / 验收留在本文，研究和存档引用各自合同。
 
@@ -60,20 +60,20 @@
 
 <a id="b1-first-delivery"></a>
 
-## B1 首包实施准备
+## B1 首包
 
 首个可验证结果是新核心 I 从零库存接入真实物流。玩家放置采铁器与直炼炉，将铁矿送入核心、经一个已配置的输出口送炉，最后把板材自动送回核心。采用四面版 S0 的 B0 路线子集，分别经 `IN_N2` 收铁、`OUT_S0` 供炉、`IN_N0` 收板。三段路线共 99 带，来自[已复算坐标](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout)。反应器与催化剂需要 X1，归 B2 研究路径验证。
 
-| 顺序 | 拟接入位置与检查 |
+| 顺序 | 实施位置与检查 |
 | --- | --- |
 | 1. 新模型和占格 | 通过独立定义预置一座核心 I，按现有占用、实例与带入口索引建表。使用同一份正式端口定义校验 16 个 GLB 锚点。预置占用与构件拥有量可核对，制造、旋转及回收核心均拒绝 |
-| 2. 单步物流事务 | 沿 `RoutingModel._logistics` → `Logistics.step` 的步初快照、方向匹配和单次提交。现有请求按实体 ID 归组，核心须用端口 ID 区分请求，并在同一轮对核心库存和仓容做预留。普通带继续与所有来源共享同一仲裁 |
+| 2. 单步物流事务 | 沿 `RoutingModel._logistics` → `Logistics.step` 的步初快照、方向匹配和单次提交。普通请求按实体 ID 归组，核心输出用端口 ID 区分请求，并在同一轮按步初库存预留出料和仓容。普通带继续与所有来源共享同一仲裁 |
 | 3. 正常交互 | 用已有近身命令通路接核心的库存和输出配置。模型回传端口状态供面板及图标读取。按 [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline) 装配导入轮廓并复核点击、行走、接带与箭头 |
-| 4. 隔离路径 | 先跑状态断言，再用 Boot 的隔离诊断入口验证首次板材回仓。正式场景退出目前等待 Store 保存成功，临时内存入口需明确无持久化的关闭路径。正式菜单与 schema 9 继续按总合同的联合门槛接入 |
+| 4. 隔离路径 | 先跑状态断言，再用 Boot 的隔离诊断入口验证首次板材回仓。正式世界退出等待 Store 保存成功，临时内存入口明确不保存并正常返回。正式菜单与 schema 9 继续按总合同的联合门槛接入 |
 
 仲裁时应同时覆盖普通带与核心的目标冲突。若核心和普通来源争同一空带，只允许一个请求写入。若同物品只剩一件或只剩一个仓位，拒绝另一口并保留对应货物或库存。输入、输出额度各用步初值，保持同一步进出顺序与遍历顺序无关。
 
-本节是已核对调用路径的开工方案。建议授权先覆盖核心 I、16 口物流、库存 / 接口两页与隔离的 B0 路线。研究和 II 升级归 B2，固定燃烧归 C。正式身份、旧档保护及持久化接入沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
+B1 使用获认可的 `outline-06` 和 C2；M1 材质仍为样板。复核世界只在内存中运行，普通菜单不显示此入口，Store 拒绝写入该模型。用 `sh tools/check-factory-base-core.sh play` 进入空物料、已铺 S0 子路线的复核场；`empty-yard` 仅预置核心。研究和 II 升级归 B2，固定燃烧归 C。正式身份、旧档保护及持久化接入沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
 
 ## 验证与失败退出
 
@@ -82,4 +82,4 @@
 - 正式 Boot 新档采矿→核心→加工→核心→研究 / 装配，实际行走与设备面板、升级前后碰撞 / 端口不变、保存继续。
 - 端口过密无法辨认、物流必须靠手工反复搬运或升级挤坏产线，说明几何 / 交互候选失败；先改布局与参数，不以更多文字代签。
 
-独立身份与失败恢复见[存档合同](../architecture/factory-integrated-demo-save-v1.md)。运行 / 窗口 / 玩家验证均未执行；本轮只做文档与离线核算。
+独立身份与失败恢复见[存档合同](../architecture/factory-integrated-demo-save-v1.md)。B1 的状态、窗口证据及边界见 [W45 周志](../devlogs/2026-W45.md#b1-core-first-plate)。跨进程冷却恢复与正式新档留联合门槛。

@@ -31,7 +31,7 @@ func place(type: String, cell: Vector2i, dir := -1, player: Variant = null) -> D
 	if not result.ok: return result
 	if type in Expansion.PROCESSORS:
 		result.entity.merge({"recipe_id": Expansion.DEFAULTS[type], "input": {}, "output": {}, "invested": {}, "processing": false, "progress": 0.0, "active_batch": 0, "output_batch": 0, "output_cursor": 0})
-	if type == "refinery" and assembly_counts.refinery > 0 and entities.filter(func(e): return e.type == "refinery").size() >= 2:
+	if type == "refinery" and assembly_counts.get("refinery", 0) > 0 and entities.filter(func(e): return e.type == "refinery").size() >= 2:
 		first_expansion_placed = true
 	return result
 

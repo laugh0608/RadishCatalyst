@@ -3,6 +3,8 @@ extends Node3D
 const Model := preload("res://scripts/factory/model.gd")
 const PowerStatus := preload("res://scripts/factory/power_status.gd")
 const Parts := preload("res://scripts/factory/overlays.gd")
+const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 var resource_error := ""
@@ -14,6 +16,8 @@ var inspection_target: Variant = null
 var target := Vector3(0, 0.25, 0.3)
 var world_model: RefCounted
 var yaw := 25.0
+var integrated_camera := false
+var core_span := 21.0
 var zoom := 1.0
 var models := {}
 var assets := {}
@@ -61,9 +65,16 @@ var cargo_materials := {}
 
 
 func _ready() -> void:
+	integrated_camera = world_model != null and world_model.supply_id == Integrated.SUPPLY_ID
+	if integrated_camera:
+		yaw = 0.0
+		assets.base_core = load(Integrated.MODEL_PATH)
+		resource_error = _check_core_asset(assets.base_core)
+		if not resource_error.is_empty():
+			return
 	cargo_materials = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}
 	for item in Model.DiscoveryRules.Expansion.NAMES.keys() + Model.DiscoveryRules.Energy.NAMES.keys():
-		cargo_materials[item] = Parts.material(preload("res://scripts/factory/item_slot.gd").ACCENTS[item], 0.3, 0.5)
+		cargo_materials[item] = Parts.material(Slots.ACCENTS[item], 0.3, 0.5)
 	status_mesh.radius = 0.5
 	status_mesh.height = 1.0
 	for kind in STATUS:
@@ -134,7 +145,8 @@ func _ready() -> void:
 	_build_lighting()
 	add_child(camera)
 	camera.current = true
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE if integrated_camera else Camera3D.PROJECTION_ORTHOGONAL
+	camera.fov = 35.0 if integrated_camera else camera.fov
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	camera.near = 0.1
 	camera.far = 120
@@ -199,13 +211,45 @@ func _build_lighting() -> void:
 	sun.shadow_normal_bias = 0.06
 
 
+static func _check_core_asset(scene: Resource) -> String:
+	if not scene is PackedScene:
+		return "缺少基地核心模型"
+	var asset := scene.instantiate() as Node3D
+	var anchors := asset.find_child("Ports", true, false)
+	var tiers := asset.find_child("TierModules", true, false)
+	var error := ""
+	if tiers == null or not tiers.has_node("I") or not tiers.has_node("II"):
+		error = "基地核心缺少等级模块"
+	elif anchors == null or anchors.get_child_count() != 16:
+		error = "基地核心必须有 16 个锚点"
+	else:
+		for role in ["input", "output"]:
+			for port in Integrated.ports(Vector2i.ZERO, role):
+				var anchor := anchors.get_node_or_null("Port_" + port.id) as Node3D
+				if anchor == null or not (asset.transform * anchors.transform * anchor.position).is_equal_approx(Integrated.anchor(port)):
+					error = "基地核心锚点坐标不符：" + port.id
+					break
+			if not error.is_empty():
+				break
+	asset.free()
+	return error
+
+
+func adjust_zoom(direction: int) -> void:
+	if integrated_camera:
+		core_span = clampf(core_span - direction, 16.0, 28.0)
+	else:
+		zoom = clampf(zoom + direction * 0.1, 0.45, 1.5)
+
+
 func sync_camera() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.y <= 0:
 		return
 	var pitch := deg_to_rad(50)
 	var angle := deg_to_rad(yaw)
-	camera.position = target + Vector3(sin(angle) * cos(pitch), sin(pitch), cos(angle) * cos(pitch)) * 40
+	var distance := core_span / (2.0 * tan(deg_to_rad(camera.fov) / 2.0)) if integrated_camera else 40.0
+	camera.position = target + Vector3(sin(angle) * cos(pitch), sin(pitch), cos(angle) * cos(pitch)) * distance
 	camera.look_at(target)
 	camera.size = maxf(21, 31 / (viewport_size.x / viewport_size.y)) / zoom
 
@@ -223,7 +267,7 @@ func sample_screen() -> Vector2:
 
 
 func hit_sample(screen: Vector2) -> bool:
-	if not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
+	if integrated_camera or not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
 		return false
 	if screen.distance_to(sample_screen()) <= 18:
 		return true
@@ -350,6 +394,18 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 	else:
 		var asset: Node3D = assets[e.type].instantiate()
 		root.add_child(asset)
+		if e.type == Integrated.CORE:
+			var tiers := asset.find_child("TierModules", true, false)
+			tiers.get_node("II").hide()
+			result.output_icons = {}
+			for port in Integrated.ports(Vector2i.ZERO, "output"):
+				var icon := Sprite3D.new()
+				icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+				icon.pixel_size = 0.012
+				icon.position = Integrated.anchor(port) + Vector3(port.dx * 0.20, 0.55, port.dz * 0.20)
+				icon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				root.add_child(icon)
+				result.output_icons[port.id] = icon
 		result.focus_parts = asset.find_children("*", "MeshInstance3D", true, false)
 		if e.type in ["splitter", "merger", "admission_gate"]:
 			asset.rotation.y = -e.dir * PI / 2
@@ -357,14 +413,15 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 			root.add_child(cargo)
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
-		result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
-		if world_model.has_method("power_state") and PowerStatus.supports(e):
-			result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
-			result.power_kind = ""
-		result.lamp.scale = Vector3.ONE * 0.21
-		result.lamp_mat = status_materials.waiting
-		_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
-		result.bar = _overlay_box(root, Vector3(0, 0.064, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.025, 0.12), cyan_mat)
+		if e.type != Integrated.CORE:
+			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
+			if world_model.has_method("power_state") and PowerStatus.supports(e):
+				result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
+				result.power_kind = ""
+			result.lamp.scale = Vector3.ONE * 0.21
+			result.lamp_mat = status_materials.waiting
+			_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
+			result.bar = _overlay_box(root, Vector3(0, 0.064, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.025, 0.12), cyan_mat)
 	result.hit_parts = root.find_children("*", "MeshInstance3D", true, false)
 	for part in result.hit_parts:
 		var mesh_id: int = part.mesh.get_instance_id()
@@ -403,7 +460,7 @@ func _rebuild(model: RefCounted) -> void:
 
 
 func follow_actor(actor: Dictionary) -> void:
-	var follow: Vector3 = inspection_target if inspection_target != null else Vector3(actor.x, 0.25, actor.z - 4.0)
+	var follow: Vector3 = inspection_target if inspection_target != null else Vector3(actor.x, 0.25, actor.z - (0.0 if integrated_camera else 4.0))
 	if target.distance_squared_to(follow) > 0.0001:
 		target = follow
 		sync_camera()
@@ -533,6 +590,14 @@ func _sync_production(model: RefCounted) -> void:
 	var power_state: Dictionary = model.power_state() if model.has_method("power_state") else {}
 	for e in model.entities:
 		var v: Dictionary = models[e.id]
+		if e.type == Integrated.CORE:
+			for id in v.output_icons:
+				var config: Dictionary = e.outputs[id]
+				var icon: Sprite3D = v.output_icons[id]
+				icon.texture = Slots.TEXTURES.get(config.item)
+				icon.visible = not config.item.is_empty()
+				icon.modulate.a = 1.0 if config.enabled else 0.45
+			continue
 		if v.has("power_icon"):
 			var power_kind := PowerStatus.kind(model, e, power_state)
 			if power_kind != v.power_kind:
@@ -579,7 +644,7 @@ func _build_mineral_barriers() -> void:
 	clear_node(barriers)
 	terrain_key = str(world_model.discovery)
 	# Imported ore clusters follow the same permanent passage facts as collision.
-	for start_x in ([4, 20] if world_model.map_id in [Model.DiscoveryRules.MAP_ID, Model.DiscoveryRules.Expansion.MAP_ID] else []):
+	for start_x in ([4, 20] if world_model.map_id in [Model.DiscoveryRules.MAP_ID, Model.DiscoveryRules.Expansion.MAP_ID, Integrated.MAP_ID] else []):
 		for z in range(-32, 32, 2):
 			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
 				continue
@@ -588,7 +653,7 @@ func _build_mineral_barriers() -> void:
 				barriers.add_child(shell)
 				shell.position = Vector3(x + 8, 0, z + 1)
 
-	if not world_model.discovery.sample_taken:
+	if not integrated_camera and not world_model.discovery.sample_taken:
 		sample = assets.ore.instantiate()
 		barriers.add_child(sample)
 		sample.scale = Vector3.ONE * 0.3

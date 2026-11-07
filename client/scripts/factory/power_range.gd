@@ -16,7 +16,7 @@ static func origin(model: RefCounted, ui: Dictionary) -> Dictionary:
 	if not ui.tool.is_empty():
 		return {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y} if Grid.is_node({"type": ui.tool}) else {}
 	var e: Dictionary = model.by_id(ui.power_from if ui.get("power_from", 0) != 0 else ui.selected)
-	return e if Grid.is_node(e) else {}
+	return e if Grid.is_node(e) and not (e.type == "base_core" and ui.get("blocked", false)) else {}
 
 
 static func legend(automatic := false) -> String:
@@ -36,7 +36,7 @@ func sync(model: RefCounted, actor: Dictionary, ui: Dictionary, enabled: bool) -
 		_clear()
 		return
 	var valid: bool = ui.tool.is_empty() or model.placement(ui.tool, ui.cell, actor).ok
-	var next := str([model.get_instance_id(), model.revision, e, valid, model.discovery.passages])
+	var next := str([model.get_instance_id(), model.revision, e.get("id", 0), e.type, e.x, e.z, valid, model.discovery.passages])
 	if next == key:
 		return
 	key = next

@@ -39,7 +39,7 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 			"cell_generator":
 				locations.buffer = e.fuel
 				consumes["industrial_cell"] = 1.0
-			"storage": locations.storage = e.items
+			"storage", "base_core": locations.storage = e.items
 			"belt", "splitter", "merger", "admission_gate": locations.transit = {e.cargo: 1} if not e.cargo.is_empty() else {}
 		for item in rows:
 			var row: Dictionary = rows[item]

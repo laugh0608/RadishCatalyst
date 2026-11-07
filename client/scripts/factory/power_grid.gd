@@ -9,7 +9,14 @@ var rebuild_count := 0
 
 
 static func is_node(e: Dictionary) -> bool:
-	return e.get("type", "") in ["power_source", "power_junction", "cell_generator"]
+	return e.get("type", "") in ["power_source", "power_junction", "cell_generator", "base_core"]
+
+
+static func base_capacity(e: Dictionary) -> float:
+	match e.type:
+		"base_core": return Rules.Integrated.BASE_KW
+		"power_source": return Rules.SOURCE_KW
+	return 0.0
 
 
 static func center(e: Dictionary) -> Vector2:
@@ -118,10 +125,11 @@ func rebuild(model: RefCounted) -> void:
 			var current: int = pending.pop_back()
 			group.nodes.append(current)
 			var e: Dictionary = model.by_id(current)
-			if e.type == "power_source" and e.enabled:
+			var base := base_capacity(e)
+			if base > 0 and e.get("enabled", true):
 				group.sources.append(current)
-				group.base_capacity_kw += Rules.SOURCE_KW
-				group.nominal_kw += Rules.SOURCE_KW
+				group.base_capacity_kw += base
+				group.nominal_kw += base
 			if e.type == Energy.GENERATOR and e.enabled:
 				group.generators.append(current)
 				group.nominal_kw += Energy.GENERATOR_KW
@@ -154,8 +162,9 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		result.available_kw += group.capacity_kw
 		result.enabled_kw += group.nominal_kw
 	for e in model.entities:
-		if e.type in ["power_source", Energy.GENERATOR]:
-			result.installed_kw += Rules.SOURCE_KW if e.type == "power_source" else Energy.GENERATOR_KW
+		var base := base_capacity(e)
+		if base > 0 or e.type == Energy.GENERATOR:
+			result.installed_kw += Energy.GENERATOR_KW if e.type == Energy.GENERATOR else base
 			result.sources[e.id] = 0.0
 			if e.type == Energy.GENERATOR: result.generators[e.id] = 0.0
 		if not Rules.POWER.has(e.type): continue
@@ -186,7 +195,7 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		result.supplied_kw += group.supplied_kw
 		result.deficit_kw += maxf(0, group.request_kw - group.supplied_kw)
 		for id in group.sources:
-			result.sources[id] = base * Rules.SOURCE_KW / group.base_capacity_kw
+			result.sources[id] = base * base_capacity(model.by_id(id)) / group.base_capacity_kw
 	for id in result.devices:
 		var device: Dictionary = result.devices[id]
 		if device.network >= 0 and device.request_kw > 0:

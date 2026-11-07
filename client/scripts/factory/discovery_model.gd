@@ -341,6 +341,7 @@ func input_room(e: Dictionary, item: String, manual := false) -> int:
 				return 0
 			return maxi(0, int(recipes[e.recipe_id].input.get(item, 0)) * (input_batches if e.type != "reactor" else 1) - int(e.input.get(item, 0)))
 		"storage": return 200 - Items.count(e.items)
+		"base_core": return DiscoveryRules.Integrated.ITEM_LIMIT - int(e.items.get(item, 0))
 	return 0
 
 
@@ -349,7 +350,7 @@ func transfer(id: int, item: String, putting: bool, all_items: bool) -> Dictiona
 	var e := by_id(id)
 	if item not in item_ids or not near_entity(e):
 		return failure("请走到设备两格内，且位于同一可达区域")
-	if e.type not in process_types + ["collector", "storage"]:
+	if e.type not in process_types + ["collector", "storage", "base_core"]:
 		return failure("此构件没有可操作的库存")
 	var inventories: Array = [e.buffer] if e.type == "collector" else [e.input, e.output] if e.type in process_types else [e.items]
 	var room := input_room(e, item, true) if putting else 200 - Items.count(bag)

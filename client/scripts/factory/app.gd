@@ -21,6 +21,7 @@ var hud := Hud.new()
 var actor: Dictionary
 var store: RefCounted
 var candidate := {}
+var transient_review := false
 var dirty := false
 var dirty_elapsed := 0.0
 var saved_active_usec := 0
@@ -50,6 +51,7 @@ var last_frame_usec := 0
 var production_clock := ActiveClock.new()
 var engine_active_seconds := 0.0
 var statistics_panel := preload("res://scripts/factory/statistics_panel.gd").new()
+var core_panel := preload("res://scripts/factory/core_panel.gd").new()
 var discovery_panel := preload("res://scripts/factory/discovery_panel.gd").new()
 var power_dialog := ConfirmationDialog.new()
 var power_choices := OptionButton.new()
@@ -62,7 +64,8 @@ var replacement_preview_tool := ""
 
 
 func _ready() -> void:
-	get_window().title = "异星催化 · 工厂世界"
+	get_window().title = "异星催化 · 核心 I 复核" if transient_review else "异星催化 · 工厂世界"
+	ui.transient_review = transient_review
 	original_content_size = get_window().content_scale_size
 	original_min_size = get_window().min_size
 	actor = model.actor
@@ -79,7 +82,11 @@ func _ready() -> void:
 	get_window().focus_exited.connect(_focus_lost)
 	get_window().focus_entered.connect(_focus_gained)
 	get_window().mouse_exited.connect(func(): mouse_position = null; _stop_pointer())
-	hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
+	core_panel.theme = hud.theme
+	add_child(core_panel)
+	core_panel.closed.connect(_refresh)
+	core_panel.pause_requested.connect(func(): _set_paused(not ui.paused))
+	hud.announce("核心 I · 复核进度仅保留在本次会话。" if transient_review else "从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
 	hud.sync_sample(view, model, ui)
@@ -131,7 +138,7 @@ func _process(delta: float) -> void:
 		model.advance(0, 8)
 		if sample_enabled:
 			simulation_samples.append((Time.get_ticks_usec() - before) / 1000.0)
-		if not statistics_panel.visible and not discovery_panel.visible:
+		if not statistics_panel.visible and not discovery_panel.visible and not core_panel.visible:
 			_movement(minf(dt, 0.06))
 		else:
 			actor.moving = false
@@ -216,13 +223,17 @@ func _refresh() -> void:
 	_sync_replacement_direction()
 	_sync_focus()
 	discovery_panel.sync_session(ui.paused, focused)
+	if core_panel.visible:
+		core_panel.refresh(ui.paused)
 	hud.refresh(model, actor, ui, focused)
 
 
 func _sync_focus() -> bool:
 	var before := [ui.focus_device, ui.focus_ready, ui.interaction_kind, ui.get("interaction_index", -1), ui.get("interaction_count", 0), ui.blocked]
-	ui.blocked = discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
+	ui.blocked = core_panel.visible or discovery_panel.visible or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible
 	ui.panel_device = discovery_panel.selected if discovery_panel.visible and discovery_panel.device_only else -1
+	if core_panel.visible:
+		ui.panel_device = model.core.id
 	var target := _interaction_target()
 	ui.focus_device = target.get("id", -1) if target.get("kind", "") == "device" else -1
 	ui.focus_ready = target.get("ready", false)
@@ -301,12 +312,16 @@ func _turn() -> void:
 
 
 func _action(name: String, value: Variant) -> void:
+	if core_panel.visible:
+		return
+	if transient_review and name in Model.DiscoveryRules.Integrated.LOCKED:
+		return
 	if Model.CATALOG.has(name) and model.kits.has(name):
 		_choose(name)
 	else:
 		match name:
 			"assemble":
-				if model.has_method("assemble"):
+				if model.has_method("assemble") and not model.assembly_costs.is_empty():
 					var result: Dictionary = model.assemble(hud.assembly_target.get_selected_metadata())
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
@@ -383,8 +398,8 @@ func _action(name: String, value: Variant) -> void:
 				hud.announce("已投入 %d 件回收物品。" % result.amount if result.ok else result.reason, not result.ok)
 			"camera_left": view.yaw -= 15
 			"camera_right": view.yaw += 15
-			"zoom_out": view.zoom = maxf(0.45, view.zoom - 0.1)
-			"zoom_in": view.zoom = minf(1.5, view.zoom + 0.1)
+			"zoom_out": view.adjust_zoom(-1)
+			"zoom_in": view.adjust_zoom(1)
 	view.sync_camera()
 	_refresh()
 
@@ -447,7 +462,10 @@ func _open_device(id: int) -> void:
 	keys.clear()
 	actor.target = null
 	actor.moving = false
-	discovery_panel.show_device(model, id)
+	if e.type == Model.DiscoveryRules.Integrated.CORE:
+		core_panel.open(model)
+	else:
+		discovery_panel.show_device(model, id)
 	_capture_active_time()
 
 
@@ -497,7 +515,7 @@ func _input(event: InputEvent) -> void:
 		mouse_position = event.position
 		if event is InputEventMouseMotion and interaction_choice != -1 and event.position.distance_to(tab_pointer_origin) >= 4:
 			interaction_choice = -1
-	if not initialized or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
+	if not initialized or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible or core_panel.visible:
 		return
 	if event is InputEventKey:
 		if not event.pressed:
@@ -587,7 +605,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible:
+	if not event is InputEventKey or not event.pressed or event.echo or statistics_panel.visible or failure_dialog.visible or unsaved_dialog.visible or power_dialog.visible or discovery_panel.visible or core_panel.visible:
 		return
 	if event.physical_keycode == KEY_ESCAPE:
 		_cancel()
@@ -602,7 +620,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_F: _interact()
 		KEY_I: _action("inventory", null)
 		KEY_1: _action("collector", null)
-		KEY_2: _action("reactor", null)
+		KEY_2: _action("refinery" if transient_review else "reactor", null)
 		KEY_3: _action("storage", null)
 		KEY_4: _action("belt", null)
 		KEY_B: _action("build", null)
@@ -671,7 +689,7 @@ func _save_now(notify_success := true) -> bool:
 func _request_exit(intent: String) -> void:
 	exit_intent = intent
 	_set_paused(true)
-	if _save_now():
+	if transient_review or _save_now():
 		_finish_exit()
 
 
@@ -681,10 +699,11 @@ func _retry_save() -> void:
 
 
 func _finish_exit() -> void:
-	var result: Dictionary = store.release()
-	if not result.ok:
-		hud.announce(result.reason, true)
-		return
+	if store != null:
+		var result: Dictionary = store.release()
+		if not result.ok:
+			hud.announce(result.reason, true)
+			return
 	initialized = false
 	if exit_intent == "quit":
 		get_tree().quit()

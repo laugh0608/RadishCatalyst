@@ -1,9 +1,11 @@
 extends RefCounted
 
-## Schema 4: one-hop snapshot transport. This module also owns UI port diagnostics.
+## Shared factory: one-hop snapshot transport. This module also owns UI port diagnostics.
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const OUTPUT_NAMES := ["前", "左", "右"]
 const INPUT_NAMES := ["后", "左", "右"]
+const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Items := preload("res://scripts/factory/items.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Admission := preload("res://scripts/factory/admission.gd")
 
@@ -13,6 +15,8 @@ static func transport(e: Dictionary) -> bool:
 
 
 static func ports(model: RefCounted, e: Dictionary, role: String) -> Array[Dictionary]:
+	if e.type == Integrated.CORE:
+		return Integrated.ports(Vector2i(e.x, e.z), role)
 	var result: Array[Dictionary] = []
 	if Expansion.PORTS.has(e.type):
 		for coordinates in Expansion.PORTS[e.type][role]:
@@ -59,6 +63,8 @@ static func input_connection(model: RefCounted, target: Dictionary, input: Dicti
 	var source: Dictionary = model.entity_at(Vector2i(input.x + input.dx, input.z + input.dz))
 	if source.is_empty():
 		return {"ok": false, "reason": "未连接"}
+	if source.type == Integrated.CORE and target.type != "belt":
+		return {"ok": false, "reason": "核心出料首格需要传送带"}
 	for output in ports(model, source, "output"):
 		if receiving_port(model, target, output) == input:
 			return {"ok": true, "reason": "已接通", "source": source, "output": output}
@@ -70,6 +76,8 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 	if not connection.ok:
 		return connection
 	var target: Dictionary = connection.target
+	if source.type == Integrated.CORE and target.type != "belt":
+		return {"ok": false, "reason": "首格需要传送带"}
 	if item == "crust_sample":
 		return {"ok": false, "reason": "样本不可自动运输"}
 	if target.type == "admission_gate":
@@ -79,7 +87,7 @@ static func output_status(model: RefCounted, source: Dictionary, output: Diction
 		if not target.cargo.is_empty():
 			return {"ok": false, "reason": "目标已满"}
 	elif not item.is_empty() and model.input_room(target, item) <= 0:
-		var accepts: bool = target.type == "storage" or (target.type == "cell_generator" and item == "industrial_cell") or (target.type in model.process_types and model.recipe_available(target.recipe_id) and model.recipes[target.recipe_id].input.has(item))
+		var accepts: bool = target.type in ["storage", Integrated.CORE] or (target.type == "cell_generator" and item == "industrial_cell") or (target.type in model.process_types and model.recipe_available(target.recipe_id) and model.recipes[target.recipe_id].input.has(item))
 		return {"ok": false, "reason": "目标已满" if accepts else "目标不收该物品"}
 	return connection.merged({"reason": "可接收", "source": source}, true)
 
@@ -89,6 +97,9 @@ static func step(model: RefCounted, dt: float) -> void:
 	# Generate every option before committing any transfer; no newly vacated slot
 	# can be used in this step. Producers and transport compete in the same rounds.
 	for source in model.entities:
+		if source.type == Integrated.CORE:
+			_request_core_outputs(model, source, requests)
+			continue
 		var item: String
 		if transport(source):
 			if source.cargo.is_empty():
@@ -118,6 +129,10 @@ static func step(model: RefCounted, dt: float) -> void:
 	var assigned_sources := {}
 	var assigned_targets := {}
 	var transfers: Array[Dictionary] = []
+	# Both reservations use untouched step-start inventory; transfers commit last.
+	var core_inputs := {}
+	var core_input_ports := {}
+	var core_outputs := {}
 	for round_index in 3:
 		var contenders := {}
 		for source_id in requests:
@@ -129,22 +144,104 @@ static func step(model: RefCounted, dt: float) -> void:
 			if options.is_empty():
 				continue
 			var option: Dictionary = options.pop_front()
+			option.request_key = source_id
 			if not contenders.has(option.target.id):
 				contenders[option.target.id] = []
 			contenders[option.target.id].append(option)
+		var proposed_core_outputs: Array[Dictionary] = []
 		for target_id in contenders:
 			var list: Array = contenders[target_id]
 			var target: Dictionary = list[0].target
+			if target.type == Integrated.CORE:
+				_reserve_core_inputs(model, list, core_inputs, core_input_ports, assigned_sources, transfers)
+				continue
 			list.sort_custom(func(a, b): return _priority(a, target) < _priority(b, target))
-			var winner: Dictionary = list[0]
-			transfers.append(winner)
-			assigned_sources[winner.source.id] = true
-			assigned_targets[target_id] = true
-	# Each source and target occurs once. Snapshot occupancy also ensures a
-	# transport entity cannot be both a sender and a receiver in this transaction.
+			if list[0].source.type == Integrated.CORE:
+				proposed_core_outputs.append(list[0])
+		var approved := _reserve_core_outputs(proposed_core_outputs, core_outputs)
+		for target_id in contenders:
+			var list: Array = contenders[target_id]
+			if list[0].target.type == Integrated.CORE:
+				continue
+			for winner in list:
+				if winner.source.type == Integrated.CORE and not approved.has(winner.request_key):
+					continue
+				transfers.append(winner)
+				assigned_sources[winner.request_key] = true
+				assigned_targets[target_id] = true
+				break
+	# Ordinary sources and targets occur once. Core reservations are per port.
 	transfers.sort_custom(func(a, b): return a.source.id < b.source.id)
 	for transfer in transfers:
 		_commit(model, transfer)
+
+
+static func _request_core_outputs(model: RefCounted, core: Dictionary, requests: Dictionary) -> void:
+	for port in ports(model, core, "output"):
+		var config: Dictionary = core.outputs[port.id]
+		if not config.enabled:
+			continue
+		config.cooldown_ticks = maxi(0, config.cooldown_ticks - 1)
+		if config.cooldown_ticks > 0 or core.items.get(config.item, 0) == 0:
+			continue
+		var option := output_status(model, core, port, config.item)
+		if option.ok:
+			option.item = config.item
+			option.batch = 0
+			requests[port.id] = [option]
+
+
+static func _core_order(a: Dictionary, b: Dictionary, cursors: Dictionary, role: String, count: int) -> bool:
+	if a.item != b.item:
+		return a.item < b.item
+	var cursor: int = cursors.get(a.item, 0)
+	var rank_a: int = (a[role].index - cursor + count) % count
+	var rank_b: int = (b[role].index - cursor + count) % count
+	return rank_a < rank_b if rank_a != rank_b else a.source.id < b.source.id
+
+
+static func _reserve_core_outputs(candidates: Array[Dictionary], counts: Dictionary) -> Dictionary:
+	if candidates.is_empty():
+		return {}
+	var core: Dictionary = candidates[0].source
+	var cursors: Dictionary = core.output_cursors
+	candidates.sort_custom(func(a, b): return _core_order(a, b, cursors, "output", 4))
+	var approved := {}
+	for move in candidates:
+		var used: int = counts.get(move.item, 0)
+		if used >= core.items.get(move.item, 0):
+			continue
+		counts[move.item] = used + 1
+		cursors[move.item] = (move.output.index + 1) % 4
+		approved[move.request_key] = true
+	return approved
+
+
+static func _reserve_core_inputs(model: RefCounted, candidates: Array, counts: Dictionary,
+		ports_used: Dictionary, sources_used: Dictionary, transfers: Array[Dictionary]) -> void:
+	var core: Dictionary = candidates[0].target
+	var cursors: Dictionary = core.input_cursors
+	candidates.sort_custom(func(a, b): return _core_order(a, b, cursors, "input", 12))
+	for move in candidates:
+		var used: int = counts.get(move.item, 0)
+		if ports_used.has(move.input.id) or used >= model.input_room(core, move.item):
+			continue
+		ports_used[move.input.id] = true
+		counts[move.item] = used + 1
+		cursors[move.item] = (move.input.index + 1) % 12
+		sources_used[move.request_key] = true
+		transfers.append(move)
+
+
+static func core_output_feedback(model: RefCounted, core: Dictionary, port: Dictionary) -> String:
+	var config: Dictionary = core.outputs[port.id]
+	if config.item.is_empty(): return "未配置"
+	if not config.enabled: return "已关闭"
+	if core.items.get(config.item, 0) == 0: return "缺货"
+	var status := output_status(model, core, port, config.item)
+	if not status.ok: return status.reason
+	if config.cooldown_ticks > 0: return "冷却 %.2f 秒" % (config.cooldown_ticks * model.STEP)
+	return "可出料"
 
 
 static func _priority(request: Dictionary, target: Dictionary) -> int:
@@ -169,6 +266,9 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 			source.entry = -DIRS[source.dir]
 		if source.type == "splitter":
 			source.output_cursor = (move.output.index + 1) % 3
+	elif source.type == Integrated.CORE:
+		Items.add(source.items, move.item, -1)
+		source.outputs[move.output.id].cooldown_ticks = Integrated.COOLDOWN_TICKS
 	else:
 		model._take_output(source, move.item)
 		if source.type in Expansion.PROCESSORS:

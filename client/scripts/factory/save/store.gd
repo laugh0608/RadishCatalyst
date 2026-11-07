@@ -374,6 +374,8 @@ func _write(file_path: String, content: String) -> Dictionary:
 
 
 func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
+	if model.supply_id == Codec.V2.Config.Integrated.SUPPLY_ID:
+		return Codec.failure("基地核心复核仅在内存中运行。", true)
 	if model.supply_id == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("当前会话不允许写入工程身份。", true)
 	if not loaded or not _owns_lock():

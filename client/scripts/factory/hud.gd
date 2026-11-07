@@ -6,6 +6,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const PowerRange := preload("res://scripts/factory/power_range.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
+const Integrated := preload("res://data/factory/integrated_rules.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
@@ -344,6 +345,9 @@ func announce(message: String, error := false) -> void:
 
 
 func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: bool) -> void:
+	var integrated: bool = model.supply_id == Integrated.SUPPLY_ID
+	buttons.save.visible = not ui.get("transient_review", false)
+	buttons.return.text = "结束复核" if ui.get("transient_review", false) else "保存并返回"
 	totals.text = "催化剂入仓  %d    %02d:%02d" % [model.delivered, int(model.time) / 60, int(model.time) % 60]
 	quota_notice.refresh(model)
 	buttons.power_links.visible = model.has_method("power_state")
@@ -351,7 +355,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
-	assembly_row.visible = ui.build and model.has_method("assemble")
+	assembly_row.visible = ui.build and model.has_method("assemble") and not model.assembly_costs.is_empty()
 	if assembly_row.visible:
 		_sync_assembly(model)
 		var type: String = assembly_target.get_selected_metadata()
@@ -365,6 +369,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		totals.text = "构件包已产 %d · 第二炉%s  %02d:%02d" % [model.completed_by_recipe.construction_assembly, "已落位" if model.first_expansion_placed else "待扩建", int(model.time) / 60, int(model.time) % 60]
 	if model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
 		totals.text = "电芯已产 %d · 已激活 %d · 构件包 %d  %02d:%02d" % [model.completed_by_recipe.cell_assembly, model.statistics.totals.cells_activated, model.completed_by_recipe.construction_assembly, int(model.time) / 60, int(model.time) % 60]
+	if integrated:
+		totals.text = "核心 I · 板材在库 %d　%02d:%02d" % [model.core.items.get("metal_plate", 0), int(model.time) / 60, int(model.time) % 60]
 	placement_row.visible = not ui.tool.is_empty()
 	connection_preview.hide()
 	connection_preview_slot.hide()
@@ -372,10 +378,11 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
 	for type in Model.CATALOG.keys():
-		buttons[type].visible = model.kits.has(type) and (type != "cell_generator" or model.first_expansion_placed)
+		buttons[type].visible = model.kits.has(type) and (not integrated or type not in Integrated.LOCKED) and (type != "cell_generator" or model.first_expansion_placed)
 		if not model.kits.has(type):
 			continue
-		buttons[type].text = "%s  %d" % [Model.CATALOG[type].name, model.kits[type]]
+		var name: String = "采集器" if integrated and type == "collector" else Model.CATALOG[type].name
+		buttons[type].text = "%s  %d" % [name, model.kits[type]]
 		buttons[type].modulate = Color("eac178" if ui.tool == type else "ffffff")
 	if not ui.tool.is_empty():
 		cell_x.set_value_no_signal(ui.cell.x)
@@ -397,7 +404,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			connection_preview.text = "接口预览 · 可先放置再接线\n" + connections
 			connection_preview.visible = valid.ok and ui.stroke.is_empty() and not connections.is_empty()
 	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
-	buttons.discovery.visible = model.has_method("power_state")
+	buttons.discovery.visible = model.has_method("power_state") and not integrated
 	buttons.inventory.visible = model.has_method("power_state")
 	buttons.statistics.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
@@ -431,17 +438,21 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 				if not target.cargo.is_empty(): interaction_button.text += " · 尾货排空中"
 		if ui.get("interaction_count", 0) > 1 and ui.interaction_index >= 0:
 			interaction_button.text += "  ·  Tab 切换 %d/%d" % [ui.interaction_index + 1, ui.interaction_count]
-		interaction_button.position.x = (world_slot.size.x - interaction_button.size.x) * 0.5
+		interaction_button.position.x = 20.0 if integrated else (world_slot.size.x - interaction_button.size.x) * 0.5
 		interaction_button.disabled = not ui.focus_ready
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
-	if model.has_method("power_state"):
+	if integrated:
+		text = "首件板材回仓\n铁矿 → 核心\n精炼炉 → 板材回仓\n\n靠近核心按 F 查看库存，在接口页配置出料。用配电节点将核心电力送到矿点和精炼炉。"
+		if model.core.items.has("metal_plate"):
+			text = "板材已自动回仓\n走近核心，按 F 查看库存。"
+	elif model.has_method("power_state"):
 		var step := Guidance.current(model)
 		text = Guidance.describe(step)
 		buttons.guide_action.text = step.action_label
 		buttons.guide_action.tooltip_text = step.next
-	buttons.guide_action.visible = powered and ui.mission
+	buttons.guide_action.visible = powered and ui.mission and not integrated
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"
 

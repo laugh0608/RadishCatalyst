@@ -50,7 +50,7 @@ static func contents(e: Dictionary) -> Dictionary:
 		"reactor", "crusher", "refinery", "assembler":
 			for key in ["input", "output", "invested"]:
 				merge(result, e[key])
-		"storage": merge(result, e.items)
+		"storage", "base_core": merge(result, e.items)
 		"belt", "splitter", "merger", "admission_gate":
 			if not e.cargo.is_empty():
 				result[e.cargo] = 1
