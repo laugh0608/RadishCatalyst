@@ -29,7 +29,7 @@ func sync(view: Node3D, model: RefCounted, hud: Control, ui: Dictionary) -> void
 	var candidates: Array[Dictionary] = []
 	for e in model.entities:
 		if e.type != "admission_gate": continue
-		var top := Vector3(e.x + 0.5, 1.0, e.z + 0.5)
+		var top := Vector3(e.x + 0.5, 0.67, e.z + 0.5)
 		if view.camera.is_position_behind(top): continue
 		var anchor: Vector2 = hud.viewport_to_screen(view.project(top)) - global_position
 		if not Rect2(Vector2.ZERO, size).has_point(anchor): continue

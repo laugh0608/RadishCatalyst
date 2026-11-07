@@ -8,6 +8,7 @@ const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
+const ROUTING_ATTACHMENTS := ["splitter", "merger", "admission_gate"]
 var resource_error := ""
 var prepared := false
 var camera := Camera3D.new()
@@ -447,19 +448,21 @@ func _build(e: Dictionary, mask: int, inlet_conflict: bool) -> Dictionary:
 				root.add_child(icon)
 				result.output_icons[port.id] = icon
 		result.focus_parts = asset.find_children("*", "MeshInstance3D", true, false)
-		if e.type in ["splitter", "merger", "admission_gate"]:
+		var is_attachment: bool = e.type in ROUTING_ATTACHMENTS
+		if is_attachment:
 			asset.rotation.y = -e.dir * PI / 2
 			var cargo: Node3D = assets.cargo.instantiate()
 			root.add_child(cargo)
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 		if e.type != Integrated.CORE:
-			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2, "merger": 0.62}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
+			var lamp_height: float = 0.62 if is_attachment else {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2, "reactor": 3.4}.get(e.type, 2.1)
+			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, lamp_height, def.d * 0.5 - 0.2), status_materials.waiting)
 			if world_model.has_method("power_state") and PowerStatus.supports(e):
 				result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
 				result.power_kind = ""
 			result.lamp.scale = Vector3.ONE * 0.21
-			if e.type == "merger":
+			if is_attachment:
 				result.lamp.scale *= 0.55
 			result.lamp_mat = status_materials.waiting
 			_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
@@ -588,7 +591,7 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 				mesh.transparency = 0.45
 				mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var shape: Dictionary = Model.CATALOG[ui.tool]
-		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ["splitter", "merger", "admission_gate"] else 0.0
+		build_model.rotation.y = -ui.dir * PI / 2 if ui.tool in ROUTING_ATTACHMENTS else 0.0
 		build_model.position = Vector3(ui.cell.x + shape.w * 0.5, 0.06, ui.cell.y + shape.d * 0.5)
 	var key := str([model.revision, ui.tool, ui.cell, ui.dir, ui.selected])
 	if key == port_key:
@@ -596,7 +599,7 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 	port_key = key
 	clear_node(port_hints)
 	for e in model.entities:
-		if e.type == "merger" and ui.tool != "belt":
+		if e.type in ROUTING_ATTACHMENTS and ui.tool != "belt":
 			continue
 		var shape: Dictionary = Model.CATALOG[e.type]
 		var center := Vector2(e.x + shape.w * 0.5, e.z + shape.d * 0.5)
@@ -667,7 +670,7 @@ func _sync_production(model: RefCounted) -> void:
 				v.cargo.rotation.y = model.time * 0.4
 				v.cargo.scale = Vector3.ONE * (0.9 if e.cargo == "catalyst" else 1.0)
 		else:
-			if e.type in ["splitter", "merger", "admission_gate"]:
+			if e.type in ROUTING_ATTACHMENTS:
 				v.cargo.visible = not e.cargo.is_empty() and e.progress < 0.28
 				if v.cargo.visible:
 					var p: Vector2 = Vector2(e.entry) * (0.5 - e.progress)
