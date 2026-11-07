@@ -71,7 +71,7 @@ func _ready() -> void:
 	integrated_camera = world_model != null and Integrated.matches_supply(world_model.supply_id)
 	if integrated_camera:
 		yaw = 0.0
-		var controls: bool = world_model.supply_id == Integrated.Controls.SUPPLY_ID
+		var controls: bool = world_model.core_upgrades.has(3)
 		assets.base_core = load(Integrated.Controls.CORE_MODEL_PATH if controls else Integrated.MODEL_PATH)
 		resource_error = _check_core_asset(assets.base_core, world_model.core_upgrades.size() + 1)
 		if not resource_error.is_empty():
@@ -124,6 +124,11 @@ func _ready() -> void:
 			assets.cell_generator = load(ASSET_ROOT + "energy/cell_generator.glb")
 			if not assets.cell_generator is PackedScene:
 				resource_error = "缺少电芯发电机模型"
+				return
+		if world_model.kits.has(Integrated.Storage.TYPE):
+			assets[Integrated.Storage.TYPE] = load(Integrated.Storage.MODEL_PATH)
+			if not assets[Integrated.Storage.TYPE] is PackedScene:
+				resource_error = "缺少电网储能模型"
 				return
 		barriers = Node3D.new()
 		add_child(barriers)
@@ -463,7 +468,7 @@ func _build(e: Dictionary, mask: int, inlet_conflict: bool) -> Dictionary:
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 		if e.type != Integrated.CORE:
-			var lamp_height: float = 0.62 if is_attachment else {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2, "reactor": 3.4}.get(e.type, 2.1)
+			var lamp_height: float = 0.62 if is_attachment else {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2, "reactor": 3.4, Integrated.Storage.TYPE: 0.76}.get(e.type, 2.1)
 			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, lamp_height, def.d * 0.5 - 0.2), status_materials.waiting)
 			if world_model.has_method("power_state") and PowerStatus.supports(e):
 				result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
@@ -694,6 +699,7 @@ func _sync_production(model: RefCounted) -> void:
 					"splitter", "merger", "admission_gate": progress = e.progress
 					"collector": progress = model.Items.count(e.buffer) / 50.0
 					"storage": progress = model.Items.count(e.items) / 200.0
+					Integrated.Storage.TYPE: progress = e.stored_j / float(Integrated.Storage.CAPACITY_J)
 			else:
 				match e.type:
 					"reactor": progress = e.progress / 10.0 if e.processing else (1.0 if e.output > 0 else 0.0)

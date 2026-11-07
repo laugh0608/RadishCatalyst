@@ -62,6 +62,7 @@ func _ready() -> void:
 		types[Store.Codec.V10.Frontier.SUPPLY_ID] = "开拓工厂 · 高产炭矿 / 普通带单路隔离复核"
 	if catalog.allow_controls:
 		types[Store.Codec.V11.Controls.SUPPLY_ID] = "测控工厂 · 核心 III 隔离复核"
+		types[Store.Codec.V12.Buffer.SUPPLY_ID] = "测控工厂 · E2 独立储能隔离复核"
 	for supply in types:
 		world_type.add_item(types[supply])
 		world_type.set_item_metadata(world_type.item_count - 1, supply)

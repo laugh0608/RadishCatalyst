@@ -276,6 +276,12 @@ func refresh_power(result: Dictionary) -> void:
 	if w.has("standby_kj"):
 		power_summary.text += "\n当前运行 %.1f / 待机 %.1f kW · 累计运行 %.1f / 待机 %.1f kJ" % [p.supplied_kw - p.standby_supplied_kw, p.standby_supplied_kw, model.statistics.totals.used_kj - model.statistics.totals.standby_kj, model.statistics.totals.standby_kj]
 		if w.has_samples: power_summary.text += "\n窗口运行 %.1f / 待机 %.1f kJ" % [w.used_kj - w.standby_kj, w.standby_kj]
+	if p.has("buffers"):
+		var totals: Dictionary = model.statistics.totals
+		power_summary.text += "\n储能 %.3f kJ · 当前充 / 放 %.1f / %.1f kW" % [
+			model.stored_joules() / 1000.0, p.charge_j / (1000.0 * model.STEP), p.discharge_j / (1000.0 * model.STEP)]
+		power_summary.text += "\n累计充入 %.3f / 放出 %.3f / 充电损耗 %.3f / 拆除损失 %.3f kJ" % [
+			totals.charge_j / 1000.0, totals.discharge_j / 1000.0, totals.storage_loss_j / 1000.0, totals.storage_discarded_j / 1000.0]
 	power_chart.show_points(result.points, true)
 	# Rebuild only when membership changes; stable buttons retain keyboard focus.
 	var signature := []

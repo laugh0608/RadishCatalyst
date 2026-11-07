@@ -130,10 +130,7 @@ func feedback(e: Dictionary) -> Dictionary:
 		if state.sources[e.id] <= 0:
 			return {"kind": "waiting", "label": "燃料耗尽 · 等待完整电芯"}
 		var group: Dictionary = grid.groups[grid.membership[e.id]]
-		var released := 0.0
-		for id in group.generators:
-			released += state.sources[id]
-		return {"kind": "running", "label": "固定燃烧 · 同网当前有弃能" if released > group.request_kw + 1e-9 else "固定燃烧 · 当前释能 %.0f kW" % state.sources[e.id]}
+		return {"kind": "running", "label": "固定燃烧 · 同网当前有弃能" if group.spill_kw > 1e-9 else "固定燃烧 · 当前释能 %.0f kW" % state.sources[e.id]}
 	var result := super.feedback(e)
 	if DiscoveryRules.POWER.has(e.type) and not e.enabled:
 		return {"kind": "ready", "label": "手动停机 · 保留进度，被动物流继续",

@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：萝卜SAMA确认继续推进，核心 III 和独立 schema 11 已接入隔离入口。E2 / C1–C3 按本文候选参数与顺位接续。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。
+状态：核心 III 与 E2 独立储能已接入隔离入口。核心 III 检查档保留 schema 11，新增储能的世界使用 schema 12。后续按顺位接入 C1–C3。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。
 
 ## 玩家路径
 
@@ -79,7 +79,17 @@
 
 隔离入口使用 `factory_3d / schema 11 / factory_integrated_grid_controls_v1`，地图为 `factory_integrated_frontier_yard_64_v1`，供给为 `factory_integrated_grid_controls_starter_v1`。新建从核心 I、D1 起步构件与零物料开始，使用 D1 单路普通带规则。等级页按 E1、M3 和实际库存展示可升级状态，提交后扣除 4 构件包、4 板、2 载体、2 工业电芯，维持原核心 ID、6×6 足印、16 口和 360 kW。III 顶盖显示三块琥珀色模块，旧世界加载原模型。首步只新增等级状态的合法取值，研究集合仍沿用基础与开拓已有节点。
 
-使用 `sh tools/check-factory-grid-controls.sh play <批次>` 创建或继续。当前 schema 11 定义摘要绑定 D1 单路版本和 III 升级。研究与等级消耗按已完成动作重建，固定燃烧校验分别核对电芯激活与非燃料扣料。沿用 Store 的单写锁、同身份备份和主档哈希。旧二维和工厂 schema 1–10 以原身份继续。储能和控制字段随实际功能另行版本化或经明确的存档映射接入。
+使用 `sh tools/check-factory-grid-controls.sh play <批次>` 创建或继续。schema 11 定义摘要绑定 D1 单路版本和 III 升级。研究与等级消耗按已完成动作重建，固定燃烧校验分别核对电芯激活与非燃料扣料。沿用 Store 的单写锁、同身份备份和主档哈希。
+
+<a id="d2-storage-delivery"></a>
+
+### E2 独立储能交付
+
+同一隔离菜单选择「测控工厂 · E2 独立储能隔离复核」创建。使用 `factory_3d / schema 12 / factory_integrated_grid_storage_v1` 与供给 `factory_integrated_grid_storage_starter_v1`，复用 D1 地图。schema 12 摘要绑定核心 III、E2 研究、装配和储能定义。已有 schema 11 和更早世界沿原身份继续，当前无跨身份转换。
+
+玩家在核心 III 研究电网缓冲，再从核心装配储能。新设备默认启用、存量为零，只通过配电自动归网。面板显示电量、预计下一步充放电率及归属节点。停用保留电量，回收有电量的设备须先停用再确认，避免确认时电量继续变化。电力页单独列出当前存量、充放电和两类损耗。装机、启用和可用功率含相应的储能放电能力，燃料释能与核心供能单列。
+
+存档对每台储能保存整数焦耳、启停和归属节点。装配账把额外电芯单列为非燃料消费。统计以整数焦耳保存累计和近期桶，验证充入、放出、转换损耗、拆除损失、设备持有和已释燃料的关系。恢复时重建拓扑并核对节点归属。以 `storage-state` / `storage-window` 分别运行定向复核，实际负载和存读结果进周志。
 
 ### 储能和控制验收边界
 

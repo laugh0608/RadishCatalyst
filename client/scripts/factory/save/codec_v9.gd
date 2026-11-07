@@ -225,7 +225,11 @@ static func _load_entities(model: RefCounted, s: Dictionary) -> Dictionary:
 			continue
 		if not type is String or not model.device_unlocked(type):
 			return failure("设备类型未知或尚未研究。")
-		var valid := _generator(source, model) if type == Energy.GENERATOR else Entity.validate(source, int(s.next_id), int(s.next_batch), model, true, true)
+		var valid: Dictionary
+		match type:
+			Energy.GENERATOR: valid = _generator(source, model)
+			Integrated.Storage.TYPE: valid = _storage(source, int(s.next_id))
+			_: valid = Entity.validate(source, int(s.next_id), int(s.next_batch), model, true, true)
 		if not valid.ok:
 			return valid
 		var shape: Dictionary = model.CATALOG[type]
@@ -239,7 +243,7 @@ static func _load_entities(model: RefCounted, s: Dictionary) -> Dictionary:
 			return failure("设备布局无效：" + placed.reason)
 		var e: Dictionary = placed.entity
 		e.merge(source.duplicate(true), true)
-		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used", "burn_remaining_ticks"]:
+		for key in ["id", "x", "z", "dir", "cursor", "output_cursor", "input_cursor", "batch", "active_batch", "output_batch", "power_node_id", "quota_limit", "quota_used", "burn_remaining_ticks", "stored_j"]:
 			if e.has(key): e[key] = int(e[key])
 		for key in ["buffer", "input", "output", "invested", "items", "fuel"]:
 			if e.has(key): e[key] = V2.normalize_items(e[key])
@@ -260,4 +264,12 @@ static func _generator(e: Dictionary, model: RefCounted) -> Dictionary:
 		return failure("固定燃烧发电机字段、方向或位置无效。")
 	if not e.enabled is bool or not Entity.bounded(e.fuel, {Energy.CELL: Energy.FUEL_CAPACITY}, model) or not integer(e.burn_remaining_ticks, 0, Integrated.BURN_TICKS):
 		return failure("完整电芯容量、燃烧余时或启停无效。")
+	return {"ok": true}
+
+
+static func _storage(e: Dictionary, next_id: int) -> Dictionary:
+	if not fields(e, ["id", "type", "x", "z", "dir", "enabled", "stored_j", "power_node_id"]) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
+		return failure("储能设施字段、方向或位置无效。")
+	if not e.enabled is bool or not integer(e.stored_j, 0, Integrated.Storage.CAPACITY_J) or not integer(e.power_node_id, 0, next_id - 1):
+		return failure("储能电量、启停或归网状态无效。")
 	return {"ok": true}

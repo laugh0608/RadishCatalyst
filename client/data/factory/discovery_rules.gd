@@ -16,6 +16,7 @@ const ADMISSION_SUPPLY_ID := "factory_discovery_admission_starter_v1"
 const SUPPLY := {"collector": 8, "reactor": 16, "storage": 8, "belt": 256, "power_source": 2, "power_junction": 12}
 const CATALOG := {
 	Integrated.CORE: Integrated.CORE_SHAPE,
+	Integrated.Storage.TYPE: Integrated.Storage.SHAPE,
 	"cell_generator": {"name": "电芯发电机", "w": 2, "d": 2, "input": Vector2i(0, 1)},
 	"crusher": {"name": "粉碎机", "w": 2, "d": 2},
 	"refinery": {"name": "精炼炉", "w": 2, "d": 3},

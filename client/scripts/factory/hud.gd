@@ -419,7 +419,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			var locked: bool = not model.device_unlocked(type)
 			buttons[type].disabled = locked
 			if locked and id != "":
-				var node: Dictionary = model.Progression.NODES[id]
+				var node: Dictionary = model.research_nodes[id]
 				buttons[type].tooltip_text = "先在基地核心研究%s · %s" % [node.name, Items.describe(node.cost)]
 			elif type in ["reactor", "crusher", "assembler"]:
 				buttons[type].tooltip_text = ""
@@ -513,9 +513,11 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 				text = "开拓高产炭矿\n打通外矿道后，携带 4 颗破岩胶囊从支路北入口开路。"
 			else:
 				text = "研究开拓工具\n在核心 II 的研究页查看解壳剂、电芯等成本。"
-		if model.supply_id == Integrated.Controls.SUPPLY_ID:
+		if model.core_upgrades.has(3):
 			if model.core.level == 3:
 				text = "核心 III 已启用\n保留 360 kW 额定功率。可继续既有生产和开拓。"
+				if model.kits.has(Integrated.Storage.TYPE):
+					text = "电网储能\n研究电网缓冲后装配储能。靠近配电节点落位，观察充放电。" if not model.device_unlocked(Integrated.Storage.TYPE) else "电网储能\n用低负载时的发电余电充电，在供电不足时补缺。"
 			elif model.core.level == 2 and model.researched.has(model.Progression.REUSE):
 				text = "升级核心 III\n在核心的等级页查看前置与材料。"
 		var location := Guidance.integrated_location(model)

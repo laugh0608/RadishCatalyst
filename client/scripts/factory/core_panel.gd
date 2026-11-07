@@ -357,17 +357,22 @@ func _refresh_progression() -> void:
 	if not upgrade.is_empty():
 		upgrade_button.text = "升至核心 " + Progression.TIER_LABELS[target]
 		var effect := "核心 II 开放工业电芯、混料冶炼与矿渣回用研究。" if target == 2 else "核心 III 为电网测控做准备，核心额定功率仍为 360 kW。"
+		if target == 3 and model.kits.has(Core.Storage.TYPE):
+			effect = "核心 III 开放电网缓冲研究，核心额定功率仍为 360 kW。"
 		upgrade_details.text += "\n\n%s\n前置：%s\n成本：%s\n%s" % [
 			effect, _requirements(upgrade.requires), Items.describe(upgrade.cost), "可升级" if state.ok else state.reason]
 	var type: String = assembly_choice.get_selected_metadata()
 	state = model.assembly_status(type)
 	var owner: String = model.device_research(type)
+	var materials := {"construction_pack": model.assembly_costs[type]}
+	if type == Core.Storage.TYPE:
+		materials.industrial_cell = Core.Storage.ASSEMBLY_CELLS
 	assembly_details.text = "要求：%s
-%d 构件包 → %d 件 · 核心现有 %d 包
+%s → %d 件 · 核心现有 %d 包
 总拥有量 %d / %d
 %s" % [
 		_requirements([Progression.ASSEMBLY] if owner in [Progression.BASE, Progression.ASSEMBLY] else [Progression.ASSEMBLY, owner]),
-		model.assembly_costs[type], Rules.Expansion.yield_for(type), model.core.items.get("construction_pack", 0),
+		Items.describe(materials), Rules.Expansion.yield_for(type), model.core.items.get("construction_pack", 0),
 		model.owned_count(), Progression.MAX_OWNED, "可装配" if state.ok else state.reason]
 	assembly_button.disabled = not state.ok
 

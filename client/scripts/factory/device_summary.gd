@@ -7,6 +7,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const ItemSlot := preload("res://scripts/factory/item_slot.gd")
 const DevicePreview := preload("res://scripts/factory/device_preview.gd")
+const Buffer := Rules.Integrated.Storage
 const COLORS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 var compact := true
 var heading := Label.new()
@@ -167,6 +168,14 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 			progress.value = e.remaining_kj / 72.0
 			production.text = "当前余能约 %.1f 秒；负载变化会改变估计。" % (e.remaining_kj / output) if output > 0 else "当前不消耗 · 余能保留；完整电芯可取回。"
 		power.text = "同网请求 %.1f · 基础容量 %.0f · 供后缺口 %.1f kW" % [network.request_kw, network.base_capacity_kw, maxf(0, network.request_kw - network.supplied_kw)]
+	elif e.type == Buffer.TYPE:
+		var plan: Dictionary = model.power_state().buffers[e.id]
+		_card("process", "已存电量", "%.3f / %.0f kJ" % [e.stored_j / 1000.0, Buffer.CAPACITY_J / 1000.0])
+		_card("input", "当前充电", "%.1f / %d kW · 90%% 效率" % [plan.charge_j / (1000.0 * model.STEP), Buffer.CHARGE_KW])
+		_card("output", "当前放电", "%.1f / %d kW" % [plan.discharge_j / (1000.0 * model.STEP), Buffer.DISCHARGE_KW])
+		progress.show()
+		progress.value = 100.0 * e.stored_j / Buffer.CAPACITY_J
+		power.text = "节点 #%d · 吸收同网发电余电" % e.power_node_id if e.power_node_id > 0 else "靠近电源或配电节点 6 格内自动接入。"
 	elif model.Grid.is_node(e):
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
 		_card("process", "当前电网", "容量 %.0f kW\n请求 %.1f / 获供 %.1f kW" % [network.capacity_kw, network.request_kw, network.supplied_kw])
@@ -215,7 +224,7 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 			var capacity := "%d / 200 件" % Items.count(e.items)
 			values[role].text = "暂无物品\n" + capacity if e.items.is_empty() else capacity
 			values[role].show()
-		elif e.type == "cell_generator":
+		elif e.type in ["cell_generator", Buffer.TYPE]:
 			values[role].show()
 		elif e.type == "collector" and role == "output":
 			values[role].text = "%d / 50 件" % Items.count(e.buffer)

@@ -2,7 +2,9 @@ extends RefCounted
 
 const Energy := preload("res://data/factory/energy_rules.gd")
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Buffer := Rules.Integrated.Storage
 var fixed_burn := false
+var storage_enabled := false
 var revision := -1
 var groups: Array[Dictionary] = []
 var membership := {}
@@ -11,6 +13,10 @@ var rebuild_count := 0
 
 static func is_node(e: Dictionary) -> bool:
 	return e.get("type", "") in ["power_source", "power_junction", "cell_generator", "base_core"]
+
+
+static func is_endpoint(type: String) -> bool:
+	return Rules.POWER.has(type) or type == Buffer.TYPE
 
 
 static func base_capacity(e: Dictionary) -> float:
@@ -61,7 +67,7 @@ static func connection(model: RefCounted, a_id: int, b_id: int) -> Dictionary:
 
 ## Placement previews share the exact geometry checks without creating a model entity.
 static func reachability(a: Dictionary, b: Dictionary, passages: Dictionary, map_id: String = Rules.MAP_ID) -> Dictionary:
-	if not is_node(b) and not Rules.POWER.has(b.type):
+	if not is_node(b) and not is_endpoint(b.type):
 		return {"ok": false, "reason": "仓库与传送带为被动设施，无需接电"}
 	var distance := center(a).distance_to(center(b))
 	var limit := Rules.NODE_RANGE if is_node(b) else Rules.CONSUMER_RANGE
@@ -84,7 +90,7 @@ func reconnect_automatic(model: RefCounted) -> void:
 	revision = -1
 	rebuild(model)
 	for e in model.entities:
-		if not Rules.POWER.has(e.type):
+		if not is_endpoint(e.type):
 			continue
 		var best_id := 0
 		var best_powered := false
@@ -153,6 +159,9 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		"base_supplied_kw": 0.0, "cell_supplied_kw": 0.0, "standby_supplied_kw": 0.0,
 		"fuel_released_kw": 0.0, "spill_kw": 0.0}
 	var capacities := {}
+	var buffers_by_group := {}
+	if storage_enabled:
+		result.merge({"buffers": {}, "charge_j": 0, "discharge_j": 0, "storage_loss_j": 0})
 	for group in groups:
 		group.request_kw = 0.0
 		group.supplied_kw = 0.0
@@ -172,6 +181,19 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 			result.installed_kw += Energy.GENERATOR_KW if e.type == Energy.GENERATOR else base
 			result.sources[e.id] = 0.0
 			if e.type == Energy.GENERATOR: result.generators[e.id] = 0.0
+		if storage_enabled and e.type == Buffer.TYPE:
+			var network: int = membership.get(e.power_node_id, -1)
+			result.buffers[e.id] = {"network": network, "stored_delta_j": 0, "charge_j": 0, "discharge_j": 0}
+			result.installed_kw += Buffer.DISCHARGE_KW
+			if e.enabled:
+				result.enabled_kw += Buffer.DISCHARGE_KW
+				if network >= 0:
+					if not buffers_by_group.has(network):
+						buffers_by_group[network] = []
+					buffers_by_group[network].append(e)
+					var available := minf(Buffer.DISCHARGE_KW, e.stored_j / (dt * 1000.0))
+					result.available_kw += available
+					groups[network].capacity_kw += available
 		if not Rules.POWER.has(e.type): continue
 		var spec: Dictionary = model.work_spec(e)
 		var work: float = minf(dt, maxf(0, spec.seconds - e.progress)) if spec.ready else 0.0
@@ -185,7 +207,8 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 			groups[network].request_kw += demand
 		else:
 			result.deficit_kw += demand
-	for group in groups:
+	for index in groups.size():
+		var group := groups[index]
 		var base: float = minf(group.base_capacity_kw, group.request_kw)
 		var generation := {}
 		if fixed_burn:
@@ -199,12 +222,19 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 			result.generators[id] = generation[id]
 			released += generation[id]
 		var cells := released
+		var storage_kw := 0.0
 		if fixed_burn:
 			cells = minf(released, group.request_kw)
 			base = minf(group.base_capacity_kw, maxf(0.0, group.request_kw - cells))
 			result.fuel_released_kw += released
-			result.spill_kw += released - cells
-		group.supplied_kw = base + cells
+			var surplus := released - cells
+			if buffers_by_group.has(index):
+				var transfers := _storage_transfers(buffers_by_group[index], surplus, group.request_kw - base - cells, dt, result)
+				surplus = maxf(0.0, surplus - transfers.charge_j / (dt * 1000.0))
+				storage_kw = transfers.discharge_j / (dt * 1000.0)
+			group["spill_kw"] = surplus
+			result.spill_kw += surplus
+		group.supplied_kw = base + cells + storage_kw
 		result.base_supplied_kw += base
 		result.cell_supplied_kw += cells
 		result.supplied_kw += group.supplied_kw
@@ -221,6 +251,31 @@ func allocate(model: RefCounted, dt: float) -> Dictionary:
 		result.standby_supplied_kw += device.standby_supplied_kw
 		result.work[id] = device.work * device.fraction
 	return result
+
+
+static func _storage_transfers(devices: Array, surplus_kw: float, gap_kw: float, dt: float, result: Dictionary) -> Dictionary:
+	var available := floori(maxf(0.0, surplus_kw) * dt * 1000.0 + 1e-7)
+	var gap := floori(maxf(0.0, gap_kw) * dt * 1000.0 + 1e-7)
+	var input_limit := roundi(Buffer.CHARGE_KW * dt * 1000.0)
+	var output_limit := roundi(Buffer.DISCHARGE_KW * dt * 1000.0)
+	var totals := {"charge_j": 0, "discharge_j": 0}
+	devices.sort_custom(func(a, b): return a.id < b.id)
+	for e in devices:
+		var room: int = Buffer.CAPACITY_J - e.stored_j
+		var packets := mini(mini(input_limit, available) / Buffer.CHARGE_INPUT_J, room / Buffer.CHARGE_STORED_J)
+		var charge := packets * Buffer.CHARGE_INPUT_J
+		var retained := packets * Buffer.CHARGE_STORED_J
+		var discharge := mini(mini(output_limit, gap), e.stored_j)
+		assert(charge == 0 or discharge == 0)
+		available -= charge
+		gap -= discharge
+		result.buffers[e.id].merge({"charge_j": charge, "discharge_j": discharge, "stored_delta_j": retained - discharge}, true)
+		totals.charge_j += charge
+		totals.discharge_j += discharge
+		result.storage_loss_j += charge - retained
+	result.charge_j += totals.charge_j
+	result.discharge_j += totals.discharge_j
+	return totals
 
 
 ## Water filling: small sources cap first, then redistribute the remaining gap.

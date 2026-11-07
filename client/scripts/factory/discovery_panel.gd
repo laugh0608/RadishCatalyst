@@ -246,6 +246,8 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	result_label.text = "点选物品，再取出或放入。产线持续运行；在制材料需取消本批后返还。" if device_only else "背包按物料汇总；容量按件数计算。走近设备后可取放物品。" if inventory_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
 	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate"]:
 		result_label.text = "物料自动通过附件；空载时可旋转，回收时整件返还内部物料。"
+	elif device_only and model.by_id(selected).type == Rules.Integrated.Storage.TYPE:
+		result_label.text = "同网发电余电自动充入，供电不足时放电。停用保留电量，带电回收需确认。"
 	result_label.remove_theme_color_override("font_color")
 	scroll.scroll_vertical = 0
 	scroll.visible = not inventory_only
@@ -363,14 +365,18 @@ func refresh() -> void:
 	device_summary.select_item(device_item)
 	if not device_only:
 		return
-	buttons.device_toggle.visible = model.has_method("set_device_enabled") and (Rules.POWER.has(e.type) or e.type == "cell_generator")
+	buttons.device_toggle.visible = model.has_method("set_device_enabled") and (Rules.POWER.has(e.type) or e.type in ["cell_generator", Rules.Integrated.Storage.TYPE])
 	buttons.device_toggle.text = "停机 · 保留进度" if e.get("enabled", false) else "恢复运行"
+	if e.type == Rules.Integrated.Storage.TYPE:
+		buttons.device_toggle.text = "停用储能 · 保留电量" if e.enabled else "启用储能"
 	buttons.power_toggle.visible = e.type == "power_source"
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
 	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
 	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
 	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
+	if e.type == Rules.Integrated.Storage.TYPE:
+		buttons.salvage.text = "回收储能设施"
 
 
 func _sync_recipes(e: Dictionary) -> void:

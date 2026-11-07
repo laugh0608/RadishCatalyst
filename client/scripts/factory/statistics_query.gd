@@ -75,19 +75,20 @@ static func rate(amount: float, seconds: float) -> float:
 static func electricity(model: RefCounted, seconds: int) -> Dictionary:
 	var window: Dictionary = model.statistics.window(seconds)
 	var power: Dictionary = model.power_state()
+	var endpoints: Dictionary = power.devices.merged(power.get("buffers", {}))
 	var groups: Array = []
 	for i in model.grid.groups.size():
 		var group: Dictionary = model.grid.groups[i]
 		var devices: Array = group.nodes.duplicate()
-		for id in power.devices:
-			if power.devices[id].network == i:
+		for id in endpoints:
+			if endpoints[id].network == i:
 				devices.append(id)
 		groups.append({"nodes": group.nodes.duplicate(), "capacity": group.capacity_kw,
 			"request": group.request_kw, "supply": group.supplied_kw,
-			"deficit": maxf(0, group.request_kw - group.capacity_kw), "devices": devices})
+			"deficit": maxf(0, group.request_kw - group.supplied_kw), "devices": devices})
 	var unplugged := []
-	for id in power.devices:
-		if power.devices[id].network < 0:
+	for id in endpoints:
+		if endpoints[id].network < 0:
 			unplugged.append(id)
 	var points := []
 	for b in model.statistics.buckets.slice(maxi(0, model.statistics.buckets.size() - seconds)):

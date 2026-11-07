@@ -24,7 +24,7 @@
 1. [基础整合验收](../devlogs/2026-W45.md#foundation-acceptance)通过。正式菜单选择「整合工厂 · 核心研究与固定燃烧」新建，后续从目录继续。已有亲测档仍用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
 2. 用 `sh tools/check-factory-frontier.sh play <batch>` 开始 [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)隔离亲测。从核心 II 的 X2 到胶囊开路，实地把高产矿接回工厂并观察回报。Windows 与目标硬件待验。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
-4. [D2 核心 III](../features/factory-grid-controls-d2.md#d2-core-iii-delivery)已接入。用 `sh tools/check-factory-grid-controls.sh play <批次>` 创建或继续隔离档。实施顺位接 E2 独立储能。
+4. [D2 核心 III 与储能](../features/factory-grid-controls-d2.md#d2-storage-delivery)已接入。用 `sh tools/check-factory-grid-controls.sh play <批次>` 创建或继续隔离档，选择 E2 体验储能。实施顺位接 C1 节拍调度。
 
 ## 边界与验证
 

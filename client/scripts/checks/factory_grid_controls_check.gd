@@ -7,12 +7,14 @@ const Store := preload("res://scripts/factory/save/store.gd")
 const Compare := preload("res://scripts/checks/factory_expansion_compare.gd")
 const Codec := Store.Codec
 const Controls := Codec.V11.Controls
+const StoragePath := preload("res://scripts/checks/factory_grid_storage_path.gd")
 const NAME := "核心 III 升级与存读"
 
 var driver := Driver.new()
 var boot: Node
 var evidence := ""
 var windowed := false
+var storage := false
 
 
 func _init() -> void:
@@ -22,6 +24,7 @@ func _init() -> void:
 func run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var playing := "--play" in args
+	storage = "--storage" in args
 	for arg in args:
 		if arg.begins_with("--batch="):
 			var batch := arg.trim_prefix("--batch=")
@@ -71,16 +74,19 @@ func _click(button: Button) -> void:
 
 func _write() -> void:
 	var menu: Control = boot.factory_menu
+	var supply := Codec.V12.Buffer.SUPPLY_ID if storage else Controls.SUPPLY_ID
+	var version := Codec.V12.VERSION if storage else Codec.V11.VERSION
+	var pin := Codec.V12.PIN if storage else Codec.V11.PIN
 	var index := -1
 	for i in menu.world_type.item_count:
-		if menu.world_type.get_item_metadata(i) == Controls.SUPPLY_ID:
+		if menu.world_type.get_item_metadata(i) == supply:
 			index = i
 	driver.expect(index >= 0 and not Store.new(Store.DEFAULT_ROOT, false, false, true).allow_controls,
 		"schema 11 creation is debug-isolated")
 	if index < 0:
 		return
 	var ordinary := Store.new(boot.factory_save_root, false, true)
-	driver.expect(not ordinary.create(NAME, Controls.SUPPLY_ID, true).ok, "D1 context alone cannot create D2")
+	driver.expect(not ordinary.create(NAME, supply, true).ok, "D1 context alone cannot create D2")
 	menu.world_type.select(index)
 	menu.title_input.text = NAME
 	await driver.shot("01-create")
@@ -94,7 +100,7 @@ func _write() -> void:
 	var model: RefCounted = world.model
 	var id: String = world.store.world_id
 	var initial := Codec.snapshot(model, id, NAME, world.store.sequence)
-	driver.expect(initial.save_schema_version == 11 and initial.definitions_sha256 == Codec.V11.PIN and model.single_inlet_belts
+	driver.expect(initial.save_schema_version == version and initial.definitions_sha256 == pin and model.single_inlet_belts
 		and model.core.level == 1 and model.core.items.is_empty() and model.entities.size() == 1, "empty D2 starts in core I with its own digest and D1 routing")
 	driver.expect(not ordinary.find_candidate(id).ok, "D1 context cannot continue D2")
 	var layout: Variant = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("layout.json")))
@@ -155,6 +161,8 @@ func _write() -> void:
 	await _click(panel.close_button)
 	_expect_visual(world)
 	await driver.shot("03-core-iii")
+	if storage:
+		await StoragePath.new(self, journey).exercise()
 	await _click(world.hud.buttons["return"])
 	driver.expect(boot.factory_world == null, "save and return releases the world: " + world.failure_dialog.dialog_text if boot.factory_world != null else "save and return releases the world")
 	if boot.factory_world != null:
@@ -165,6 +173,8 @@ func _write() -> void:
 	if not candidate.ok:
 		return
 	_bad_saves(candidate.document, initial, id)
+	if storage:
+		StoragePath.new(self, journey).validate_saved(candidate.document, id)
 	model.advance(30.0, 600)
 	var after := Codec.snapshot(model, id, NAME, candidate.document.sequence)
 	var file := FileAccess.open(evidence.path_join("expected.json"), FileAccess.WRITE)
@@ -208,7 +218,7 @@ func _bad_saves(document: Dictionary, initial: Dictionary, id: String) -> void:
 func _read() -> void:
 	var expected: Variant = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("expected.json")))
 	var menu: Control = boot.factory_menu
-	driver.expect(expected is Dictionary and menu.worlds.size() == 1 and menu.worlds[0].schema == 11, "isolated menu lists the schema 11 checkpoint")
+	driver.expect(expected is Dictionary and menu.worlds.size() == 1 and menu.worlds[0].schema == (Codec.V12.VERSION if storage else Codec.V11.VERSION), "isolated menu lists the expected checkpoint")
 	if not expected is Dictionary or menu.worlds.size() != 1:
 		return
 	menu.list.select(0)
@@ -224,6 +234,8 @@ func _read() -> void:
 	driver.world = world
 	_expect_visual(world)
 	var model: RefCounted = world.model
+	if storage:
+		driver.expect(model.stored_joules() > 0 and model.power_state().discharge_j == 3000, "loaded E2 resumes with a real discharge request")
 	var startup: float = world.production_clock.active_usec / 1000000.0
 	var before := Codec.snapshot(model, expected.id, NAME, world.store.sequence)
 	before.state.remainder_s -= startup

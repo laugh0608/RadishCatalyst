@@ -1,5 +1,7 @@
 extends SubViewportContainer
 
+const Buffer := preload("res://data/factory/grid_storage_rules.gd")
+
 ## A cached, isolated view of the existing asset; redraw only on device change/resize.
 var viewport := SubViewport.new()
 var scene := Node3D.new()
@@ -50,6 +52,8 @@ func show_device(kind: String, direction := 0) -> void:
 		path = "res://assets/factory/expansion/" + kind + ".glb"
 	elif kind == "cell_generator":
 		path = "res://assets/factory/energy/cell_generator.glb"
+	elif kind == Buffer.TYPE:
+		path = Buffer.MODEL_PATH
 	elif kind in ["power_source", "power_junction"]:
 		path = "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
 	elif kind == "admission_gate":
