@@ -1,14 +1,14 @@
 # Daily Start
 
-更新时间：2026-11-01
+更新时间：2026-11-07
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W44.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W45.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
 ## 当前交接
 
-- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；当前轮廓可试玩但端口边缘遮挡未通过，按两次失败规则等待路线复盘确认。正式核心 / 研究 / 能源 / 存档代码继续冻结。
+- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；轮廓收尾候选已通过开发机复测，待萝卜SAMA审阅。正式核心 / 研究 / 能源 / 存档代码继续冻结。
 - 核心每物品 99,999、等级解锁能力；初始电力按设备预算确定，固定燃烧与后续可选 PWM；Godot 3D / GDScript、生产经营主线与工业科幻方向已确认。
 - 主视角已选：[R1-A](../features/factory-camera-and-representative-scene-v1.md)亲测后，萝卜SAMA选 C2 透视正向、默认 21 格、跟随角色；滚轮调节距离 / 高度，保持俯角与 FOV。R1-B 保持此镜头，旧正式世界镜头尚未接入。
 - E1 / E2 / V8 及原 D3 / D4 工程能力继续复用；客户端当前仍按旧合同运行，旧档和亲测进度保留。E3 支路未实现，开路后持续收益纳入统一路线设计。
@@ -17,15 +17,14 @@
 
 ## 当前接续事项
 
-11 月 1 日日终：R1-B 已提交为 `ce37059b`，今天停止开发；收尾建议仅记入接续事项，不视为第三次几何调整已获授权。原图、失败条件和复盘见[R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。
+11 月 7 日按确认范围内收后仓储块与前角支座，`outline-04` 已复测。旧候选及失败交点和本轮新原图分列于 [R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline-04)。
 
 当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
 
-1. 下次先确认 R1-B 的明确收尾包：仅内收后仓储块 / 前角支座，保持 C2、6×6、12 口 / 接带高、I / II 包围与当前材质预算。不新增贴图、消隐或核心玩法。
-2. 获确认后按同一 1,051 项条件复核，重点看 `IN_N0 / IN_N3` 内沿与 `IN_W1 / OUT_E3` 前边缘，再补默认起点、近身、四侧 / 四角及最小窗口原图；96 项失败是多种镜头 / 位置 / 等级下的边缘断言，不是 96 个端口。通过后再由萝卜SAMA审阅轮廓。
-3. R1-B 收口后再明确 R1-C / D 授权。正式整合仍未实现，不把 I / II 网格切换当升级、不把接带外观当物流，也不把角色样点当全身可见率。
-4. 保留[总合同](../features/factory-demo-integration-v1.md)的并行构件布局 / 自举与能源预算审阅；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
-5. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
+1. 先由萝卜SAMA审阅 `outline-04`，重点看默认起点、近身及最小窗口下的端口辨识。原 1,051 项检查已全部通过，默认 / 近身 / 四侧四角 / 最小窗口原图见 [W45](../devlogs/2026-W45.md)。
+2. R1-B 获轮廓认可后再明确 R1-C / D 授权。正式整合仍未实现，不把 I / II 网格切换当升级、不把接带外观当物流，也不把角色样点当全身可见率。
+3. 审阅 [S1-P](../reference/factory-integrated-demo-layout-and-budget.md#s1-parallel) 并行构件布局及自举账，再核对自然供给与能源收益；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
+4. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 
 ## 边界与验证
 

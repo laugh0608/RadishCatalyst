@@ -1,23 +1,22 @@
 # Current Plan
 
-更新时间：2026-11-01
+更新时间：2026-11-07
 
 ## 当前阶段
 
 **统一 Demo 与第一轮成长：设计基线同步及实施合同细化。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-B 轮廓候选可试玩，端口边缘遮挡未通过，等待路线复盘确认。** 活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，本次按 C2 / 21 格 / 跟随制作导入轮廓，已有占地、端口坐标与绕行证据，但不判 R1-B 退出。不接精细材质、核心玩法或存档；研究和固定燃烧仍为后续设计。
+**R1-B 收尾候选通过开发机复测，等待萝卜SAMA审阅轮廓。** 11 月 7 日仅内收后仓储块与前角支座；原 1,051 项断言全部通过，并补实际窗口与脚本驱动操作路径。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，正式核心、研究、固定燃烧与存档仍属合同设计。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
 ## 当前顺位
 
-1. 下次开工先审阅 R1-B 收尾建议：只内收后仓储块 / 前角支座，保持 C2、6×6、12 口坐标 / 高度、I / II 包围和材质预算；路线决策待萝卜SAMA确认，今晚不执行第三次调整。
-2. 获确认后按相同 1,051 项条件、默认起点 / 四角 / 近身与最小窗口复测；保留当前 96 项端口边缘失败和原图，不靠换镜头、消隐、隐藏标记或放宽采样通过。
-3. R1-B 通过并获轮廓认可后，再明确 R1-C 代表材质与 R1-D 联合审阅范围；当前不开精细材质或核心玩法。
-4. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。并行构件布局 / 自举预算仍需复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
+1. 萝卜SAMA通过独立样板审阅 [R1-B 收尾候选](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline-04)，重点看默认起点、近身、空口与接带的端口辨识。
+2. 获轮廓认可后，再明确 R1-C 代表材质与 R1-D 联合审阅范围；精细材质与核心玩法仍冻结。
+3. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[S1-P](../reference/factory-integrated-demo-layout-and-budget.md#s1-parallel) 已补并行构件布局和自举账，实际供给、操作量和扩建收益待复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
-11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 当前候选通过占地 / 锚点和角色采样，但后仓储块 / 前角支座仍遮托盘边缘，按[两次失败复盘与建议收尾包](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline)等待萝卜SAMA确认。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
+11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 
@@ -47,4 +46,4 @@ E1 材料 / 构件制造、E2 电芯 / 本机启停、V8 待机 / 图标 / 统�
 | D4-X Windows / PowerShell、目标硬件 | 暂缓 / 待验继续保留；macOS 开发机成绩不代签 |
 | 保存停顿、输入 / 原生切窗、统计规模与精细美术 | 根据复现与新路径影响处理，不例行重跑历史长测 |
 
-当前退出条件：R1-A 已选参数与证据可追溯；R1-B 按停手规则保留失败候选、具体交点和建议收尾包，复盘决策确认前不继续第三次几何调整。R1-C / D 和正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。
+当前退出条件：R1-A 已选参数与证据可追溯；R1-B 已按确认范围完成一次结构收尾并保留前次失败与本次复测证据，仍需萝卜SAMA认可轮廓后方可判定退出。R1-C / D 和正式玩法实施继续另获授权。四类玩法合同仍须可追到布局 / 配方 / 账本与失败判据，候选不自动定稿。出现丢货 / 复制 / 无法继续等当前玩家阻断仍优先处理；不将旧待验项写成通过。完整旧 D4 事实见 [D4 记录](factory-d3-exit-and-d4-validation.md)。

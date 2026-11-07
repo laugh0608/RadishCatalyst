@@ -38,11 +38,11 @@ macOS 双击 `tools/factory-content/camera-study.command`，或仓库根执行 `
 
 ## R1-B 核心轮廓候选
 
-macOS 双击 `core-study.command` 或执行 `sh tools/factory-content/core-study.sh`；默认 C2 / 21 / 跟随，支持结构 I / II、邻带接入 / 移开、端口 ID、占地框和四侧观察点。观察点是位置跳转，实际行走用 WASD。当前候选端口边缘遮挡未通过，仅供审阅，不接核心玩法 / Store，不覆盖 R1-A 原入口；具体失败与待确认收尾包见[R1-B](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-b-outline)。
+macOS 双击 `core-study.command` 或执行 `sh tools/factory-content/core-study.sh`；默认 C2 / 21 / 跟随，支持结构 I / II、邻带接入 / 移开、端口 ID、占地框和四侧观察点。观察点是位置跳转，实际行走用 WASD。当前 `outline-04` 候选通过开发机复测，供萝卜SAMA审阅。样板与 R1-A 入口并存，核心为几何审阅对象。见[R1-B 复测](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-b-outline-04)。
 
 制作命令 `node tools/factory-content/export-core-outline.mjs <new-batch> --publish-prototype` 使用已有 Three.js；先留独立 `assets/art-intake/2026-11-01-core-outline/<batch>/`，再仅复制新 GLB / 来源清单至 `client/assets/prototypes/base_core_outline/`。既有 batch 不覆盖，每批保留可编辑源快照；不下载 / 安装、改旧模型或执行其他导出器。首次须经 Godot 导入，启动前先告知，编辑器配置放仓库忽略的隔离目录。
 
-核心无窗口检查：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-core-outline.gd --log-file <ignored-log> -- <batch>`（绝对路径）；双根位于检查 batch 下。当前 1,051 项中 96 项托盘边缘失败，退出 1 是实际失败，不能因窗口能打开而记通过。原图 / 逐图 JSON 为 `assets/art-intake/factory-core-outline-v1/<session>/`，入口日志 / 定向结果为 `tools/runtime-intake/check-runs/factory-core-outline-v1/`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-core-outline-v1/<session>/`，均忽略提交。采样只证明指定核心网格的指定点，不当成全身 / 全场景可见率或性能。
+核心无窗口检查：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-core-outline.gd --log-file <ignored-log> -- <batch>`（绝对路径）；双根位于检查 batch 下。`outline-04` 在同一条件下 1,051 项全部通过；`outline-03` 的 96 项边缘失败单独保留。原图 / 逐图 JSON 为 `assets/art-intake/factory-core-outline-v1/<session>/`，入口日志 / 定向结果为 `tools/runtime-intake/check-runs/factory-core-outline-v1/`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-core-outline-v1/<session>/`，均忽略提交。采样只证明指定核心网格的指定点，不当成全身 / 全场景可见率或性能。
 
 ## 低投入交互样板
 

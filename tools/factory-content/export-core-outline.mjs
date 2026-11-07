@@ -44,13 +44,16 @@ function arrow(parent, point, direction, mat, scale = 1) {
 box(logistics, [0, .09, 0], [6, .18, 6], mats.frame, .035);
 box(structure, [0, .825, .35], [3.2, 1.25, 2.5], mats.shell, .13);
 box(logistics, [0, .3, .15], [3.4, .2, 3.1], mats.frame, .06);
-for (const x of [-2.4, 2.4]) for (const z of [-2.35, 2.35]) {
-  box(structure, [x, .4, z], [.85, .44, .9], mats.shell, .08);
-  plain(logistics, [x, .635, z], [.5, .025, .5], mats.frame);
+// Keep the rear corner supports; tuck the front pair and rear storage blocks inward to clear the trays.
+for (const [offsetX, z] of [[2.4, -2.35], [1.8, 1.95]]) {
+  for (const x of [-offsetX, offsetX]) {
+    box(structure, [x, .4, z], [.85, .44, .9], mats.shell, .08);
+    plain(logistics, [x, .635, z], [.5, .025, .5], mats.frame);
+  }
 }
-for (const x of [-1.22, 1.22]) {
-  box(structure, [x, .57, -1.55], [.62, .64, .6], mats.shell, .06);
-  plain(logistics, [x, .9, -1.55], [.4, .025, .34], mats.frame);
+for (const x of [-1.05, 1.05]) {
+  box(structure, [x, .57, -1.25], [.62, .64, .6], mats.shell, .06);
+  plain(logistics, [x, .9, -1.25], [.4, .025, .34], mats.frame);
 }
 // Narrow maintenance spine is common to both tiers and fixes their envelope.
 box(structure, [0, 1.675, 1.17], [.62, 2.09, .58], mats.shell, .065);

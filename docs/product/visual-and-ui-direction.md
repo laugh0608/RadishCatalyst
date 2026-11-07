@@ -35,7 +35,7 @@
 
 既有资产的正式 / 共用 / 二维 / 实验归属见[资产盘点](../reference/asset-inventory-and-transition-v1.md)，重制前先核对[制作来源与导出映射](../reference/asset-source-and-export-map.md)。新代表场景选材不直接覆盖当前运行模型，历史像素锚点不作为新 3D 全项目锚点。
 
-首轮按[R1 镜头与代表场景](../features/factory-camera-and-representative-scene-v1.md)推进：R1-A 已选 C2，R1-B 新核心轮廓已导入独立样板，但后仓储块 / 前角支座仍挡部分托盘边缘，停在路线复盘，不进入精细材质。正式设置菜单后续随客户端整合接入，本轮不新增设置持久化。[资产需求](../design/factory-representative-asset-brief-v1.md)与[取景核算](../reference/factory-camera-study-layout-and-framing.md)继续区分设计、样板与认可。
+首轮按[R1 镜头与代表场景](../features/factory-camera-and-representative-scene-v1.md)推进：R1-A 已选 C2，R1-B 新核心轮廓已导入独立样板，结构收尾与审阅状态见 [R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline-04)。正式设置菜单后续随客户端整合接入，本轮不新增设置持久化。[资产需求](../design/factory-representative-asset-brief-v1.md)与[取景核算](../reference/factory-camera-study-layout-and-framing.md)继续区分设计、样板与认可。
 
 最终模型精细度、角色动画和完整量产资产范围未冻结；不新开介质对照或全资产重做。图像生成 / 素材落盘遵循[工作流](../process/image-generation-and-review-workflow.md)，新增外部资产 / 工具仍需按项目授权。
 
