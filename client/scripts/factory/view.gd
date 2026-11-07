@@ -265,6 +265,38 @@ func project(point: Vector3) -> Vector2:
 	return camera.unproject_position(point)
 
 
+func belt_inlet(screen: Vector2, cell: Vector2i) -> Dictionary:
+	var origin := camera.project_ray_origin(screen)
+	var direction := camera.project_ray_normal(screen)
+	var best := INF
+	var inlet := {}
+	for hint in port_hints.get_children():
+		if not hint.has_meta("inlet"):
+			continue
+		var dock: Vector2i = hint.get_meta("cell")
+		var center := Vector3(dock.x + 0.5, hint.position.y + 0.15, dock.y + 0.5)
+		var hit_point = Plane(Vector3.UP, center.y).intersects_ray(origin, direction)
+		if hit_point == null or absf(hit_point.x - center.x) > 0.42 or absf(hit_point.z - center.z) > 0.42:
+			continue
+		var distance := screen.distance_squared_to(project(center))
+		if distance < best:
+			best = distance
+			inlet = {"dock": dock, "target": hint.get_meta("inlet")}
+	if not inlet.is_empty():
+		return inlet
+	# A click on the inlet's device tile also works when it identifies one port.
+	var device: Dictionary = world_model.entity_at(cell)
+	if device.is_empty() or device.type == "belt":
+		return {}
+	for port in Model.BeltLogistics.ports(world_model, device, "input"):
+		if Vector2i(port.x, port.z) != cell:
+			continue
+		if not inlet.is_empty():
+			return {}
+		inlet = {"dock": cell + Vector2i(port.dx, port.dz), "target": cell}
+	return inlet
+
+
 func sample_screen() -> Vector2:
 	return project(Vector3(Model.DiscoveryRules.SAMPLE.x, 0.85, Model.DiscoveryRules.SAMPLE.y))
 
@@ -492,16 +524,22 @@ func draw(model: RefCounted, actor: Dictionary, ui: Dictionary) -> void:
 	if is_instance_valid(sample_icon):
 		sample_icon.scale = Vector3.ONE / zoom
 	var valid: bool = not ui.tool.is_empty() and model.placement(ui.tool, ui.cell, actor).ok
-	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, ui.stroke])
+	var hover_belt: bool = ui.tool == "belt" and model.entity_at(ui.cell).get("type", "") == "belt"
+	var stroke_target = ui.get("stroke_target")
+	var stroke_valid: bool = ui.get("stroke_valid", true)
+	var next_ghost := str([ui.tool, ui.cell, ui.dir, valid, hover_belt, ui.stroke, stroke_target, stroke_valid])
 	if next_ghost != ghost_key:
 		clear_node(ghost)
 		ghost_key = next_ghost
 		if not ui.stroke.is_empty():
-			var dirs := Model.path_directions(ui.stroke, ui.dir)
+			var dirs := Model.path_directions(ui.stroke, ui.dir, stroke_target)
+			var mat := valid_mat if stroke_valid else invalid_mat
 			for i in ui.stroke.size():
-				footprint(ghost, ui.stroke[i], Model.CATALOG.belt, valid_mat)
-				arrow(ghost, ui.stroke[i], dirs[i], valid_mat)
-		elif not ui.tool.is_empty():
+				footprint(ghost, ui.stroke[i], Model.CATALOG.belt, mat)
+				var marker := arrow(ghost, ui.stroke[i], dirs[i], mat)
+				if i == 0 and ui.get("stroke_reuse", false):
+					marker.position.y = 0.70
+		elif not ui.tool.is_empty() and not hover_belt:
 			var def: Dictionary = Model.CATALOG[ui.tool]
 			var mat := valid_mat if valid else invalid_mat
 			footprint(ghost, ui.cell, def, mat)
@@ -575,6 +613,8 @@ func _port_hint(model: RefCounted, e: Dictionary, show_dock: bool) -> void:
 			hint.set_meta("cell", cell)
 			hint.set_meta("role", role)
 			hint.set_meta("entity_id", e.get("id", -1))
+			if role == "input" and show_dock and e.has("id"):
+				hint.set_meta("inlet", Vector2i(port.x, port.z))
 			port_hints.add_child(hint)
 			var mat := input_hint_mat if role == "input" else output_hint_mat
 			var outward := Vector2i(port.dx, port.dz)

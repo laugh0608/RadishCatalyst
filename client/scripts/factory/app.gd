@@ -34,7 +34,8 @@ var original_content_size := Vector2i.ZERO
 var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
 	"focus_device": -1, "focus_ready": false, "blocked": false, "interaction_kind": "",
-	"power_from": 0, "power_hover": 0, "show_power_links": true, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null), "mission": true}
+	"power_from": 0, "power_hover": 0, "show_power_links": true, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null),
+	"stroke_target": null, "stroke_reuse": false, "stroke_valid": true, "mission": true}
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
@@ -252,6 +253,9 @@ func _sync_focus() -> bool:
 func _stop_pointer() -> void:
 	pointer = false
 	ui.stroke.clear()
+	ui.stroke_target = null
+	ui.stroke_reuse = false
+	ui.stroke_valid = true
 	ui.power_from = 0
 	ui.power_hover = 0
 
@@ -266,7 +270,7 @@ func _choose(type: String) -> void:
 	if type == "collector" and model.has_method("power_state"):
 		ui.cell = Vector2i(-20, -1)
 	actor.target = null
-	hud.announce("按住拖动铺带，松开确认；R 转向，Esc 取消。" if type == "belt" else "移动鼠标选择落位，点击放置；也可在下方 X / Z 精确调整。")
+	hud.announce("拖到入口箭头可接带；也可从已有带末端拖向下游。R 转向，Esc 取消。" if type == "belt" else "移动鼠标选择落位，点击放置；也可在下方 X / Z 精确调整。")
 
 
 func _commit() -> void:
@@ -508,10 +512,33 @@ func _click_sample() -> void:
 		hud.announce("样本在两格外；请用 WASD 走近，再按 F 或点击拾取。", true)
 
 
-func _preview(cell: Vector2i) -> void:
-	var result := model.extend_path(ui.stroke, cell)
+func _preview(cell: Vector2i, screen: Vector2) -> void:
+	var inlet := view.belt_inlet(screen, cell)
+	var aim: Vector2i = inlet.get("dock", cell)
+	var destination: Vector2i = inlet.get("target", cell)
+	ui.cell = aim
+	ui.stroke_target = null
+	ui.stroke_valid = true
+	if ui.stroke.is_empty() and model.entity_at(aim).get("type", "") == "belt":
+		ui.stroke.append(aim)
+		ui.stroke_reuse = true
+	var result := model.extend_path(ui.stroke, aim, int(ui.stroke_reuse))
 	ui.stroke = result.path
-	hud.announce("预览 %d 段 · 松开铺设，回拖缩短，Esc 取消" % ui.stroke.size() if result.ok else result.reason, not result.ok)
+	if model.belt_can_dock(ui.stroke, destination) and (inlet.is_empty() or ui.stroke.back() == aim):
+		ui.stroke_target = destination
+	if ui.stroke_reuse and (ui.stroke.size() > 1 or ui.stroke_target != null):
+		var dir := Model.path_directions(ui.stroke, ui.dir, ui.stroke_target)[0]
+		var join := model.belt_join_status(model.entity_at(ui.stroke[0]), dir)
+		ui.stroke_valid = join.ok
+		if not join.ok:
+			hud.announce(join.reason, true)
+			return
+	if ui.stroke_target != null:
+		hud.announce("松开接通 · 需新增 %d 段传送带" % (ui.stroke.size() - int(ui.stroke_reuse)))
+	elif ui.stroke_reuse and ui.stroke.size() == 1 and result.ok:
+		hud.announce("从这段传送带拖向下游，或点击相邻设备的入口箭头。")
+	else:
+		hud.announce("预览 %d 段 · 松开铺设，回拖缩短，Esc 取消" % (ui.stroke.size() - int(ui.stroke_reuse)) if result.ok else result.reason, not result.ok)
 
 
 func _input(event: InputEvent) -> void:
@@ -563,7 +590,7 @@ func _input(event: InputEvent) -> void:
 				if not event.button_mask & MOUSE_BUTTON_MASK_LEFT:
 					_stop_pointer()
 				else:
-					_preview(cell)
+					_preview(cell, screen)
 			_refresh()
 	elif event is InputEventMouseButton:
 		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
@@ -583,13 +610,17 @@ func _input(event: InputEvent) -> void:
 			if ui.tool == "belt":
 				ui.cell = cell
 				ui.stroke.clear()
-				_preview(cell)
+				_preview(cell, screen)
 		elif pointer:
 			if ui.tool == "belt":
+				_preview(cell, screen)
 				var path: Array[Vector2i] = ui.stroke.duplicate()
+				var target = ui.stroke_target
+				var reuse: bool = ui.stroke_reuse
 				_stop_pointer()
-				var result := model.place_path(path, ui.dir)
-				hud.announce("已铺设 %d 段传送带。" % result.entities.size() if result.ok else result.reason, not result.ok)
+				var result := model.place_path(path, ui.dir, target, reuse)
+				var message := "传送带已接通。" if target != null else "已铺设 %d 段传送带。" % result.get("entities", []).size()
+				hud.announce(message if result.ok else result.reason, not result.ok)
 			else:
 				_stop_pointer()
 				if pointer_start.distance_to(event.position) > 8:

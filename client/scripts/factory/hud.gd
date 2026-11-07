@@ -406,6 +406,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		var replacement: Dictionary = model.placement_replacement(ui.tool, ui.cell)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
+		if ui.tool == "belt" and model.entity_at(ui.cell).get("type", "") == "belt":
+			placement_reason.text = "已有传送带 · 可从未接通的末端拖动"
 		if valid.ok and not replacement.is_empty():
 			var recovered := Items.contents(replacement)
 			placement_reason.text = "替换传送带 · 返还带 ×1" + ("" if recovered.is_empty() else " · 物料回收至背包")

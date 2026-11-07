@@ -5,6 +5,7 @@ const STEP := 0.05
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const Rules := preload("res://data/factory/rules.gd")
 const DiscoveryRules := preload("res://data/factory/discovery_rules.gd")
+const BeltLogistics := preload("res://scripts/factory/logistics.gd")
 const CATALOG := DiscoveryRules.CATALOG
 const REFERENCE := {
 	"collector": Vector2i(-8, -1), "reactor": Vector2i(-1, -2),
@@ -150,7 +151,7 @@ func _place_entity(type: String, cell: Vector2i, dir: int) -> Dictionary:
 
 
 ## Follow the dominant axis first, stopping at the first obstacle (no auto-routing).
-func extend_path(path: Array[Vector2i], target: Vector2i) -> Dictionary:
+func extend_path(path: Array[Vector2i], target: Vector2i, reused := 0) -> Dictionary:
 	var next: Array[Vector2i] = path.duplicate()
 	var back := next.find(target)
 	if back >= 0:
@@ -168,7 +169,7 @@ func extend_path(path: Array[Vector2i], target: Vector2i) -> Dictionary:
 			var valid := placement("belt", cursor)
 			if not valid.ok:
 				return valid.merged({"path": next})
-			if next.size() >= kits.belt:
+			if next.size() - reused >= kits.belt:
 				return failure("传送带构件不足；松开铺下已预览部分").merged({"path": next})
 			var previous := next.find(cursor)
 			if previous >= 0:
@@ -178,11 +179,13 @@ func extend_path(path: Array[Vector2i], target: Vector2i) -> Dictionary:
 	return success({"path": next})
 
 
-static func path_directions(path: Array[Vector2i], dir: int) -> Array[int]:
+static func path_directions(path: Array[Vector2i], dir: int, destination: Variant = null) -> Array[int]:
 	var directions: Array[int] = []
 	for i in path.size():
 		if i + 1 < path.size():
 			directions.append(DIRS.find(path[i + 1] - path[i]))
+		elif destination != null:
+			directions.append(DIRS.find(destination - path[i]))
 		elif i > 0:
 			directions.append(DIRS.find(path[i] - path[i - 1]))
 		else:
@@ -190,28 +193,70 @@ static func path_directions(path: Array[Vector2i], dir: int) -> Array[int]:
 	return directions
 
 
-func place_path(path: Array[Vector2i], dir := 0) -> Dictionary:
+func belt_can_dock(path: Array[Vector2i], destination: Vector2i) -> bool:
+	if path.is_empty() or destination in path:
+		return false
+	var tail: Vector2i = path.back()
+	var delta := destination - tail
+	if delta not in DIRS:
+		return false
+	var output := {"x": tail.x, "z": tail.y, "dx": delta.x, "dz": delta.y}
+	return BeltLogistics.output_connection(self, output).ok
+
+
+func belt_join_status(e: Dictionary, direction: int) -> Dictionary:
+	if e.get("type", "") != "belt" or direction < 0 or direction >= DIRS.size():
+		return failure("请选择普通传送带与相邻入口")
+	if direction == e.dir:
+		return success()
+	var old_output: Vector2i = DIRS[e.dir]
+	if BeltLogistics.output_connection(self, {"x": e.x, "z": e.z, "dx": old_output.x, "dz": old_output.y}).ok:
+		return failure("这段传送带已有下游连接，请从未接通的末端接带")
+	if not e.cargo.is_empty() and e.entry == DIRS[direction]:
+		return failure("新出口与当前货物入口重合，请等货物离开后再接")
+	return success()
+
+
+func place_path(path: Array[Vector2i], dir := 0, destination: Variant = null, reuse_start := false) -> Dictionary:
 	if path.is_empty():
 		return failure("拖动经过空格后再松开铺设")
-	if path.size() > kits.belt:
+	if destination != null and not belt_can_dock(path, destination):
+		return failure("末段传送带与目标入口未接通")
+	if reuse_start and path.size() == 1 and destination == null:
+		return failure("请从这段传送带拖向相邻入口或空格")
+	if path.size() - int(reuse_start) > kits.belt:
 		return failure("传送带构件不足")
 	var seen := {}
-	for cell in path:
+	var new_belts := path.slice(1) if reuse_start else path
+	for cell in new_belts:
+		if seen.has(cell):
+			return failure("路径不能重复经过同一格")
 		var valid := placement("belt", cell)
 		if not valid.ok:
 			return valid
-		if seen.has(cell):
-			return failure("路径不能重复经过同一格")
 		seen[cell] = true
-	var directions := path_directions(path, dir)
+	var directions := path_directions(path, dir, destination)
 	for direction in directions:
 		if direction < 0 or direction > 3:
 			return failure("路径必须逐格正交相连")
-	# Validation precedes all mutations, including kit deduction.
+	# Validate the existing end before mutating either it or the new belts.
+	var turned := false
+	if reuse_start:
+		var existing := entity_at(path[0])
+		var valid := belt_join_status(existing, directions[0])
+		if not valid.ok:
+			return valid
+		if existing.dir != directions[0]:
+			existing.dir = directions[0]
+			if existing.cargo.is_empty():
+				existing.entry = -DIRS[existing.dir]
+			_refresh_neighbors(existing)
+			revision += 1
+			turned = true
 	var placed: Array[Dictionary] = []
-	for i in path.size():
+	for i in range(int(reuse_start), path.size()):
 		placed.append(place("belt", path[i], directions[i]).entity)
-	return success({"entities": placed})
+	return success({"entities": placed, "turned": turned})
 
 
 static func contents(e: Dictionary) -> Dictionary:
