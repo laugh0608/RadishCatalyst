@@ -44,12 +44,14 @@ function arrow(parent, point, direction, mat, scale = 1) {
 box(logistics, [0, .09, 0], [6, .18, 6], mats.frame, .035);
 box(structure, [0, .825, .35], [3.2, 1.25, 2.5], mats.shell, .13);
 box(logistics, [0, .3, .15], [3.4, .2, 3.1], mats.frame, .06);
-// Keep the rear corner supports; tuck the front pair and rear storage blocks inward to clear the trays.
-for (const [offsetX, z] of [[2.4, -2.35], [1.8, 1.95]]) {
-  for (const x of [-offsetX, offsetX]) {
-    box(structure, [x, .4, z], [.85, .44, .9], mats.shell, .08);
-    plain(logistics, [x, .635, z], [.5, .025, .5], mats.frame);
-  }
+for (const x of [-2.4, 2.4]) {
+  box(structure, [x, .4, -2.35], [.85, .44, .9], mats.shell, .08);
+  plain(logistics, [x, .635, -2.35], [.5, .025, .5], mats.frame);
+}
+// Low braces meet the front wall and leave the full south docking row clear.
+for (const x of [-1.15, 1.15]) {
+  box(structure, [x, .41, 1.6], [.48, .46, .44], mats.shell, .06);
+  plain(logistics, [x, .648, 1.65], [.31, .025, .23], mats.frame);
 }
 for (const x of [-1.05, 1.05]) {
   box(structure, [x, .57, -1.25], [.62, .64, .6], mats.shell, .06);
@@ -73,10 +75,13 @@ function module(parent, tier) {
 module(tierI, 1); module(tierII, 2);
 
 const ports = [];
-for (const [i, x] of [-1.5, -.5, .5, 1.5].entries()) ports.push({ id: `IN_N${i}`, role: 'input', point: [x, .31, -3], normal: [0, -1] });
-for (const [i, z] of [-1.5, 1.5].entries()) ports.push({ id: `IN_W${i}`, role: 'input', point: [-3, .31, z], normal: [-1, 0] });
-for (const [i, z] of [-1.5, -.5, .5, 1.5].entries()) ports.push({ id: `OUT_E${i}`, role: 'output', point: [3, .31, z], normal: [1, 0] });
-for (const [i, z] of [-.5, .5].entries()) ports.push({ id: `OUT_W${i}`, role: 'output', point: [-3, .31, z], normal: [-1, 0] });
+for (const [side, nx, nz] of [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]]) {
+  for (const [index, offset] of [-1.5, -.5, .5, 1.5].entries()) {
+    const output = index === 3;
+    ports.push({ id: output ? `OUT_${side}0` : `IN_${side}${index}`,
+      role: output ? 'output' : 'input', point: [3 * nx - nz * offset, .31, 3 * nz + nx * offset], normal: [nx, nz] });
+  }
+}
 for (const port of ports) {
   const [nx, nz] = port.normal, [x, , z] = port.point;
   const center = [x - nx * .43, .245, z - nz * .43];

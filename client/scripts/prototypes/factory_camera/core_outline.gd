@@ -24,7 +24,7 @@ func _ready() -> void:
 	add_child(asset)
 	var modules := asset.find_child("TierModules", true, false)
 	var anchors := asset.find_child("Ports", true, false)
-	if modules == null or anchors == null or modules.get_child_count() != 2 or anchors.get_child_count() != 12:
+	if modules == null or anchors == null or modules.get_child_count() != 2 or anchors.get_child_count() != 16:
 		fail("核心节点 / 端口数量不符合轮廓合同")
 		return
 	for id in ["I", "II"]:
@@ -34,7 +34,7 @@ func _ready() -> void:
 			return
 		variants.append(variant)
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST_PATH))
-	if not manifest is Dictionary or not manifest.has("ports"):
+	if not manifest is Dictionary or not manifest.get("ports") is Array or manifest.ports.size() != anchors.get_child_count():
 		fail("核心来源清单不可读")
 		return
 	for port in manifest.ports:
@@ -43,7 +43,7 @@ func _ready() -> void:
 		if anchor == null or not anchor.global_position.is_equal_approx(expected):
 			fail("核心端口锚点不匹配：" + port.id)
 			return
-		ports.append({"id": port.id, "role": port.role, "anchor": anchor,
+		ports.append({"id": port.id, "role": port.role, "anchor": anchor, "point": expected,
 			"normal": Vector2(port.normal[0], port.normal[1]),
 			"probe": Vector3(port.probe[0], port.probe[1], port.probe[2]), "samples": port.probe_samples})
 		var label := Label3D.new()

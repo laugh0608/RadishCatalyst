@@ -85,6 +85,18 @@ func _ready() -> void:
 	image.resized.connect(sync_resolution)
 	image.gui_input.connect(func(event: InputEvent): world_input.emit(event))
 	get_window().size_changed.connect(sync_resolution)
+	if not core_study: _add_camera_study_markers()
+	column.add_child(summary)
+	column.add_child(detail)
+	var help := Label.new()
+	help.text = "  WASD 移动 · 左键选中 · F 选近处设备（2格） · 滚轮调距离 / 高度 · R 旋转测量 · Esc 取消"
+	column.add_child(help)
+	for label in [summary, detail, help]:
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	call_deferred("sync_resolution")
+
+
+func _add_camera_study_markers() -> void:
 	for x in [-1.5, -0.5, 0.5, 1.5]: add_marker(Vector3(x, 0.31, -3), "", false)
 	for z in [-1.5, 1.5]: add_marker(Vector3(-3, 0.31, z), "", false)
 	var outputs := ["iron_ore", "carbon_ore", "metal_plate", "industrial_cell", "porous_carrier", "construction_pack"]
@@ -95,14 +107,13 @@ func _ready() -> void:
 	for z in [-0.5, 0.5]:
 		add_marker(Vector3(-3, 0.31, z), outputs[output], true)
 		output += 1
-	column.add_child(summary)
-	column.add_child(detail)
-	var help := Label.new()
-	help.text = "  WASD 移动 · 左键选中 · F 选近处设备（2格） · 滚轮调距离 / 高度 · R 旋转测量 · Esc 取消"
-	column.add_child(help)
-	for label in [summary, detail, help]:
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	call_deferred("sync_resolution")
+
+
+func add_core_markers(ports: Array[Dictionary]) -> void:
+	var output_items := {"OUT_N0": "metal_plate", "OUT_E0": "industrial_cell",
+		"OUT_S0": "porous_carrier", "OUT_W0": "construction_pack"}
+	for port in ports:
+		add_marker(port.point, output_items.get(port.id, ""), port.role == "output")
 
 
 func button(parent: Control, caption: String, kind: String, value: Variant) -> Button:
@@ -170,8 +181,8 @@ func refresh(view: Node3D, board: RefCounted, selected: int, measure: bool,
 	var selected_text := "点击设备查看轮廓；核心口位仅为密度标尺，非运行核心。"
 	if selected == -2: selected_text = "核心预留 6×6：本批仅检查占地与 12 口标尺，实际模型和遮挡留待 R1-B。"
 	if core_study:
-		selected_text = "核心结构 %s · 6×6 / 12 口 · %s · 点击模型或 F 近选，无库存 / 研究 / 供电玩法。" % [
-			"I" if view.core.tier == 1 else "II", "邻带接入" if board.belts_connected else "空口"]
+		selected_text = "核心结构 %s · 6×6 / %d 口 · 每面三进一出 · %s · 仅审阅几何。" % [
+			"I" if view.core.tier == 1 else "II", view.core.ports.size(), "邻带接入" if board.belts_connected else "空口"]
 		if board.board_id == "D": selected_text = "密集板仅作设备对照；核心轮廓在主板 P 中显示。"
 		if not selected_port.is_empty(): selected_text = "已选端口 " + selected_port + " · 仅几何锚点，无物流配置。"
 	for entity in board.entities:

@@ -4,6 +4,7 @@ extends "res://scripts/factory/model.gd"
 var board_id := "P"
 var core_reserved := Rect2(-3, -3, 6, 6)
 var belts_connected := true
+var core_ports: Array[Dictionary] = []
 
 
 func _init() -> void:
@@ -21,12 +22,12 @@ func set_board(value: String) -> void:
 		add_sample("reactor", 5, -1)
 		add_sample("storage", 1, 6)
 		add_sample("cell_generator", 7, 5)
-		add_sample("power_junction", 2, 3)
+		if core_ports.is_empty():
+			add_sample("power_junction", 2, 3)
+		else:
+			add_sample("power_junction", 5, 4)
 		if belts_connected:
-			for x in range(-2, 2): add_sample("belt", x, -4, 1)
-			for z in range(-2, 2):
-				add_sample("belt", -4, z, 0 if z in [-2, 1] else 2)
-				add_sample("belt", 3, z, 0)
+			_add_core_belts()
 		actor.x = -1.0
 		actor.z = 5.0
 	else:
@@ -41,6 +42,21 @@ func set_board(value: String) -> void:
 	actor.target = null
 	rebuild_indexes()
 	revision += 1
+
+
+func _add_core_belts() -> void:
+	if core_ports.is_empty():
+		# Keep the R1-A camera comparison board's original port fixture.
+		for x in range(-2, 2): add_sample("belt", x, -4, 1)
+		for z in range(-2, 2):
+			add_sample("belt", -4, z, 0 if z in [-2, 1] else 2)
+			add_sample("belt", 3, z, 0)
+		return
+	for port in core_ports:
+		var point: Vector3 = port.point
+		var normal: Vector2 = port.normal
+		var travel := Vector2i(normal if port.role == "output" else -normal)
+		add_sample("belt", floori(point.x + normal.x * 0.5), floori(point.z + normal.y * 0.5), DIRS.find(travel))
 
 
 func add_sample(type: String, x: int, z: int, dir := 0) -> void:

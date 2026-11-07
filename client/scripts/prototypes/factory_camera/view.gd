@@ -24,8 +24,7 @@ var core_frame := true
 func _ready() -> void:
 	var files := {"yard": "yard", "collector": "collector", "reactor": "refinement/reactor",
 		"storage": "storage", "cell_generator": "energy/cell_generator",
-		"power_junction": "power/power-junction", "engineer": "engineer"}
-	for mask in [2, 4, 6, 8, 10, 12, 14]: files["belt-%d" % mask] = "belt-%d" % mask
+		"power_junction": "power/power-junction", "engineer": "engineer", "belt": "belt-4"}
 	for key in files:
 		var resource = load(ASSET_ROOT + files[key] + ".glb")
 		if not resource is PackedScene:
@@ -94,7 +93,7 @@ func _rebuild(model: RefCounted) -> void:
 		add_child(root)
 		var shape: Dictionary = Model.CATALOG[e.type]
 		root.position = Vector3(e.x + shape.w * 0.5, 0, e.z + shape.d * 0.5)
-		var asset: Node3D = assets["belt-2" if e.type == "belt" else e.type].instantiate()
+		var asset: Node3D = assets[e.type].instantiate()
 		root.add_child(asset)
 		if e.type == "belt": asset.rotation.y = -e.dir * PI / 2
 		var parts := asset.find_children("*", "MeshInstance3D", true, false)

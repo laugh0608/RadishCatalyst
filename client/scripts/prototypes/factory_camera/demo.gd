@@ -29,6 +29,10 @@ func _ready() -> void:
 	hud.core_study = core_study
 	add_child(hud)
 	hud.viewport.add_child(view)
+	if core_study and view.prepared:
+		board.core_ports = view.core.ports
+		board.set_board("P")
+		hud.add_core_markers(view.core.ports)
 	view.set_board_target(board.board_id)
 	hud.action.connect(act)
 	hud.world_input.connect(world_input)

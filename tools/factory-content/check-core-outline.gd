@@ -49,20 +49,33 @@ func run() -> void:
 	expect(result.boot.factory_save_root == path.path_join("isolated/factory"), "Factory root isolated")
 	expect(result.boot.slice_save_catalog._root_dir == path.path_join("isolated/slice"), "Slice root isolated")
 	expect(demo.view.preset == 2 and demo.view.follow and demo.view.span == 21, "C2 default retained")
-	expect(core.ports.size() == 12 and core.parts.size() == 5, "Imported anchors and both variant batches")
-	var expected := {}
-	for i in 4: expected["IN_N%d" % i] = Vector3(-1.5 + i, 0.31, -3)
-	for i in 2: expected["IN_W%d" % i] = Vector3(-3, 0.31, -1.5 + 3 * i)
-	for i in 4: expected["OUT_E%d" % i] = Vector3(3, 0.31, -1.5 + i)
-	for i in 2: expected["OUT_W%d" % i] = Vector3(-3, 0.31, -0.5 + i)
+	expect(core.ports.size() == 16 and core.parts.size() == 5, "Imported anchors and both variant batches")
+	var expected := {
+		"IN_N0": Vector3(-1.5, 0.31, -3), "IN_N1": Vector3(-0.5, 0.31, -3),
+		"IN_N2": Vector3(0.5, 0.31, -3), "OUT_N0": Vector3(1.5, 0.31, -3),
+		"IN_E0": Vector3(3, 0.31, -1.5), "IN_E1": Vector3(3, 0.31, -0.5),
+		"IN_E2": Vector3(3, 0.31, 0.5), "OUT_E0": Vector3(3, 0.31, 1.5),
+		"IN_S0": Vector3(1.5, 0.31, 3), "IN_S1": Vector3(0.5, 0.31, 3),
+		"IN_S2": Vector3(-0.5, 0.31, 3), "OUT_S0": Vector3(-1.5, 0.31, 3),
+		"IN_W0": Vector3(-3, 0.31, 1.5), "IN_W1": Vector3(-3, 0.31, 0.5),
+		"IN_W2": Vector3(-3, 0.31, -0.5), "OUT_W0": Vector3(-3, 0.31, -1.5),
+	}
+	expect(demo.hud.marker_points.size() == expected.size(), "One marker per core port")
 	for port in core.ports:
 		expect(expected.has(port.id) and port.anchor.global_position.is_equal_approx(expected[port.id]), "Imported port " + port.id)
 		var at: Vector3 = port.anchor.global_position
 		var normal: Vector2 = port.normal
+		var outward := Vector2(at.x if absf(at.x) > 2.9 else 0.0, at.z if absf(at.z) > 2.9 else 0.0).normalized()
+		expect(normal == outward and port.role == ("output" if port.id.begins_with("OUT_") else "input"), "Port role and outward normal " + port.id)
+		expect(demo.hud.marker_points.has(at), "Marker at anchor " + port.id)
 		var cell := Vector2i(floori(at.x + normal.x * 0.5), floori(at.z + normal.y * 0.5))
 		var belt: Dictionary = demo.board.entity_at(cell)
 		var travel: Vector2 = normal if port.role == "output" else -normal
-		expect(not belt.is_empty() and belt.type == "belt" and Vector2(demo.board.DIRS[belt.dir]) == travel, "Belt alignment " + port.id)
+		var belt_model: Node3D = null
+		if not belt.is_empty() and belt.type == "belt" and demo.view.models.has(belt.id):
+			belt_model = demo.view.models[belt.id].root.get_child(0)
+		expect(belt_model != null and belt_model.scene_file_path == "res://assets/factory/belt-4.glb"
+			and belt_model.basis.x.is_equal_approx(Vector3(travel.x, 0, travel.y)), "Straight belt alignment " + port.id)
 	var tier_bounds: Array[AABB] = []
 	for tier in [1, 2]:
 		demo.act("tier", tier)
@@ -107,9 +120,9 @@ func run() -> void:
 	expect(Vector2(demo.board.actor.x, demo.board.actor.z).is_equal_approx(position_before), "Belt toggle preserves actor")
 	demo.act("core_belts", null)
 	await process_frame
-	expect(demo.board.entities.size() == 17 and demo.view.models.size() == 17, "Neighbor belts restored")
+	expect(demo.board.entities.size() == 21 and demo.view.models.size() == 21, "Neighbor belts restored")
 	demo.act("core_names", null)
-	expect(core.names_visible and core.labels.size() == 12, "12 port names")
+	expect(core.names_visible and core.labels.size() == 16, "16 port names")
 	for label in core.labels: expect(not label.no_depth_test, "Port label is depth tested")
 	demo.act("reset", null)
 	for destination in [Vector2(-5, 5), Vector2(-5, -5), Vector2(4, -5), Vector2(4, 5), Vector2(-1, 5)]:
@@ -128,7 +141,7 @@ func run() -> void:
 	expect(not core.visible and demo.view.models.size() == 31, "Dense board keeps core hidden")
 	demo.act("board", "P")
 	await process_frame
-	expect(core.visible and demo.board.entities.size() == 17, "Core restored with main board")
+	expect(core.visible and demo.board.entities.size() == 21, "Core restored with main board")
 	expect(not DirAccess.dir_exists_absolute(path.path_join("isolated/factory"))
 		and not DirAccess.dir_exists_absolute(path.path_join("isolated/slice")), "Neither world save root created")
 	DirAccess.make_dir_recursive_absolute(path)
