@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：**方向已确认、合同已完成首轮细化，正式玩法未实施；R1-A 镜头已选，R1-B 已按亲测反馈调整为四面端口，待新轮廓审阅。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**方向已确认、合同已完成首轮细化，正式玩法未实施；R1-A 镜头已选，R1-B 四面端口轮廓已获认可。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 
@@ -17,7 +17,7 @@
 | [能源](factory-fixed-burn-energy-v1.md) | 固定燃烧、供需 / 弃能、自救、后续储能与控制边界 |
 | [存档](../architecture/factory-integrated-demo-save-v1.md) | 独立身份、权威字段、守恒、严格恢复、旧世界保护 |
 | [布局与预算](../reference/factory-integrated-demo-layout-and-budget.md) | 候选坐标、端口、物料 / 电力 / 供给核算与证据等级 |
-| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 / 21 格 / 跟随；R1-B 四面端口候选，待新轮廓审阅；精细材质未制作 |
+| [R1 镜头 / 代表场景](factory-camera-and-representative-scene-v1.md) | R1-A 已选 C2 / 21 格 / 跟随；R1-B `outline-06` 四面端口轮廓已获认可；精细材质未制作 |
 
 <a id="capability-slices"></a>
 

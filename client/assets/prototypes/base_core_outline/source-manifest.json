@@ -2,13 +2,13 @@
   "purpose": "R1-B prototype silhouette only; no gameplay, fine materials or textures",
   "source": "Repository-authored editable geometry; no external asset pack",
   "license": "Project-authored; existing Three.js MIT dependency",
-  "command": "node tools/factory-content/export-core-outline.mjs outline-05 --publish-prototype",
+  "command": "node tools/factory-content/export-core-outline.mjs outline-06 --publish-prototype",
   "three_version": "185",
   "status": "outline candidate; owner review pending",
   "files": {
     "core-outline.glb": {
       "bytes": 469476,
-      "sha256": "8e2cc2dc17e224ef9e706e1eeb80cb7ee0798a03253f90461cada128a7281148",
+      "sha256": "a91e72017ae17a8a9a3fb910cac5b7e44f0dec0cc70b400c4036eb52a0c40bc4",
       "root": "BaseCore",
       "footprint": [
         6,
@@ -763,7 +763,7 @@
     }
   ],
   "sources": {
-    "tools/factory-content/export-core-outline.mjs": "2663e1fd4c807e5bec7c66bf194ca3d0e84b142a12804bd8700e254c65a2a377",
+    "tools/factory-content/export-core-outline.mjs": "76d0381a0d22358fb2eaf1f3bff74e9ef4c011cd28681352c748a4d14f39f8fe",
     "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
     "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
     "tools/visual-studies/web-topdown-3d/world-model.mjs": "bcab6045dd7218eca4d8dfeb8b63a93c58740f419b518ff8975818e725001412",

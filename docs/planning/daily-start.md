@@ -8,7 +8,7 @@
 
 ## 当前交接
 
-- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；轮廓已按亲测反馈改为四面各三进一出，待萝卜SAMA审阅新候选。正式核心 / 研究 / 能源 / 存档代码继续冻结。
+- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B 轮廓实施；轮廓已按亲测反馈改为四面各三进一出，`outline-06` 已获萝卜SAMA认可。正式核心 / 研究 / 能源 / 存档代码继续冻结。
 - 核心每物品 99,999、等级解锁能力；初始电力按设备预算确定，固定燃烧与后续可选 PWM；Godot 3D / GDScript、生产经营主线与工业科幻方向已确认。
 - 主视角已选：[R1-A](../features/factory-camera-and-representative-scene-v1.md)亲测后，萝卜SAMA选 C2 透视正向、默认 21 格、跟随角色；滚轮调节距离 / 高度，保持俯角与 FOV。R1-B 保持此镜头，旧正式世界镜头尚未接入。
 - E1 / E2 / V8 及原 D3 / D4 工程能力继续复用；客户端当前仍按旧合同运行，旧档和亲测进度保留。E3 支路未实现，开路后持续收益纳入统一路线设计。
@@ -17,14 +17,13 @@
 
 ## 当前接续事项
 
-11 月 7 日 `outline-04` 完成 12 口遮挡复测。收到亲测反馈后，另建四面 16 口的 `outline-05`；直带、前壁低支座与本轮验证见 [R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline-05)。
+11 月 7 日 `outline-04` 完成 12 口遮挡复测。收到亲测反馈后，另建四面 16 口的 `outline-05`；`outline-06` 将南侧低支座移到外角。直带、四角装饰与复测见 [R1-B](../features/factory-camera-and-representative-scene-v1.md#r1-b-outline-06)。
 
 当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
 
-1. 先由萝卜SAMA审阅 `outline-05`，重点看南侧四口、前壁支座、直带及最小窗口下的辨识。
-2. R1-B 获轮廓认可后再明确 R1-C / D 授权。正式整合仍未实现，不把 I / II 网格切换当升级、不把接带外观当物流，也不把角色样点当全身可见率。
-3. 按新端口复算 S0 / [S1-P](../reference/factory-integrated-demo-layout-and-budget.md#s1-parallel) 布线，接续核对自举、自然供给与能源收益；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
-4. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
+1. 先确认 R1-C / D 范围。R1-C 用认可的 `outline-06`、代表反应器和地表做同场材质对照；R1-D 再合验可读性、操作和性能增量。
+2. 按新端口复算 S0 / [S1-P](../reference/factory-integrated-demo-layout-and-budget.md#s1-parallel) 布线，接续核对自举、自然供给与能源收益；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
+3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 
 ## 边界与验证
 

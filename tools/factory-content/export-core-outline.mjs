@@ -47,11 +47,9 @@ box(logistics, [0, .3, .15], [3.4, .2, 3.1], mats.frame, .06);
 for (const x of [-2.4, 2.4]) {
   box(structure, [x, .4, -2.35], [.85, .44, .9], mats.shell, .08);
   plain(logistics, [x, .635, -2.35], [.5, .025, .5], mats.frame);
-}
-// Low braces meet the front wall and leave the full south docking row clear.
-for (const x of [-1.15, 1.15]) {
-  box(structure, [x, .41, 1.6], [.48, .46, .44], mats.shell, .06);
-  plain(logistics, [x, .648, 1.65], [.31, .025, .23], mats.frame);
+  // Mirror the corner outline, with the south caps below the tray sightline samples.
+  box(structure, [x, .25, 2.35], [.85, .14, .9], mats.shell, .045);
+  plain(logistics, [x, .329, 2.35], [.5, .018, .5], mats.frame);
 }
 for (const x of [-1.05, 1.05]) {
   box(structure, [x, .57, -1.25], [.62, .64, .6], mats.shell, .06);
