@@ -301,8 +301,10 @@ func refresh() -> void:
 		return
 	heading.text = "%s  #%d" % [Rules.CATALOG[e.type].name, e.id] if device_only else "背包" if inventory_only else "工艺、物料与矿道"
 	inventory.text = "背包  ·  %d / 200 件" % Items.count(model.bag)
-	guide_overview.text = Guidance.overview(model)
-	summary.text = "外矿道：%s　内矿道：%s\n试制掌握量产方法；携带解壳剂在矿道西侧使用。" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
+	var integrated: bool = model.supply_id == Rules.Integrated.SUPPLY_ID
+	guide_overview.text = "样本支持核心的样本工艺研究。试制消耗唯一实物。" if integrated else Guidance.overview(model)
+	summary.text = "外矿道：%s　内矿道：%s" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
+	summary.text += "\n完成矿壳试制后，携带解壳剂在矿道西侧使用。" if integrated else "\n试制掌握量产方法；携带解壳剂在矿道西侧使用。"
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed

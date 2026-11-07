@@ -64,7 +64,7 @@ var replacement_preview_tool := ""
 
 
 func _ready() -> void:
-	get_window().title = "异星催化 · 核心 I 复核" if transient_review else "异星催化 · 工厂世界"
+	get_window().title = "异星催化 · 基地核心复核" if transient_review else "异星催化 · 工厂世界"
 	ui.transient_review = transient_review
 	original_content_size = get_window().content_scale_size
 	original_min_size = get_window().min_size
@@ -86,7 +86,7 @@ func _ready() -> void:
 	add_child(core_panel)
 	core_panel.closed.connect(_refresh)
 	core_panel.pause_requested.connect(func(): _set_paused(not ui.paused))
-	hud.announce("核心 I · 复核进度仅保留在本次会话。" if transient_review else "从青色矿点开始，选择采集器放下第一台设备。")
+	hud.announce("基地核心复核 · 进度保留在本次会话。" if transient_review else "从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
 	hud.sync_sample(view, model, ui)
@@ -314,14 +314,14 @@ func _turn() -> void:
 func _action(name: String, value: Variant) -> void:
 	if core_panel.visible:
 		return
-	if transient_review and name in Model.DiscoveryRules.Integrated.LOCKED:
+	if transient_review and model.kits.has(name) and (name == Model.DiscoveryRules.Energy.GENERATOR or not model.device_unlocked(name)):
 		return
 	if Model.CATALOG.has(name) and model.kits.has(name):
 		_choose(name)
 	else:
 		match name:
 			"assemble":
-				if model.has_method("assemble") and not model.assembly_costs.is_empty():
+				if not transient_review and model.has_method("assemble") and not model.assembly_costs.is_empty():
 					var result: Dictionary = model.assemble(hud.assembly_target.get_selected_metadata())
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)

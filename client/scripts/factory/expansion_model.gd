@@ -102,18 +102,27 @@ func owned_count() -> int:
 
 
 func assemble(type: String) -> Dictionary:
+	var quote := _assembly_quote(type, bag, Expansion.MAX_OWNED, "背包")
+	return _commit_assembly(type, bag, quote) if quote.ok else quote
+
+
+func _assembly_quote(type: String, stock: Dictionary, limit: int, stock_name: String) -> Dictionary:
 	if not assembly_costs.has(type): return failure("此构件不能装配")
 	var cost: int = assembly_costs[type]
 	var quantity := Expansion.yield_for(type)
-	if bag.get("construction_pack", 0) < cost: return failure("背包需要 %d 个构件包" % cost)
-	if owned_count() > Expansion.MAX_OWNED - quantity: return failure("总拥有量上限 326，整批还需 %d 个空位" % quantity)
+	if stock.get("construction_pack", 0) < cost: return failure("%s需要 %d 个构件包" % [stock_name, cost])
+	if owned_count() > limit - quantity: return failure("总拥有量上限 %d，整批还需 %d 个空位" % [limit, quantity])
 	if assembly_counts[type] >= MAX_COUNTER: return failure("装配计数已达上限")
-	Items.add(bag, "construction_pack", -cost)
-	kits[type] += quantity
-	assembly_counts[type] += 1
-	statistics.event("consumed", "construction_pack", cost)
-	revision += 1
 	return success({"type": type, "quantity": quantity, "cost": cost})
+
+
+func _commit_assembly(type: String, stock: Dictionary, quote: Dictionary) -> Dictionary:
+	Items.add(stock, "construction_pack", -quote.cost)
+	kits[type] += quote.quantity
+	assembly_counts[type] += 1
+	statistics.event("consumed", "construction_pack", quote.cost)
+	revision += 1
+	return quote
 
 
 func material_balance() -> Dictionary:

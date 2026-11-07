@@ -6,13 +6,13 @@
 
 **统一 Demo 与第一轮成长：隔离实现核心、研究与能源。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，B1 核心 I 已接入隔离 Boot；研究、固定燃烧与正式存档仍属合同设计。
+**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，B1 核心 I 与 B2 研究、核心 II 已接入隔离 Boot。C 固定燃烧与正式存读接续实施。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
 ## 当前顺位
 
-1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 首包](../features/factory-base-core-v1.md#b1-first-delivery)已实现核心 I、16 口、库存与接口，隔离复核首件板材自动回仓；正式菜单尚未开放。下一包按总合同推进 B2 研究、核心 II 与构件装配。
+1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 首包](../features/factory-base-core-v1.md#b1-first-delivery)已实现核心 I、16 口、库存与接口，隔离复核首件板材自动回仓；正式菜单尚未开放。[B2](../features/factory-research-and-progression-v1.md#b2-delivery)已验证七节点、核心 II 与自然产出的首颗电芯。下一包 C 接入[固定燃烧](../features/factory-fixed-burn-energy-v1.md)和[整合存读](../architecture/factory-integrated-demo-save-v1.md)，通过联合验证后开放正式新建。
 2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 已完成离线布线复算，B1 已验证 S0 的采铁直炼子路线；并行供给、玩家操作量和扩建收益待复核。后续按研究与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。

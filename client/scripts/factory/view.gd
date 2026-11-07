@@ -267,7 +267,7 @@ func sample_screen() -> Vector2:
 
 
 func hit_sample(screen: Vector2) -> bool:
-	if integrated_camera or not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
+	if not world_model.has_method("near_sample") or world_model.discovery.sample_taken:
 		return false
 	if screen.distance_to(sample_screen()) <= 18:
 		return true
@@ -381,7 +381,7 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 	add_child(root)
 	var def: Dictionary = Model.CATALOG[e.type]
 	root.position = Vector3(e.x + def.w * 0.5, 0, e.z + def.d * 0.5)
-	var result := {"root": root, "mask": mask, "dir": e.dir}
+	var result := {"root": root, "mask": mask, "dir": e.dir, "level": e.get("level", 0)}
 	if e.type == "belt":
 		var belt: Node3D = assets["belt-%d" % mask].instantiate()
 		root.add_child(belt)
@@ -396,7 +396,8 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 		root.add_child(asset)
 		if e.type == Integrated.CORE:
 			var tiers := asset.find_child("TierModules", true, false)
-			tiers.get_node("II").hide()
+			tiers.get_node("I").visible = e.level == 1
+			tiers.get_node("II").visible = e.level == 2
 			result.output_icons = {}
 			for port in Integrated.ports(Vector2i.ZERO, "output"):
 				var icon := Sprite3D.new()
@@ -443,7 +444,7 @@ func _rebuild(model: RefCounted) -> void:
 				mask |= 1 << ((side - e.dir + 4) % 4)
 			if mask == 0:
 				mask = 4
-		if models.has(e.id) and (models[e.id].mask != mask or models[e.id].dir != e.dir):
+		if models.has(e.id) and (models[e.id].mask != mask or models[e.id].dir != e.dir or models[e.id].level != e.get("level", 0)):
 			remove_child(models[e.id].root)
 			models[e.id].root.queue_free()
 			models.erase(e.id)
@@ -653,7 +654,7 @@ func _build_mineral_barriers() -> void:
 				barriers.add_child(shell)
 				shell.position = Vector3(x + 8, 0, z + 1)
 
-	if not integrated_camera and not world_model.discovery.sample_taken:
+	if not world_model.discovery.sample_taken:
 		sample = assets.ore.instantiate()
 		barriers.add_child(sample)
 		sample.scale = Vector3.ONE * 0.3

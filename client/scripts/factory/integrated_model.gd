@@ -1,7 +1,10 @@
 extends "res://scripts/factory/expansion_model.gd"
 
 const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Progression := preload("res://data/factory/integrated_progression.gd")
+const Energy := preload("res://data/factory/energy_rules.gd")
 var core: Dictionary
+var researched := {Progression.BASE: true}
 
 
 func _init() -> void:
@@ -9,8 +12,13 @@ func _init() -> void:
 	map_id = Integrated.MAP_ID
 	supply_id = Integrated.SUPPLY_ID
 	kits = Integrated.SUPPLY.duplicate()
-	assembly_costs.clear()
-	assembly_counts.clear()
+	kits[Energy.GENERATOR] = 0
+	assembly_costs[Energy.GENERATOR] = 3
+	assembly_counts[Energy.GENERATOR] = 0
+	recipes.merge(Energy.RECIPES)
+	completed_by_recipe[Energy.RECIPE] = 0
+	item_ids.append(Energy.CELL)
+	admission_items.append(Energy.CELL)
 	actor.x = Integrated.SPAWN.x
 	actor.z = Integrated.SPAWN.y
 	var outputs := {}
@@ -27,7 +35,9 @@ func _init() -> void:
 func placement(type: String, cell: Vector2i, player: Variant = null) -> Dictionary:
 	if type == Integrated.CORE:
 		return failure("基地核心由地图预置")
-	if type in Integrated.LOCKED:
+	if type == Energy.GENERATOR:
+		return failure("固定燃烧阶段开放发电机安装")
+	if kits.has(type) and not device_unlocked(type):
 		return failure("该构件尚未研究")
 	return super.placement(type, cell, player)
 
@@ -38,16 +48,130 @@ func salvage(id: int, confirmed := false) -> Dictionary:
 	return super.salvage(id, confirmed)
 
 
+func device_research(type: String) -> String:
+	for id in Progression.NODES:
+		if type in Progression.NODES[id].devices:
+			return id
+	return ""
+
+
+func device_unlocked(type: String) -> bool:
+	return researched.has(device_research(type))
+
+
 func recipe_available(id: String) -> bool:
-	return id in Integrated.RECIPES
-
-
-func near_sample() -> bool:
+	if id == "solvent_trial" and (not discovery.sample_taken or discovery.trial_completed):
+		return false
+	if id == "rich_catalyst" and not discovery.passages.inner:
+		return false
+	for node in researched:
+		if id in Progression.NODES[node].recipes:
+			return true
 	return false
 
 
-func near_passage(_id: String) -> bool:
-	return false
+func item_known(item: String) -> bool:
+	return recipe_available(Energy.RECIPE) if item == Energy.CELL else super.item_known(item)
+
+
+func missing_stock(cost: Dictionary) -> Dictionary:
+	var missing := {}
+	for item in cost:
+		var count: int = cost[item] - core.items.get(item, 0)
+		if count > 0:
+			missing[item] = count
+	return missing
+
+
+func _missing_research(required: Array) -> PackedStringArray:
+	var missing := PackedStringArray()
+	for id in required:
+		if not researched.has(id):
+			missing.append(Progression.NODES[id].name)
+	return missing
+
+
+func research_status(id: String) -> Dictionary:
+	if not near_entity(core):
+		return failure("请走到基地核心两格内")
+	if not Progression.NODES.has(id):
+		return failure("未知研究")
+	if researched.has(id):
+		return failure("已完成研究")
+	var node: Dictionary = Progression.NODES[id]
+	if core.level < node.level:
+		return failure("需要核心 II")
+	var missing := _missing_research(node.requires)
+	if not missing.is_empty():
+		return failure("先研究 " + "、".join(missing))
+	if node.sample and not discovery.sample_taken:
+		return failure("先在外矿道入口拾取矿壳样本")
+	if not Items.contains(core.items, node.cost):
+		return failure("核心缺少 " + Items.describe(missing_stock(node.cost)))
+	return success()
+
+
+func research(id: String) -> Dictionary:
+	var status := research_status(id)
+	if not status.ok:
+		return status
+	_consume_core(Progression.NODES[id].cost)
+	researched[id] = true
+	revision += 1
+	return success()
+
+
+func upgrade_status() -> Dictionary:
+	if not near_entity(core):
+		return failure("请走到基地核心两格内")
+	if core.level != 1:
+		return failure("核心已升至 II")
+	var missing := _missing_research(Progression.II_REQUIRES)
+	if not missing.is_empty():
+		return failure("先研究 " + "、".join(missing))
+	if not Items.contains(core.items, Progression.II_COST):
+		return failure("核心缺少 " + Items.describe(missing_stock(Progression.II_COST)))
+	return success()
+
+
+func upgrade_core() -> Dictionary:
+	var status := upgrade_status()
+	if not status.ok:
+		return status
+	_consume_core(Progression.II_COST)
+	core.level = 2
+	revision += 1
+	return success()
+
+
+func assembly_status(type: String) -> Dictionary:
+	if not near_entity(core):
+		return failure("请走到基地核心两格内")
+	if not researched.has(Progression.ASSEMBLY):
+		return failure("先研究精密装配")
+	if not device_unlocked(type):
+		return failure("先研究此构件")
+	return _assembly_quote(type, core.items, Progression.MAX_OWNED, "核心")
+
+
+func assemble(type: String) -> Dictionary:
+	var quote := assembly_status(type)
+	return _commit_assembly(type, core.items, quote) if quote.ok else quote
+
+
+func extra_consumption() -> Dictionary:
+	var consumed := {}
+	for id in researched:
+		Items.merge(consumed, Progression.NODES[id].cost)
+	if core.level >= 2:
+		Items.merge(consumed, Progression.II_COST)
+	return consumed
+
+
+func _consume_core(cost: Dictionary) -> void:
+	Items.merge(core.items, cost, -1)
+	for item in cost:
+		statistics.event("consumed", item, cost[item])
 
 
 func configure_output(id: int, port_id: String, item: String, enabled: bool) -> Dictionary:

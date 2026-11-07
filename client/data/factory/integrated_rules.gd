@@ -12,8 +12,6 @@ const COOLDOWN_TICKS := 20
 const MODEL_PATH := "res://assets/prototypes/base_core_outline/core-outline.glb"
 const SUPPLY := {"collector": 3, "reactor": 1, "crusher": 1, "refinery": 1, "assembler": 1,
 	"storage": 2, "power_junction": 12, "belt": 256, "splitter": 4, "merger": 4, "admission_gate": 4}
-const LOCKED := ["reactor", "crusher", "assembler"]
-const RECIPES := ["direct_refining", "direct_sintering"]
 
 # Clockwise, listing the three inputs and then the output on each face.
 const FACES := ["N", "E", "S", "W"]

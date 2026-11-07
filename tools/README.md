@@ -25,7 +25,7 @@ R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用
 
 ## 正式工厂定向检查
 
-- 基地核心 B1：`sh tools/check-factory-base-core.sh state` 检查多口、库存、冷却和自然板材回仓；`window` 用隔离 Boot 操作并截图，`framing` 检查最小窗口的缩放与四个输出图标。`play` 打开空物料的 S0 子路线，`empty-yard` 仅预置核心。除 `state` 外都会开 Godot 窗口；进度只在内存，日志与原图保存在 `tools/runtime-intake/check-runs/factory-base-core-v1/<batch>/`。
+- 基地核心 B1：`sh tools/check-factory-base-core.sh state` 检查多口、库存、冷却和自然板材回仓；`window` 用隔离 Boot 操作并截图，`framing` 检查最小窗口的缩放与四个输出图标。`play` 打开空物料的 S0 子路线，`empty-yard` 仅预置核心。`progression-state` 检查自然生产、七节点与材料账，`progression-window` 短测研究、升级和装配。两个 `state` 模式无需窗口，其余模式会开 Godot 窗口；进度只在内存，日志与原图保存在 `tools/runtime-intake/check-runs/factory-base-core-v1/<batch>/`。
 
 以下均使用已安装 Godot，启动前先告知；存档与日志仅写忽略的运行检查目录。完整隔离要求见 [Godot Runtime Verification Guide](../docs/reference/godot-runtime-verification-guide.md)，实际覆盖由脚本及当批日志确认。
 

@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：核心 I、16 口物流及库存 / 接口已实现于隔离 Boot；研究、升级与正式存读待后续包。几何和成本见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。阶段与发布边界见[总合同](factory-demo-integration-v1.md)。
+状态：核心 I–II、16 口物流及库存 / 接口已实现于隔离 Boot。研究与升级见[科技合同](factory-research-and-progression-v1.md#b2-delivery)，正式存读随 C 接续。几何和成本见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。阶段与发布边界见[总合同](factory-demo-integration-v1.md)。
 
 规划归属：[能力地图](README.md#production)。承接整合 B1；库存与端口任务 / 验收留在本文，研究和存档引用各自合同。
 

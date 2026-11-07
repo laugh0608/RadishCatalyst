@@ -1,6 +1,8 @@
 extends PanelContainer
 
 const Core := preload("res://data/factory/integrated_rules.gd")
+const Progression := preload("res://data/factory/integrated_progression.gd")
+const Rules := preload("res://data/factory/discovery_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const Logistics := preload("res://scripts/factory/logistics.gd")
@@ -19,6 +21,15 @@ var inputs := {}
 var result := Label.new()
 var pause_button := Button.new()
 var close_button := Button.new()
+var title: Label
+var research_choice: OptionButton
+var research_details: Label
+var research_button: Button
+var upgrade_details: Label
+var upgrade_button: Button
+var assembly_choice: OptionButton
+var assembly_details: Label
+var assembly_button: Button
 
 
 func _ready() -> void:
@@ -39,7 +50,7 @@ func _ready() -> void:
 	add_child(stack)
 	var header := HBoxContainer.new()
 	stack.add_child(header)
-	var title := _label(header, "基地核心 I")
+	title = _label(header, "基地核心 I")
 	title.add_theme_font_size_override("font_size", 24)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pause_button.text = "暂停生产"
@@ -48,7 +59,7 @@ func _ready() -> void:
 	close_button.text = "关闭 Esc"
 	close_button.pressed.connect(close)
 	header.add_child(close_button)
-	_label(stack, "基础供电 %.0f kW · 下一阶段：研究与核心升级" % Core.BASE_KW)
+	_label(stack, "基础供电 %.0f kW" % Core.BASE_KW)
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stack.add_child(tabs)
 	stack.add_child(result)
@@ -62,6 +73,7 @@ func open(world_model: RefCounted) -> void:
 	if outputs.is_empty():
 		_build_inventory()
 		_build_interfaces()
+		_build_progression()
 	for id in outputs:
 		var row: Dictionary = outputs[id]
 		var config: Dictionary = model.core.outputs[id]
@@ -175,10 +187,118 @@ func _build_interfaces() -> void:
 		inputs[port.id] = {"port": port, "status": _label(grid, "")}
 
 
+func _build_progression() -> void:
+	var content := _tab("研究")
+	_label(content, "从核心库存一次提交材料")
+	research_choice = OptionButton.new()
+	content.add_child(research_choice)
+	for id in Progression.NODES:
+		research_choice.add_item(Progression.NODES[id].name)
+		research_choice.set_item_metadata(research_choice.item_count - 1, id)
+	research_choice.select(1)
+	research_choice.item_selected.connect(func(_index): _refresh_progression())
+	research_details = _details(content)
+	research_button = _action_button(content, "提交研究", func():
+		_progress_result(model.research(research_choice.get_selected_metadata()), "研究完成"))
+	content = _tab("等级")
+	upgrade_details = _details(content)
+	upgrade_button = _action_button(content, "升至核心 II", func():
+		_progress_result(model.upgrade_core(), "已升至核心 II"))
+	content = _tab("装配")
+	_label(content, "构件包从核心扣除，成品进入建造库存")
+	assembly_choice = OptionButton.new()
+	content.add_child(assembly_choice)
+	for type in model.assembly_costs:
+		assembly_choice.add_item(Rules.CATALOG[type].name)
+		assembly_choice.set_item_metadata(assembly_choice.item_count - 1, type)
+	assembly_choice.item_selected.connect(func(_index): _refresh_progression())
+	assembly_details = _details(content)
+	assembly_button = _action_button(content, "装配构件", func():
+		var outcome: Dictionary = model.assemble(assembly_choice.get_selected_metadata())
+		_progress_result(outcome, "已装配 %d 件" % outcome.get("quantity", 0)))
+
+
+func _details(parent: Control) -> Label:
+	var label := _label(parent, "")
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+
+func _action_button(parent: Control, caption: String, action: Callable) -> Button:
+	var button := Button.new()
+	button.text = caption
+	button.pressed.connect(action)
+	parent.add_child(button)
+	return button
+
+
+func _requirements(ids: Array) -> String:
+	var names := PackedStringArray()
+	for id in ids:
+		names.append(Progression.NODES[id].name + (" ✓" if model.researched.has(id) else " 待完成"))
+	return "、".join(names) if not names.is_empty() else "无"
+
+
+func _refresh_progression() -> void:
+	var level := "II" if model.core.level == 2 else "I"
+	title.text = "基地核心 " + level
+	var id: String = research_choice.get_selected_metadata()
+	var node: Dictionary = Progression.NODES[id]
+	var state: Dictionary = model.research_status(id)
+	var done: bool = model.researched.has(id)
+	var sample := ""
+	if node.sample:
+		sample = "
+外矿道入口的矿壳样本：%s" % ("已拾取" if model.discovery.sample_taken else "待拾取")
+	var stock: Dictionary = model.missing_stock(node.cost)
+	var payment := "材料齐备" if stock.is_empty() else "缺少 " + Items.describe(stock)
+	if done:
+		payment = "开局已有" if node.cost.is_empty() else "已提交材料"
+	research_details.text = "%s
+
+要求核心 %s · 当前 %s
+前置：%s%s
+成本 %s
+%s
+%s" % [
+		node.effect, "II" if node.level == 2 else "I", level, _requirements(node.requires), sample,
+		Items.describe(node.cost), payment,
+		"可提交" if state.ok else state.reason]
+	research_button.disabled = not state.ok
+	state = model.upgrade_status()
+	upgrade_details.text = "当前核心 %s
+
+核心 II 开放工业电芯、混料冶炼与矿渣回用研究。
+前置：%s
+成本：%s
+%s" % [
+		level, _requirements(Progression.II_REQUIRES), Items.describe(Progression.II_COST), "可升级" if state.ok else state.reason]
+	upgrade_button.disabled = not state.ok
+	var type: String = assembly_choice.get_selected_metadata()
+	state = model.assembly_status(type)
+	var owner: String = model.device_research(type)
+	var install := "
+固定燃烧包开放安装" if type == Rules.Energy.GENERATOR else ""
+	assembly_details.text = "要求：%s
+%d 构件包 → %d 件 · 核心现有 %d 包
+总拥有量 %d / %d%s
+%s" % [
+		_requirements([Progression.ASSEMBLY] if owner in [Progression.BASE, Progression.ASSEMBLY] else [Progression.ASSEMBLY, owner]),
+		model.assembly_costs[type], Rules.Expansion.yield_for(type), model.core.items.get("construction_pack", 0),
+		model.owned_count(), Progression.MAX_OWNED, install, "可装配" if state.ok else state.reason]
+	assembly_button.disabled = not state.ok
+
+
+func _progress_result(outcome: Dictionary, message: String) -> void:
+	result.text = message if outcome.ok else outcome.reason
+	_refresh_progression()
+
+
 func refresh(paused := false) -> void:
 	if model == null:
 		return
 	pause_button.text = "恢复生产" if paused else "暂停生产"
+	_refresh_progression()
 	var item: String = inventory.get_selected_metadata()
 	var available: int = model.core.items.get(item, 0)
 	var in_bag: int = model.bag.get(item, 0)

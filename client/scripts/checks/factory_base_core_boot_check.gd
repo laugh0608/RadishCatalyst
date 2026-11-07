@@ -3,12 +3,14 @@ extends SceneTree
 const Boot := preload("res://scenes/boot/Boot.tscn")
 const Model := preload("res://scripts/factory/integrated_model.gd")
 const Route := preload("res://scripts/checks/factory_base_core_route.gd")
+const Journey := preload("res://scripts/checks/factory_progression_journey.gd")
 const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 var driver := Driver.new()
 var boot: Node
 var world: Control
 var run_root := ""
 var framing := false
+var progression := false
 
 
 func _init() -> void:
@@ -27,6 +29,7 @@ func run() -> void:
 		return
 	var play := "--play" in OS.get_cmdline_user_args()
 	framing = "--framing" in OS.get_cmdline_user_args()
+	progression = "--progression" in OS.get_cmdline_user_args()
 	var empty_yard := "--empty-yard" in OS.get_cmdline_user_args()
 	root.mode = Window.MODE_WINDOWED
 	var usable := DisplayServer.screen_get_usable_rect()
@@ -40,8 +43,17 @@ func run() -> void:
 	boot.factory_core_review = true
 	root.add_child(boot)
 	await driver.settle(15)
-	var model := Model.new()
-	if not empty_yard:
+	var model: RefCounted
+	if progression:
+		var journey := Journey.new()
+		journey.prepare_tier_one()
+		model = journey.model
+		model.actor.x = model.core.x + 3.0
+		model.actor.z = model.core.z - 0.6
+		driver.expect(model.material_balance().balanced and model.core.items.get("construction_pack", 0) == 3, "checkpoint produced by the factory")
+	else:
+		model = Model.new()
+	if not empty_yard and not progression:
 		var route := Route.build(model)
 		driver.expect(route.ok and route.get("lengths", []) == [51, 28, 20], "prepared topology uses ordinary build commands")
 		if not route.ok:
@@ -59,6 +71,8 @@ func run() -> void:
 		return
 	if framing:
 		await _framing_path(model)
+	elif progression:
+		await _progression_path(model)
 	else:
 		await _review_path(model)
 	_finish()
@@ -155,6 +169,62 @@ func _inventory_receipt_path(model: RefCounted) -> void:
 	driver.expect(not FileAccess.file_exists(run_root.path_join("factory/autosave.json")) and boot.factory_menu.worlds.is_empty(), "no factory world was written")
 
 
+func _progression_path(model: RefCounted) -> void:
+	driver.expect(root.has_focus(), "window focused before progression input")
+	if not root.has_focus():
+		await _close_review()
+		return
+	await driver.world_click(Vector2i(-8, 24), 2.5)
+	var panel: PanelContainer = world.core_panel
+	driver.expect(panel.visible and panel.tabs.get_tab_count() == 5, "core opens with all progression pages")
+	if not panel.visible:
+		await _close_review()
+		return
+	await _select_tab(panel, 2)
+	# Choose the visible node by its option metadata, then submit through the button.
+	for i in panel.research_choice.item_count:
+		if panel.research_choice.get_item_metadata(i) == Journey.P.SAMPLE:
+			panel.research_choice.select(i)
+			panel.research_choice.item_selected.emit(i)
+			break
+	await driver.shot("01-sample-research")
+	await driver.click(panel.research_button)
+	driver.expect(model.researched.has(Journey.P.SAMPLE) and model.bag.get("crust_sample", 0) == 1, "research UI preserves the unique sample")
+	await _select_tab(panel, 3)
+	await driver.shot("02-upgrade-ready")
+	await driver.click(panel.upgrade_button)
+	driver.expect(model.core.level == 2 and model.core.items.get("construction_pack", 0) == 1, "upgrade UI debits exactly two packs")
+	var visual: Node3D = world.view.models[model.core.id].root
+	var tiers := visual.find_child("TierModules", true, false)
+	driver.expect(tiers != null and tiers.get_node("II").visible and not tiers.get_node("I").visible, "tier II mesh visibly replaces tier I")
+	await driver.shot("03-core-ii")
+	await _select_tab(panel, 4)
+	await driver.click(panel.assembly_button)
+	driver.expect(model.kits.belt == 264 and not model.core.items.has("construction_pack") and model.material_balance().balanced, "assembly UI makes eight belts and preserves ledger")
+	await driver.shot("04-assembly")
+	await driver.click(panel.close_button)
+	await driver.shot("05-core-ii-world")
+	await _close_review()
+
+
+func _select_tab(panel: PanelContainer, index: int) -> void:
+	var bar: TabBar = panel.tabs.get_tab_bar()
+	var at := bar.global_position + bar.get_tab_rect(index).get_center()
+	await driver.motion(at)
+	await driver.mouse(at, true)
+	await driver.mouse(at, false)
+	await driver.settle()
+	driver.expect(panel.tabs.current_tab == index, "clicked " + panel.tabs.get_tab_title(index))
+
+
+func _close_review() -> void:
+	if world.core_panel.visible:
+		world.core_panel.close()
+	world._request_exit("return")
+	await driver.settle()
+	driver.expect(boot.factory_world == null and boot.factory_menu.visible, "isolated Boot returns normally")
+
+
 func _framing_path(model: RefCounted) -> void:
 	root.size = world.get_window().min_size
 	root.move_to_center()
@@ -199,6 +269,8 @@ func _finish() -> void:
 	var input := "window click, walk and F; option selection injected; only route topology prepared; production runs on the normal clock"
 	if framing:
 		input = "zoom buttons; four applied marker fixtures at native minimum window"
+	elif progression:
+		input = "naturally produced checkpoint; actual research, upgrade and assembly button input"
 	var result := {"assertions": driver.assertions, "failures": driver.failures, "input": input}
 	var report := FileAccess.open(run_root.path_join("window-result.json"), FileAccess.WRITE)
 	if report != null:
