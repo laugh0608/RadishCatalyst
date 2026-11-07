@@ -21,8 +21,8 @@
 
 当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
 
-1. [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。[B1 核心 I](../features/factory-base-core-v1.md#b1-first-delivery)与 [B2](../features/factory-research-and-progression-v1.md#b2-delivery) 已有隔离证据。C 已验证发电机落位、燃烧、扩网与跨进程恢复。用 `sh tools/check-factory-integrated-c.sh play current` 进入可继续的隔离亲测。
-2. [四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 布线已复算，接续核对自举、自然供给与能源收益；360 kW 与研究 / 升级候选已在隔离模型验证，schema 9 已接入同一隔离入口。跨进程存读、自然生产与目标平台待后续正式实现验证。
+1. [联合首程技术复核](../devlogs/2026-W45.md#integrated-joint-first-run)已完成。用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 新建隔离档并完成玩家首程复测，重跑同一命令继续。记录首次理解、独立诊断、等待和保存恢复感受。
+2. [四面版 S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout)已验证持续供燃和构件并行，schema 9 已通过完整快照跨进程复核。亲测沿用 360 kW 核心和 120 kW × 60 秒的固定燃烧参数。联合验收通过后开放正式新建。目标平台待验。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 
 ## 边界与验证

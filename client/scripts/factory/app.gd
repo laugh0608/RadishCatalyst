@@ -86,7 +86,13 @@ func _ready() -> void:
 	add_child(core_panel)
 	core_panel.closed.connect(_refresh)
 	core_panel.pause_requested.connect(func(): _set_paused(not ui.paused))
-	hud.announce("基地核心复核 · 进度保留在本次会话。" if transient_review else "从青色矿点开始，选择采集器放下第一台设备。")
+	if transient_review:
+		hud.announce("基地核心复核 · 进度保留在本次会话。")
+	elif model.supply_id == Model.DiscoveryRules.Integrated.SUPPLY_ID:
+		hud.announce("在目标面板定位铁矿，准备首条产线。" if model.completed_by_recipe.direct_refining == 0
+			else "在目标面板查看当前工厂进度。")
+	else:
+		hud.announce("从青色矿点开始，选择采集器放下第一台设备。")
 	_refresh()
 	view.draw(model, actor, ui)
 	hud.sync_sample(view, model, ui)
@@ -791,6 +797,8 @@ func _guide_action() -> void:
 		return
 	# Re-evaluate at activation: production or removal may have changed the next step.
 	var step := Guidance.current(model)
+	if step.is_empty():
+		return
 	match step.action:
 		"build":
 			_choose(step.tool)

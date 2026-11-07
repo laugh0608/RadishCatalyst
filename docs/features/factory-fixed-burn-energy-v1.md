@@ -21,7 +21,7 @@
 | 工业电芯 | 沿 R12 原料与加工；每颗 7,200 kJ，按 120 kW 固定燃烧 60 秒 |
 | 消费者 | 运行额定沿现行配方，待机采集 / 粉碎 2、炉 6、反应 / 组装 4 kW；停机 0 |
 
-候选布局和全账见[预算页](../reference/factory-integrated-demo-layout-and-budget.md)。额外采矿 / 研究自耗不能藏在 40 kW 余量中；当前研究与核心物流无额外用电。G 的最终额定与时长应结合新整合实际负载比较，不能拿旧 240 kW 四包结果代签。
+当前研究与核心物流无额外用电。四面 S1-P 实测并行供料和 472 kW 有料负载对比均支持保留当前候选，正式冻结等待玩家体验确认。候选布局和测量口径见[预算页](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## G 的状态与操作
 

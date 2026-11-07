@@ -6,6 +6,7 @@ const Items := preload("res://scripts/factory/items.gd")
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
 static func current(model: RefCounted) -> Dictionary:
+	if model.supply_id == Rules.Integrated.SUPPLY_ID: return integrated_location(model)
 	if model.supply_id == Rules.Energy.SUPPLY_ID: return _energy(model)
 	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion(model)
 	var d: Dictionary = model.discovery
@@ -23,6 +24,21 @@ static func current(model: RefCounted) -> Dictionary:
 	if not d.sample_taken:
 		return _step("sample", "拾取矿壳样本", "首批催化剂已产出", "外矿道 (2, 2)：用 WASD 走近，再按 F 或点击拾取。", _action("location", "定位地面样本", "样本用于试制开路材料。", {"point": Rules.SAMPLE}))
 	return _trial(model)
+
+
+static func integrated_location(model: RefCounted) -> Dictionary:
+	if model.completed_by_recipe.direct_refining > 0 and not model.discovery.sample_taken:
+		return _action("location", "定位矿壳样本", "样本在外矿道入口。走近后按 F 拾取，样本工艺研究会保留实物。", {"point": Rules.SAMPLE})
+	var mineral := "iron_ore" if model.completed_by_recipe.direct_refining == 0 else ""
+	if model.recipe_available("cell_assembly") and not model.entities.any(func(e): return e.get("mineral", "") == "carbon_ore"):
+		mineral = "carbon_ore"
+	if not mineral.is_empty():
+		for cell in model.ore_sites():
+			if model.mineral_at(cell) == mineral:
+				var label: String = Items.NAMES[mineral]
+				return _action("location", "定位" + label, "%s矿点 (%d, %d)。角色未移动，走动后镜头恢复跟随。" % [label.trim_suffix("矿"), cell.x, cell.y],
+					{"point": Vector2(cell) + Vector2.ONE})
+	return {}
 
 
 static func _step(id: String, title: String, progress: String, purpose: String, next: Dictionary) -> Dictionary:

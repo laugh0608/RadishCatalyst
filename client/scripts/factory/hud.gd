@@ -454,19 +454,32 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
 	if integrated:
-		text = "首件板材回仓\n铁矿 → 核心\n精炼炉 → 板材回仓\n\n靠近核心按 F 查看库存，在接口页配置出料。用配电节点将核心电力送到矿点和精炼炉。"
+		text = "首件板材回仓\n铁矿 → 精炼炉 → 核心\n\n靠近核心按 F 查看库存，在接口页配置出料。用配电节点将核心电力送到矿点和精炼炉。"
 		if model.core.level == 2:
 			text = "核心 II\n在研究页解锁工业电芯、混料冶炼与矿渣回用。"
-			if model.recipe_available("cell_assembly"):
+			if model.discovery.passages.inner:
+				text = "富集矿道已开放\n可将富集晶体加工为催化剂，在生产统计查看产量与用电。"
+			elif model.recipe_available("slag_sintering"):
+				text = "联产与回用已解锁\n在样本与矿道面板查看试制和开路要求。"
+			elif model.statistics.totals.cells_activated > 0:
+				text = "已启动电芯供电\n维持供料并观察用电与弃能。可继续研究混料冶炼与矿渣回用。"
+			elif model.recipe_available("cell_assembly"):
 				text = "电芯供电\n装配并放置发电机，接入电芯后在设备面板启用。无负载也会燃烧。"
 		elif model.core.items.has("metal_plate") or model.researched.size() > 1:
 			text = "从产线到研究\n在核心提交板材和载体。精炼炉可切换到直接烧结，矿壳样本在外矿道入口。"
+		var location := Guidance.integrated_location(model)
+		buttons.guide_action.visible = ui.mission and not location.is_empty()
+		if not location.is_empty():
+			buttons.guide_action.text = location.action_label
+			buttons.guide_action.tooltip_text = location.next
 	elif model.has_method("power_state"):
 		var step := Guidance.current(model)
 		text = Guidance.describe(step)
 		buttons.guide_action.text = step.action_label
 		buttons.guide_action.tooltip_text = step.next
-	buttons.guide_action.visible = powered and ui.mission and not integrated
+		buttons.guide_action.visible = ui.mission
+	else:
+		buttons.guide_action.hide()
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"
 
