@@ -28,7 +28,8 @@ func run() -> void:
 	boot.startup_menu.factory_requested.emit()
 	await process_frame
 	var menu: Control = boot.factory_menu
-	expect(menu.world_type.selected == 0 and menu.world_type.item_count == 4, "foundation remains default; E1 is explicit third choice")
+	expect(menu.world_type.selected == 0 and menu.world_type.get_item_metadata(2) == Store.Codec.V6.Expansion.SUPPLY_ID,
+		"foundation remains default; E1 is explicit third choice")
 	var records := []
 	for option in 3:
 		menu.world_type.select(option)

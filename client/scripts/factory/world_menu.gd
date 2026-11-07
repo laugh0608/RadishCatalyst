@@ -5,7 +5,6 @@ signal world_ready(store: RefCounted, model: RefCounted, candidate: Dictionary)
 const Store := preload("res://scripts/factory/save/store.gd")
 var save_root := Store.DEFAULT_ROOT
 var engineering_context := false
-var integrated_context := false
 var catalog: RefCounted
 var worlds: Array[Dictionary] = []
 var list := ItemList.new()
@@ -26,7 +25,7 @@ var pending_copy_title := ""
 
 
 func _ready() -> void:
-	catalog = Store.new(save_root, engineering_context, integrated_context)
+	catalog = Store.new(save_root, engineering_context)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
 	shade.color = Color("182d2c")
@@ -55,9 +54,8 @@ func _ready() -> void:
 		Store.Codec.V2.Config.ADMISSION_SUPPLY_ID: "勘探工厂 · 分流汇合、范围供电与矿道开拓",
 		Store.Codec.V6.Expansion.SUPPLY_ID: "生产扩建 E1 · 制造第二台炉与混料回用",
 		Store.Codec.V7.Energy.SUPPLY_ID: "能源循环 E2 · 待机耗电与电芯供电",
+		Store.Codec.V9.Integrated.SUPPLY_ID: "整合工厂 · 核心研究与固定燃烧",
 	}
-	if catalog.allow_integrated:
-		types[Store.Codec.V9.Integrated.SUPPLY_ID] = "整合工厂 · 核心研究与固定燃烧复核"
 	for supply in types:
 		world_type.add_item(types[supply])
 		world_type.set_item_metadata(world_type.item_count - 1, supply)
@@ -104,7 +102,7 @@ func _selection() -> void:
 
 
 func _create() -> void:
-	var store := Store.new(save_root, engineering_context, integrated_context)
+	var store := Store.new(save_root, engineering_context)
 	var supply: String = world_type.get_selected_metadata()
 	var result := store.create(title_input.text, supply, supply != Store.Codec.Rules.NORMAL_SUPPLY)
 	if not result.ok:
@@ -144,7 +142,7 @@ func _upgrade_title(schema: int) -> String:
 
 
 func _open_world(id: String, upgrade_schema := 0) -> void:
-	var store := Store.new(save_root, engineering_context, integrated_context)
+	var store := Store.new(save_root, engineering_context)
 	if upgrade_schema in [6, 7]:
 		var copied: Dictionary = store.copy_energy(id, pending_copy_sequence, pending_copy_hash, pending_copy_title)
 		if not copied.ok:

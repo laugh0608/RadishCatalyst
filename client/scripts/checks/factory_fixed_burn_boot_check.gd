@@ -34,7 +34,6 @@ func run() -> void:
 	boot = Boot.instantiate()
 	boot.slice_save_catalog = SliceSaveCatalog.new(evidence.path_join("slice"))
 	boot.factory_save_root = evidence.path_join("factory")
-	boot.factory_integrated_context = true
 	root.add_child(boot)
 	await driver.settle(15)
 	if play:
@@ -59,7 +58,7 @@ func _review() -> void:
 	for i in choices.item_count:
 		if choices.get_item_metadata(i) == Journey.Model.Integrated.SUPPLY_ID:
 			index = i
-	driver.expect(index >= 0, "isolated catalog offers the integrated world")
+	driver.expect(index >= 0, "factory catalog offers the integrated world")
 	if index < 0: return
 	choices.select(index)
 	menu.title_input.text = "固定燃烧窗口复核"

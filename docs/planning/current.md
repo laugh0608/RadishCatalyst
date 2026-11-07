@@ -4,25 +4,25 @@
 
 ## 当前阶段
 
-**统一 Demo 与第一轮成长：隔离实现核心、研究与能源。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
+**统一 Demo 与第一轮成长：基础整合已开放正式新建。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
 
-**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线仍为[整合总合同](../features/factory-demo-integration-v1.md)，B1 核心 I 与 B2 研究、核心 II 已接入隔离 Boot。C 已在隔离 Boot 接入固定燃烧与 schema 9 存读。
+**R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线为[整合总合同](../features/factory-demo-integration-v1.md)，B1 / B2 / C 已共同通过首程验收。
 
 规划阅读链：[产品方向](../product/production-centered-direction.md) → [能力地图](../features/README.md) → [整合切片与原合同](../features/factory-demo-integration-v1.md#capability-slices)。地图只维护归属，不改变下面的实施顺位和冻结条件。
 
 ## 当前顺位
 
-1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。B1 / B2 / C 已提交。整合新档通过[联合首程技术复核](../devlogs/2026-W45.md#integrated-joint-first-run)，覆盖七节点、核心 II、并行自动供燃、矿渣回用、矿道和跨进程存读。萝卜SAMA确认亲测沿用 360 kW 核心和 120 kW × 60 秒固定燃烧。从[隔离首程入口](../features/factory-demo-integration-v1.md#joint-first-run)完成玩家复测，通过联合验收后开放正式新建。
-2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout)已复算并分别完成直炼子路线和连续并行供给。后续按研究与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
+1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已交评审草案与离线核算。确认方案后再实施独立内容；可选测控和整段收口继续按总合同顺位。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 
-- 唯一核心、每种物品 99,999 库存上限、多口真实物流；核心等级解锁能力，基础功率不随等级增长。隔离入口采用 360 kW 候选。S1-P 实测 320 kW 采样峰值下同时产出电芯和构件包，C 以 472 kW 同源负载验证了扩网收益。玩家首程仍待复测。
+- 唯一核心、每种物品 99,999 库存上限、多口真实物流；核心等级解锁能力，基础功率固定 360 kW。[四面版 S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout)已验证持续供燃和构件并行。
 - 固定功率 / 固定燃烧时长、低负载仍耗燃料、手动停机暂停余时；普通连续供料可完成主线。独立储能 / 节拍 / 条件控制作为后续进阶支线，PWM 不作首次通关要求。
 - 核心自动出料、研究前置与材料提交、分级能力进入当前合同设计；液气 / 热管理等只留长期分支，不在本批实现。
-- 正式客户端现在仍为 V8 等既有世界规则：240 kW 基础供电、按缺口消耗电芯和原终端仓。新合同不追改旧档，独立新世界与版本身份按存档合同办理。
+- 正式客户端并列提供既有世界和基础整合。旧 V8 继续按 240 kW 基础供电、按缺口消耗电芯及原终端仓规则运行；基础整合按[独立存档身份](../architecture/factory-integrated-demo-save-v1.md)新建、继续。
 - 既有二维、基础 / V5 / E1 / V7 / V8 和工程世界保留原规则；未经明确转换合同不迁移、不自动插核心、不消费亲测进度。
 - 多人、战斗扩展、随机地图、多星球、交易、离线收益、自动蓝图、物流桥、全量长期科技树及 1,000 台 / 10,000 带仍未纳入；不新增后端或外部依赖。
 - Godot 3D / 工业科幻方向保留；主视角已选 C2 透视正向、默认 21 格跟随，滚轮调距离 / 高度，见[视觉方向](../product/visual-and-ui-direction.md)。精细模型和全部资产量产不作为本轮合同完成条件。安装依赖、打包、分发、推送与发布仍须另行授权。

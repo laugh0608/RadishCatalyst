@@ -27,7 +27,7 @@ R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用
 
 - 整合工厂 C 用 `sh tools/check-factory-integrated-c.sh state` 在两个进程验证写入、恢复与后续轨迹，`window` 复核 Boot 新建、发电机、保存返回和继续。`play current` 使用稳定隔离目录，可用同一命令跨进程继续。验证批次位于 `tools/runtime-intake/check-runs/factory-integrated-c-v1/`，亲测根位于 `tools/runtime-intake/review-worlds/factory-integrated-c-v1/`。
 
-- 联合首程用 `sh tools/check-factory-integrated-first-run.sh state` 从空档走完整四面 S1-P，另启进程核对保存快照及继续 30 模拟秒。改用 `window` 在两个进程操作 Boot 菜单并截图。建造、研究、搬运和产线推进由正式模型命令驱动。日志、原图与结果 JSON 位于 `tools/runtime-intake/check-runs/factory-integrated-first-run-v1/<batch>/`。玩家首程使用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 新建和继续同一隔离档。
+- 联合首程用 `sh tools/check-factory-integrated-first-run.sh state` 从空档走完整四面 S1-P，另启进程核对保存快照及继续 30 模拟秒。改用 `window` 在两个进程操作正式 Boot 菜单并截图，两个存档根指向隔离批次。建造、研究、搬运和产线推进由正式模型命令驱动。日志、原图与结果 JSON 位于 `tools/runtime-intake/check-runs/factory-integrated-first-run-v1/<batch>/`。既有亲测档使用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
 
 - 基地核心 B1：`sh tools/check-factory-base-core.sh state` 检查多口、库存、冷却和自然板材回仓；`window` 用隔离 Boot 操作并截图，`framing` 检查最小窗口的缩放与四个输出图标。`play` 打开空物料的 S0 子路线，`empty-yard` 仅预置核心。`progression-state` 检查自然生产、七节点与材料账，`progression-window` 短测研究、升级和装配。两个 `state` 模式无需窗口，其余模式会开 Godot 窗口；进度只在内存，日志与原图保存在 `tools/runtime-intake/check-runs/factory-base-core-v1/<batch>/`。
 

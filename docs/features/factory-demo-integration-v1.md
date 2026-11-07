@@ -2,7 +2,7 @@
 
 更新时间：2026-11-07
 
-状态：**方向与首轮合同已确认，B1 核心、B2 研究和 C 固定燃烧、整合存读已接入隔离 Boot；新世界创建未开放。R1-A 镜头与 R1-B 四面轮廓已获认可。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 设计待评审。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 
@@ -30,7 +30,7 @@
 | B1 核心 / 库存 | 生产物流：[核心](factory-base-core-v1.md) | 设备交互、世界与存档 |
 | [B2 研究 / 等级](factory-research-and-progression-v1.md#b2-delivery) | 科技成长：[科技树](factory-research-and-progression-v1.md) | 核心库存、能源 |
 | [C 普通能源](factory-fixed-burn-energy-v1.md#c-delivery) | 能源：[固定燃烧](factory-fixed-burn-energy-v1.md) | 生产、世界与存档 |
-| D1 开拓回报 | 科技成长与探索：[后续节点](factory-research-and-progression-v1.md) | 资源与生产 |
+| D1 开拓回报 | 科技成长与探索：[D1 评审草案](factory-research-and-progression-v1.md#d1-frontier-reward) | 资源与生产 |
 | D2 测控优化 | 能源：[后续储能 / PWM](factory-fixed-burn-energy-v1.md) | 科技等级、独立存档版本 |
 | E 整段收口 | 视觉与交付验证：本文检查与保留边界 | 所有主线，Windows / 用户证据分别记录 |
 | R1-A–D 视觉准备 | 视觉与交付验证：[R1 方案](factory-camera-and-representative-scene-v1.md) | 核心外形、设备与场景 |
@@ -41,7 +41,7 @@
 
 - **已确认方向**：生产经营 / 探索关系、Godot 3D / GDScript、唯一核心、每物品 99,999、分级研究、固定燃烧与可选进阶控制。
 - **本轮合同规则**：子合同写明的命令、事务、可见反馈与失败处理；实现状态以各包及其验证记录为准。
-- **核算候选**：核心 6×6 / 四面各三进一出、360 kW、120 kW / 60 秒、起步构件、研究 / 升级成本及 12 节点内容表；离线核对不等于最终冻结。
+- **基础整合已验收**：核心 6×6 / 四面各三进一出，360 kW，G 每颗 120 kW × 60 秒；起步供给和首包研究 / 升级成本绑定已验证的 schema 9 定义摘要。X2 和 III 档沿后续内容评审。
 - **实施前门槛**：三料电芯链已有离线几何样板，S1-P 留有原端口布局的离线几何，四面版 S0 / S1-P 已通过离线布线与带数核算，实际供给、操作量和初期收益仍需补证。发现数值需实质改规则 / 身份时，更新合同再确认；本轮不以缺运行环境为理由伪造完成。
 
 ## 玩家路径与内容发布边界
@@ -66,7 +66,7 @@
 
 | 子步 | 可验证交付 | 发布门槛 |
 | --- | --- | --- |
-| [B1 核心 / 库存](factory-base-core-v1.md#b1-first-delivery) | 唯一核心与双向多口、物料账、固定碰撞 / 端口，先用 B0 路线验证首件板材回仓 | 开发隔离状态与操作验证，正式新世界仍未开放 |
+| [B1 核心 / 库存](factory-base-core-v1.md#b1-first-delivery) | 唯一核心与双向多口、物料账、固定碰撞 / 端口，先用 B0 路线验证首件板材回仓 | 独立完成状态与操作复核，正式新建以 B1 / B2 / C 联合验收为门槛 |
 | [B2 研究 / 等级](factory-research-and-progression-v1.md#b2-delivery) | 7 节点、II 升级、无循环、原子扣料与制造 | 与 B1 使用同一权威状态，不以夹具代替自然获取 |
 | [C 普通能源](factory-fixed-burn-energy-v1.md#c-delivery) | 固定燃烧、待机 / 停机、容量 / 弃能、自救与完整存读 | B1 / B2 / C 联合通过才开放新建整合世界 |
 | D1 开拓回报 | X2、实际支路、新资源回流与持续用途 | 另定内容身份 / 映射；不静默修改基础整合旧档 |
@@ -81,7 +81,7 @@
 
 ## 当前交付状态
 
-B1 已验证首件板材自动回仓。B2 已用实际生产材料验证七节点、核心 II、核心装配与首颗电芯。C 已验证发电机落位、固定燃烧、耗尽后补料恢复、同源扩网收益与 schema 9 跨进程恢复。整合工厂通过隔离菜单可亲测，正式新建等待联合首程的玩家反馈与参数确认。见[本周周志](../devlogs/2026-W45.md#integrated-joint-first-run)。
+B1 / B2 / C 已共同通过首程验收。正式 Boot 的工厂世界菜单选择「整合工厂 · 核心研究与固定燃烧」即可新建；保存后从工厂目录继续。旧世界入口按原身份继续。正式菜单复测和范围见 [W45 周志](../devlogs/2026-W45.md#foundation-acceptance)。
 
 <a id="joint-first-run"></a>
 
@@ -93,4 +93,4 @@ B1 已验证首件板材自动回仓。B2 已用实际生产材料验证七节�
 
 空档目标沿用现有定位按钮。铁矿、样本和炭矿在到达对应步骤时可定位，镜头只显示目标，角色仍由玩家移动。复核要覆盖按钮能否从出生点揭示离屏矿点。
 
-亲测入口用 `sh tools/check-factory-integrated-c.sh play joint-first-run`。该批次首次运行可新建空档，同一命令可在保存返回后继续。沿同一档推进到自动供燃、联产回用和矿道，记录首次卡点、诊断依据和等待感受，并确认 360 kW 核心与 120 kW × 60 秒燃烧候选。完整的技术复核数据和边界记于[联合首程记录](../devlogs/2026-W45.md#integrated-joint-first-run)。
+已验收的隔离亲测档继续用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 打开。正式新建使用独立存档根，基础整合参数为 360 kW 核心与 120 kW × 60 秒固定燃烧。完整的技术复核数据和边界记于[联合首程记录](../devlogs/2026-W45.md#integrated-joint-first-run)及[正式入口记录](../devlogs/2026-W45.md#foundation-acceptance)。

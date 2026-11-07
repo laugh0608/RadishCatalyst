@@ -6,7 +6,6 @@ const MAX_BYTES := 4 * 1024 * 1024
 const EnergyCopy := preload("res://scripts/factory/save/energy_copy.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 var allow_engineering := false
-var allow_integrated := false
 var root: String
 var world_id := ""
 var world_name := ""
@@ -20,11 +19,9 @@ var last_warning := ""
 var fault: Callable
 
 
-func _init(save_root: String = DEFAULT_ROOT, engineering_context := false, integrated_context := false) -> void:
+func _init(save_root: String = DEFAULT_ROOT, engineering_context := false) -> void:
 	root = ProjectSettings.globalize_path(save_root).simplify_path()
 	allow_engineering = engineering_context and root != ProjectSettings.globalize_path(DEFAULT_ROOT)
-	var intake := ProjectSettings.globalize_path("res://../tools/runtime-intake").simplify_path()
-	allow_integrated = integrated_context and OS.is_debug_build() and root.begins_with(intake + "/")
 
 
 func path(name: String = "") -> String:
@@ -54,8 +51,6 @@ func _read(file_path: String, id: String) -> Dictionary:
 	var json := JSON.new()
 	if json.parse(content) != OK:
 		return _error("存档 JSON 损坏：" + json.get_error_message())
-	if json.data is Dictionary and json.data.get("save_schema_version") == Codec.V9.VERSION and not allow_integrated:
-		return Codec.failure("整合工厂候选存档只能从隔离入口继续。", true)
 	var result := Codec.decode(json.data, id)
 	if json.data is Dictionary:
 		result.declared_identity = _identity(json.data)
@@ -303,8 +298,6 @@ func _retain_upgrade_source(candidate: Dictionary) -> Dictionary:
 
 
 func create(title: String, supply: String = Codec.Rules.NORMAL_SUPPLY, automatic_power := false) -> Dictionary:
-	if supply == Codec.V9.Integrated.SUPPLY_ID and not allow_integrated:
-		return Codec.failure("整合工厂候选只能从隔离入口创建。", true)
 	if supply == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("工程规模验证只能从隔离检查入口创建。", true)
 	if automatic_power and supply not in [Codec.V2.Config.SUPPLY_ID, Codec.V2.Config.ROUTING_SUPPLY_ID, Codec.V2.Config.ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID, Codec.V9.Integrated.SUPPLY_ID]:
@@ -387,8 +380,6 @@ func _write(file_path: String, content: String) -> Dictionary:
 
 
 func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
-	if model.supply_id == Codec.V9.Integrated.SUPPLY_ID and not allow_integrated:
-		return Codec.failure("当前会话不允许写入整合工厂候选。", true)
 	if model.supply_id == Engineering.SUPPLY_ID and not allow_engineering:
 		return Codec.failure("当前会话不允许写入工程身份。", true)
 	if not loaded or not _owns_lock():

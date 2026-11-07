@@ -87,8 +87,7 @@ func _burn_boundaries() -> void:
 
 func _save() -> void:
 	var root_dir := evidence.path_join("factory")
-	var store := Store.new(root_dir, false, true)
-	expect(store.allow_integrated and not Store.new(root_dir).create(NAME, Model.Integrated.SUPPLY_ID).ok, "schema 9 needs the explicit isolated gate")
+	var store := Store.new(root_dir)
 	var created := store.create(NAME, Model.Integrated.SUPPLY_ID, true)
 	if not expect(created.ok, "create schema 9: " + created.get("reason", "")):
 		return
@@ -115,7 +114,8 @@ func _save() -> void:
 	if not expect(saved.ok, "publish checkpoint: " + saved.get("reason", "")):
 		store.release()
 		return
-	expect(not Store.new(root_dir).find_candidate(id).ok and not Store.new(root_dir, false, true).prepare(id).ok, "ordinary entry blocked and active session locked")
+	var other := Store.new(root_dir)
+	expect(other.find_candidate(id).ok and not other.prepare(id).ok, "schema 9 is listed but an active writer still blocks continue")
 	var sequence := store.sequence
 	expect(store.release().ok, "writer releases lock")
 	model.advance(2 * Step)
@@ -146,7 +146,7 @@ func _restore() -> void:
 	var expected: Variant = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("expected.json")))
 	if not expect(expected is Dictionary, "read writer manifest"):
 		return
-	var store := Store.new(evidence.path_join("factory"), false, true)
+	var store := Store.new(evidence.path_join("factory"))
 	var found := store.prepare(expected.id)
 	if not expect(found.ok, "read checkpoint in a new process: " + found.get("reason", "")):
 		return
@@ -238,7 +238,7 @@ func _same_snapshot(actual: Variant, expected: Variant) -> bool:
 
 func _backups(doc: Dictionary) -> void:
 	var id: String = doc.world_id
-	var store := Store.new(evidence.path_join("recovery"), false, true)
+	var store := Store.new(evidence.path_join("recovery"))
 	var folder: String = store.root.path_join(id)
 	DirAccess.make_dir_recursive_absolute(folder.path_join("backups"))
 	var main := folder.path_join("autosave.json")

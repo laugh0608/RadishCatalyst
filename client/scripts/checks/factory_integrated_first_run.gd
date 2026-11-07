@@ -38,7 +38,6 @@ func run() -> void:
 	boot = Boot.instantiate()
 	boot.slice_save_catalog = SliceSaveCatalog.new(evidence.path_join("slice"))
 	boot.factory_save_root = evidence.path_join("factory")
-	boot.factory_integrated_context = true
 	root.add_child(boot)
 	await driver.settle(15)
 	var reading := "--read" in OS.get_cmdline_user_args()
@@ -70,15 +69,19 @@ func _first_run() -> void:
 	driver.expect(menu != null, "open Boot factory menu")
 	if menu == null:
 		return
-	var index := -1
+	var supplies: Array[String] = []
 	for i in menu.world_type.item_count:
-		if menu.world_type.get_item_metadata(i) == Route.Model.Integrated.SUPPLY_ID:
-			index = i
-	driver.expect(index >= 0, "integrated option visible in isolation")
+		supplies.append(menu.world_type.get_item_metadata(i))
+	driver.expect(supplies == [Codec.Rules.NORMAL_SUPPLY, Codec.V2.Config.ADMISSION_SUPPLY_ID,
+		Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID, Route.Model.Integrated.SUPPLY_ID],
+		"normal menu preserves the existing choices and adds integrated creation")
+	driver.expect(menu.world_type.get_selected_metadata() == Codec.Rules.NORMAL_SUPPLY, "the existing default remains selected")
+	var index := supplies.find(Route.Model.Integrated.SUPPLY_ID)
 	if index < 0:
 		return
 	menu.world_type.select(index)
 	menu.title_input.text = NAME
+	await driver.shot("00-create-integrated")
 	# Capture the schema 9 start before the first process frame advances the model.
 	if windowed:
 		await _click(menu.create_button)
@@ -147,7 +150,7 @@ func _first_run() -> void:
 	driver.expect(boot.factory_world == null, "save and return releases the write session")
 	if boot.factory_world != null:
 		return
-	var store := Store.new(boot.factory_save_root, false, true)
+	var store := Store.new(boot.factory_save_root)
 	var candidate := store.find_candidate(id)
 	driver.expect(candidate.ok and candidate.document.save_schema_version == 9, "read published schema 9 save")
 	if not candidate.ok:
@@ -173,6 +176,9 @@ func _read() -> void:
 		return
 	menu.list.select(0)
 	menu.list.item_selected.emit(0)
+	driver.expect(menu.worlds[0].schema == Codec.V9.VERSION and menu.upgrade_button.disabled,
+		"normal menu offers continue without an upgrade for schema 9")
+	await driver.shot("00-continue-integrated")
 	# Pause as soon as Boot opens the world, before a frame can advance the saved clock.
 	menu.world_ready.connect(func(_store, _model, _candidate):
 		if boot.factory_world != null:
