@@ -31,7 +31,7 @@
 | [B2 研究 / 等级](factory-research-and-progression-v1.md#b2-delivery) | 科技成长：[科技树](factory-research-and-progression-v1.md) | 核心库存、能源 |
 | [C 普通能源](factory-fixed-burn-energy-v1.md#c-delivery) | 能源：[固定燃烧](factory-fixed-burn-energy-v1.md) | 生产、世界与存档 |
 | D1 开拓回报 | 科技成长与探索：[D1 开拓回报](factory-research-and-progression-v1.md#d1-frontier-reward) | 资源与生产 |
-| D2 测控优化 | 能源：[后续储能 / PWM](factory-fixed-burn-energy-v1.md) | 科技等级、独立存档版本 |
+| D2 测控优化 | 能源：[D2 评审稿](factory-grid-controls-d2.md) | 科技等级、独立存档版本 |
 | E 整段收口 | 视觉与交付验证：本文检查与保留边界 | 所有主线，Windows / 用户证据分别记录 |
 | R1-A–D 视觉准备 | 视觉与交付验证：[R1 方案](factory-camera-and-representative-scene-v1.md) | 核心外形、设备与场景 |
 
