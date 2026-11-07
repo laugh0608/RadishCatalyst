@@ -11,6 +11,7 @@ var devices := {}
 var milestones := {}
 var distance := 0.0
 var carried := 0
+var advance_movement := true
 
 
 func _init(world_model: RefCounted, route: Dictionary) -> void:
@@ -45,11 +46,7 @@ func connect_line(source: String, target: String) -> void:
 			continue
 		if route.points.is_empty():
 			return
-		var path: Array[Vector2i] = [_cell(route.points[0])]
-		for point in route.points.slice(1):
-			var end := _cell(point)
-			while path.back() != end:
-				path.append(path.back() + (end - path.back()).sign())
+		var path := belt_path(route.points)
 		var normal: Vector2i
 		if route.target is String:
 			for port in model.Logistics.ports(model, model.core, "input"):
@@ -61,6 +58,18 @@ func connect_line(source: String, target: String) -> void:
 		_must(model.place_path(path, model.DIRS.find(-normal)))
 		return
 	assert(false, "missing route %s to %s" % [source, target])
+
+
+func belt_path(points: Array) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	if points.is_empty():
+		return path
+	path.append(_cell(points[0]))
+	for point in points.slice(1):
+		var end := _cell(point)
+		while path.back() != end:
+			path.append(path.back() + (end - path.back()).sign())
+	return path
 
 
 func stock(e: Dictionary, item: String, count: int, putting: bool) -> void:
@@ -325,6 +334,8 @@ func _walk(goals: Dictionary) -> void:
 			seconds += dt
 			assert((target - Vector2(model.actor.x, model.actor.z)).length() < diff.length(), "physical walk blocked")
 	distance += seconds * 3.3
+	if not advance_movement:
+		return
 	while seconds > 60.0:
 		model.advance(60.0)
 		seconds -= 60.0

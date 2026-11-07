@@ -144,7 +144,7 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	if e.type in model.process_types + ["collector"]:
 		var device: Dictionary = model.power_state().devices[e.id]
 		power.text = "供电：%s\n请求 %.1f / 实际用电 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
-		if model.supply_id == Rules.Integrated.SUPPLY_ID or (model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power):
+		if Rules.Integrated.matches_supply(model.supply_id) or (model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power):
 			power.text += "\n运行额定 %.0f / 待机额定 %.0f kW" % [device.running_kw, Rules.Energy.STANDBY_KW[e.type]]
 			production.text = ("已停机 · 0 kW" if not e.enabled else "运行" if model.work_spec(e).ready else "待机") + " · " + production.text
 		if e.power_node_id != 0:

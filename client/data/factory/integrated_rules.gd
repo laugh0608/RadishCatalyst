@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Frontier := preload("res://data/factory/frontier_rules.gd")
 const RULESET_ID := "factory_integrated_foundation_v1"
 const BURN_TICKS := 1200
 const MAP_ID := "factory_integrated_yard_64_v1"
@@ -25,6 +26,10 @@ const CELLS := [
 	[Vector2i(4, 5), Vector2i(3, 5), Vector2i(2, 5), Vector2i(1, 5)],
 	[Vector2i(0, 4), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 1)],
 ]
+
+
+static func matches_supply(supply: String) -> bool:
+	return supply in [SUPPLY_ID, Frontier.SUPPLY_ID]
 
 
 static func ports(origin: Vector2i, role: String) -> Array[Dictionary]:

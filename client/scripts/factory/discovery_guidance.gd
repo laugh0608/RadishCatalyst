@@ -1,12 +1,13 @@
 extends RefCounted
 
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
 
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
 static func current(model: RefCounted) -> Dictionary:
-	if model.supply_id == Rules.Integrated.SUPPLY_ID: return integrated_location(model)
+	if Rules.Integrated.matches_supply(model.supply_id): return integrated_location(model)
 	if model.supply_id == Rules.Energy.SUPPLY_ID: return _energy(model)
 	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion(model)
 	var d: Dictionary = model.discovery
@@ -27,6 +28,10 @@ static func current(model: RefCounted) -> Dictionary:
 
 
 static func integrated_location(model: RefCounted) -> Dictionary:
+	if model.supply_id == Frontier.SUPPLY_ID and model.discovery.passages.outer:
+		if model.discovery.passages[Frontier.PASSAGE]:
+			return _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。", {"point": Vector2(Frontier.ORE) + Vector2.ONE})
+		return _action("location", "定位炭矿支路入口", "从北侧靠近；开启需要开拓工具和 4 颗破岩胶囊。", {"point": Vector2(12, 3)})
 	if model.completed_by_recipe.direct_refining > 0 and not model.discovery.sample_taken:
 		return _action("location", "定位矿壳样本", "样本在外矿道入口。走近后按 F 拾取，样本工艺研究会保留实物。", {"point": Rules.SAMPLE})
 	var mineral := "iron_ore" if model.completed_by_recipe.direct_refining == 0 else ""

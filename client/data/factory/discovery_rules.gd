@@ -39,7 +39,7 @@ static func admission_supply() -> Dictionary:
 	return routing_supply().merged({"admission_gate": 8})
 
 static func routing_world(supply: String) -> bool:
-	return supply in [ROUTING_SUPPLY_ID, Integrated.SUPPLY_ID] or admission_world(supply)
+	return supply == ROUTING_SUPPLY_ID or Integrated.matches_supply(supply) or admission_world(supply)
 
 static func admission_world(supply: String) -> bool:
 	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Expansion.SUPPLY_ID, Energy.SUPPLY_ID]
@@ -64,6 +64,10 @@ const CYCLE := {"collector": 1.0, "reactor": 10.0}
 static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
 	if map_id == Engineering.MAP_ID:
 		return Engineering.ore_sites()
+	if map_id == Integrated.Frontier.MAP_ID:
+		var sites := ore_sites(Integrated.MAP_ID)
+		sites.append(Integrated.Frontier.ORE)
+		return sites
 	if map_id in [Expansion.MAP_ID, Integrated.MAP_ID]:
 		var sites: Array[Vector2i] = ore_sites()
 		sites.append_array([Vector2i(-28, -12), Vector2i(-28, 10)])
@@ -75,6 +79,8 @@ static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
 static func mineral_at(cell: Vector2i, map_id: String = MAP_ID) -> String:
 	if map_id == Engineering.MAP_ID:
 		return Engineering.mineral_at(cell)
+	if map_id == Integrated.Frontier.MAP_ID:
+		return "carbon_ore" if cell == Integrated.Frontier.ORE else mineral_at(cell, Integrated.MAP_ID)
 	if map_id in [Expansion.MAP_ID, Integrated.MAP_ID]:
 		if cell == Vector2i(-28, -12): return "iron_ore"
 		if cell == Vector2i(-28, 10): return "carbon_ore"
@@ -84,7 +90,7 @@ static func mineral_at(cell: Vector2i, map_id: String = MAP_ID) -> String:
 	return "crystal" if cell.x < 4 else "rich_crystal"
 
 static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP_ID) -> bool:
-	if map_id not in [MAP_ID, Engineering.MAP_ID, Expansion.MAP_ID, Integrated.MAP_ID]:
+	if map_id not in [MAP_ID, Engineering.MAP_ID, Expansion.MAP_ID, Integrated.MAP_ID, Integrated.Frontier.MAP_ID]:
 		return false
 	if cell.x < -32 or cell.x >= 32 or cell.y < -32 or cell.y >= 32:
 		return false
@@ -97,6 +103,8 @@ static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP
 	if cell.x < 8:
 		return cell.y >= -2 and cell.y <= 1
 	if cell.x < 20:
+		if map_id == Integrated.Frontier.MAP_ID and Integrated.Frontier.POCKET.has_point(cell):
+			return passages.get(Integrated.Frontier.PASSAGE, false) and (Integrated.Frontier.MOUTH.has_point(cell) or Integrated.Frontier.INTERIOR.has_point(cell))
 		return true
 	if not passages.inner:
 		return false

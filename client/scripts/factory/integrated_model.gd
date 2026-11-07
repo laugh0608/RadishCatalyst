@@ -6,6 +6,7 @@ const BurnStats := preload("res://scripts/factory/fixed_burn_statistics.gd")
 const Energy := preload("res://data/factory/energy_rules.gd")
 var core: Dictionary
 var researched := {Progression.BASE: true}
+var research_nodes := Progression.NODES
 
 
 func _init() -> void:
@@ -140,8 +141,8 @@ func feedback(e: Dictionary) -> Dictionary:
 
 
 func device_research(type: String) -> String:
-	for id in Progression.NODES:
-		if type in Progression.NODES[id].devices:
+	for id in research_nodes:
+		if type in research_nodes[id].devices:
 			return id
 	return ""
 
@@ -156,7 +157,7 @@ func recipe_available(id: String) -> bool:
 	if id == "rich_catalyst" and not discovery.passages.inner:
 		return false
 	for node in researched:
-		if id in Progression.NODES[node].recipes:
+		if id in research_nodes[node].recipes:
 			return true
 	return false
 
@@ -178,25 +179,30 @@ func _missing_research(required: Array) -> PackedStringArray:
 	var missing := PackedStringArray()
 	for id in required:
 		if not researched.has(id):
-			missing.append(Progression.NODES[id].name)
+			missing.append(research_nodes[id].name)
 	return missing
+
+
+func research_fact_missing(id: String) -> String:
+	return "先在外矿道入口拾取矿壳样本" if research_nodes[id].sample and not discovery.sample_taken else ""
 
 
 func research_status(id: String) -> Dictionary:
 	if not near_entity(core):
 		return failure("请走到基地核心两格内")
-	if not Progression.NODES.has(id):
+	if not research_nodes.has(id):
 		return failure("未知研究")
 	if researched.has(id):
 		return failure("已完成研究")
-	var node: Dictionary = Progression.NODES[id]
+	var node: Dictionary = research_nodes[id]
 	if core.level < node.level:
 		return failure("需要核心 II")
 	var missing := _missing_research(node.requires)
 	if not missing.is_empty():
 		return failure("先研究 " + "、".join(missing))
-	if node.sample and not discovery.sample_taken:
-		return failure("先在外矿道入口拾取矿壳样本")
+	var fact_missing := research_fact_missing(id)
+	if not fact_missing.is_empty():
+		return failure(fact_missing)
 	if not Items.contains(core.items, node.cost):
 		return failure("核心缺少 " + Items.describe(missing_stock(node.cost)))
 	return success()
@@ -206,7 +212,7 @@ func research(id: String) -> Dictionary:
 	var status := research_status(id)
 	if not status.ok:
 		return status
-	_consume_core(Progression.NODES[id].cost)
+	_consume_core(research_nodes[id].cost)
 	researched[id] = true
 	revision += 1
 	return success()
@@ -253,11 +259,11 @@ func assemble(type: String) -> Dictionary:
 func extra_consumption() -> Dictionary:
 	var consumed := {}
 	for id in researched:
-		Items.merge(consumed, Progression.NODES[id].cost)
+		Items.merge(consumed, research_nodes[id].cost)
 	if core.level >= 2:
 		Items.merge(consumed, Progression.II_COST)
 	if statistics.totals.cells_activated > 0:
-		consumed[Energy.CELL] = statistics.totals.cells_activated
+		Items.add(consumed, Energy.CELL, statistics.totals.cells_activated)
 	return consumed
 
 

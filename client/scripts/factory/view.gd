@@ -4,6 +4,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const PowerStatus := preload("res://scripts/factory/power_status.gd")
 const Parts := preload("res://scripts/factory/overlays.gd")
 const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
@@ -65,7 +66,7 @@ var cargo_materials := {}
 
 
 func _ready() -> void:
-	integrated_camera = world_model != null and world_model.supply_id == Integrated.SUPPLY_ID
+	integrated_camera = world_model != null and Integrated.matches_supply(world_model.supply_id)
 	if integrated_camera:
 		yaw = 0.0
 		assets.base_core = load(Integrated.MODEL_PATH)
@@ -73,7 +74,7 @@ func _ready() -> void:
 		if not resource_error.is_empty():
 			return
 	cargo_materials = {"crystal": crystal_mat, "catalyst": catalyst_mat, "crust_solvent": solvent_mat, "rich_crystal": rich_mat}
-	for item in Model.DiscoveryRules.Expansion.NAMES.keys() + Model.DiscoveryRules.Energy.NAMES.keys():
+	for item in Model.DiscoveryRules.Expansion.NAMES.keys() + Model.DiscoveryRules.Energy.NAMES.keys() + [Frontier.CAPSULE]:
 		cargo_materials[item] = Parts.material(Slots.ACCENTS[item], 0.3, 0.5)
 	status_mesh.radius = 0.5
 	status_mesh.height = 1.0
@@ -116,7 +117,7 @@ func _ready() -> void:
 				if not assets[kind] is PackedScene:
 					resource_error = "缺少生产扩建模型：" + kind
 					return
-		if world_model.supply_id in [Model.DiscoveryRules.Energy.SUPPLY_ID, Integrated.SUPPLY_ID]:
+		if integrated_camera or world_model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
 			assets.cell_generator = load(ASSET_ROOT + "energy/cell_generator.glb")
 			if not assets.cell_generator is PackedScene:
 				resource_error = "缺少电芯发电机模型"
@@ -126,6 +127,8 @@ func _ready() -> void:
 		_build_mineral_barriers()
 	var sites: Array[Vector2i] = world_model.ore_sites() if world_model != null else Model.Rules.ore_sites()
 	for cell in sites:
+		if integrated_camera and world_model.map_id == Frontier.MAP_ID and cell == Frontier.ORE:
+			continue
 		var mineral: String = world_model.mineral_at(cell) if world_model.has_method("mineral_at") else "crystal"
 		var new_ore: bool = mineral in ["iron_ore", "carbon_ore"]
 		var ore: Node3D = assets[mineral.replace("_", "-")].instantiate() if new_ore else assets.ore.instantiate()
@@ -645,7 +648,7 @@ func _build_mineral_barriers() -> void:
 	clear_node(barriers)
 	terrain_key = str(world_model.discovery)
 	# Imported ore clusters follow the same permanent passage facts as collision.
-	for start_x in ([4, 20] if world_model.map_id in [Model.DiscoveryRules.MAP_ID, Model.DiscoveryRules.Expansion.MAP_ID, Integrated.MAP_ID] else []):
+	for start_x in ([4, 20] if world_model.map_id in [Model.DiscoveryRules.MAP_ID, Model.DiscoveryRules.Expansion.MAP_ID, Integrated.MAP_ID, Frontier.MAP_ID] else []):
 		for z in range(-32, 32, 2):
 			if z in [-2, 0] and world_model.discovery.passages["outer" if start_x == 4 else "inner"]:
 				continue
@@ -653,6 +656,21 @@ func _build_mineral_barriers() -> void:
 				var shell: Node3D = assets.ore.instantiate()
 				barriers.add_child(shell)
 				shell.position = Vector3(x + 8, 0, z + 1)
+
+	if world_model.map_id == Frontier.MAP_ID and world_model.discovery.passages.outer:
+		for x in range(Frontier.POCKET.position.x, Frontier.POCKET.end.x):
+			for z in range(Frontier.POCKET.position.y, Frontier.POCKET.end.y):
+				if Model.DiscoveryRules.open_cell(Vector2i(x, z), world_model.discovery.passages, Frontier.MAP_ID):
+					continue
+				var shell: Node3D = assets.ore.instantiate()
+				barriers.add_child(shell)
+				shell.scale = Vector3.ONE * 0.5
+				shell.position = Vector3(x + 4, 0, z + 0.5)
+		if world_model.discovery.passages[Frontier.PASSAGE]:
+			var coal: Node3D = assets["carbon-ore"].instantiate()
+			barriers.add_child(coal)
+			coal.position = Vector3(Frontier.ORE.x + 1, 0, Frontier.ORE.y + 1)
+			coal.scale.y = 1.35
 
 	if not world_model.discovery.sample_taken:
 		sample = assets.ore.instantiate()

@@ -3,6 +3,7 @@ extends Control
 signal device_action(name: String, id: int)
 signal closed
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const ItemSlot := preload("res://scripts/factory/item_slot.gd")
@@ -131,6 +132,7 @@ func _ready() -> void:
 	button(discovery_row, "sample", "拾取样本", func(): apply(model.survey_sample(true)))
 	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
 	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
+	button(discovery_content, "frontier", "开拓高产炭矿 · 用 4 颗破岩胶囊", func(): apply(model.open_passage(Frontier.PASSAGE)))
 	discovery_content.add_child(guide_overview)
 	guide_overview.add_theme_font_size_override("font_size", 18)
 	content.add_child(device_content)
@@ -308,13 +310,21 @@ func refresh() -> void:
 	bag_empty.visible = bag_count == 0
 	if model.bag.get(bag_item, 0) <= 0:
 		bag_item = ""
-	var integrated: bool = model.supply_id == Rules.Integrated.SUPPLY_ID
+	var integrated: bool = Rules.Integrated.matches_supply(model.supply_id)
 	guide_overview.text = "样本支持核心的样本工艺研究。试制消耗唯一实物。" if integrated else Guidance.overview(model)
 	summary.text = "外矿道：%s　内矿道：%s" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
 	summary.text += "\n完成矿壳试制后，携带解壳剂在矿道西侧使用。" if integrated else "\n试制掌握量产方法；携带解壳剂在矿道西侧使用。"
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
+	var frontier: bool = model.supply_id == Frontier.SUPPLY_ID
+	buttons.frontier.visible = frontier
+	if frontier:
+		var status: Dictionary = model.frontier_status()
+		buttons.frontier.disabled = not status.ok
+		buttons.frontier.tooltip_text = "永久开启北入口，允许步行、铺带和接电。" if status.ok else status.reason
+		summary.text += "\n高产炭矿支路 · " + ("已开启 · 炭矿 1 件 / 5 秒" if d.passages[Frontier.PASSAGE] else "背包胶囊 %d / %d · %s" % [model.bag.get(Frontier.CAPSULE, 0), Frontier.OPEN_COST, "可永久打通" if status.ok else status.reason])
+		guide_overview.text += "\n高产矿接回炭粉产线，可持续供给电芯和混料炉。"
 	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage", "cell_generator"]
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)

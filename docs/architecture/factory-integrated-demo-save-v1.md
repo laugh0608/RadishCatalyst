@@ -23,7 +23,7 @@
 
 正式菜单新增整合工厂选项，旧世界继续沿各自身份；隔离复核使用相同菜单和 Store，仅切换存档根。S1-P 完整路线已对比新进程恢复的完整快照和继续 30 模拟秒的结果，见[正式入口记录](../devlogs/2026-W45.md#foundation-acceptance)。亲测档可用同一批次跨进程继续，命令见 [Tools](../../tools/README.md#正式工厂定向检查)。
 
-D1 的独立身份、权威字段和兼容方案见[开拓回报评审草案](../features/factory-research-and-progression-v1.md#d1-frontier-identity)，待确认后才进入实现。D2 另定版本。
+D1 使用独立 schema 10 身份，经隔离入口创建和继续。其权威字段、定义摘要及读取边界见[开拓回报存档身份](../features/factory-research-and-progression-v1.md#d1-frontier-identity)。D2 另定版本。
 
 ## 权威字段
 

@@ -25,6 +25,8 @@ R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用
 
 ## 正式工厂定向检查
 
+- D1 开拓工厂用 `sh tools/check-factory-frontier.sh state <新批次>` 复算布局，从空档验证 X2、R13 / R14、支路回流、普通 / 高产矿对照和跨进程 schema 10。改用 `window` 加查窗口研究、开路、存读与截图。手动用 `sh tools/check-factory-frontier.sh play <亲测批次>` 创建或继续同一隔离档。
+
 - 整合工厂 C 用 `sh tools/check-factory-integrated-c.sh state` 在两个进程验证写入、恢复与后续轨迹，`window` 复核 Boot 新建、发电机、保存返回和继续。`play current` 使用稳定隔离目录，可用同一命令跨进程继续。验证批次位于 `tools/runtime-intake/check-runs/factory-integrated-c-v1/`，亲测根位于 `tools/runtime-intake/review-worlds/factory-integrated-c-v1/`。
 
 - 联合首程用 `sh tools/check-factory-integrated-first-run.sh state` 从空档走完整四面 S1-P，另启进程核对保存快照及继续 30 模拟秒。改用 `window` 在两个进程操作正式 Boot 菜单并截图，两个存档根指向隔离批次。建造、研究、搬运和产线推进由正式模型命令驱动。日志、原图与结果 JSON 位于 `tools/runtime-intake/check-runs/factory-integrated-first-run-v1/<batch>/`。既有亲测档使用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。

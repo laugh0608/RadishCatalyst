@@ -44,8 +44,8 @@ func collector_cycle(e: Dictionary) -> float:
 	return Expansion.cycle(e.mineral)
 
 
-func _collected(item: String) -> void:
-	extracted_by_item[item] += 1
+func _collected(e: Dictionary) -> void:
+	extracted_by_item[e.mineral] += 1
 
 
 func _batch_started(e: Dictionary) -> void:
@@ -125,6 +125,14 @@ func _commit_assembly(type: String, stock: Dictionary, quote: Dictionary) -> Dic
 	return quote
 
 
+func passage_consumption() -> Dictionary:
+	var consumed := {}
+	for passage in DiscoveryRules.PASSAGES:
+		if discovery.passages[passage]:
+			Items.add(consumed, "crust_solvent", DiscoveryRules.PASSAGES[passage].cost)
+	return consumed
+
+
 func material_balance() -> Dictionary:
 	var held := bag.duplicate()
 	for e in entities: Items.merge(held, Items.contents(e))
@@ -138,11 +146,10 @@ func material_balance() -> Dictionary:
 			expected[item] = expected.get(item, 0) - n * recipes[recipe_id].input[item]
 	for type in assembly_counts:
 		expected.construction_pack = expected.get("construction_pack", 0) - assembly_counts[type] * assembly_costs[type]
-	for passage in discovery.passages:
-		if discovery.passages[passage]:
-			expected.crust_solvent = expected.get("crust_solvent", 0) - DiscoveryRules.PASSAGES[passage].cost
-	for item in extra_consumption():
-		expected[item] = expected.get(item, 0) - extra_consumption()[item]
+	var consumed := extra_consumption()
+	Items.merge(consumed, passage_consumption())
+	for item in consumed:
+		expected[item] = expected.get(item, 0) - consumed[item]
 	var balanced := true
 	for item in item_ids:
 		if held.get(item, 0) != expected.get(item, 0): balanced = false

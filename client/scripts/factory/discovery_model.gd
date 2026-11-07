@@ -195,7 +195,7 @@ func _step(dt: float) -> void:
 				Items.add(e.buffer, e.mineral, 1)
 				generated += 1
 				statistics.event("produced", e.mineral, 1)
-				_collected(e.mineral)
+				_collected(e)
 		elif e.type in process_types:
 			var recipe: Dictionary = recipes[e.recipe_id]
 			if not e.processing:
@@ -439,8 +439,12 @@ func open_passage(id: String) -> Dictionary:
 		return failure("请靠近矿道西侧入口两格内使用")
 	if not discovery.trial_completed or bag.get("crust_solvent", 0) < rule.cost:
 		return failure("背包需要 %d 份解壳剂" % rule.cost)
-	Items.add(bag, "crust_solvent", -rule.cost)
-	statistics.event("consumed", "crust_solvent", rule.cost)
+	return _commit_passage(id, "crust_solvent", rule.cost)
+
+
+func _commit_passage(id: String, item: String, cost: int) -> Dictionary:
+	Items.add(bag, item, -cost)
+	statistics.event("consumed", item, cost)
 	discovery.passages[id] = true
 	revision += 1
 	_refresh_automatic_power()
@@ -488,7 +492,7 @@ func collector_cycle(_e: Dictionary) -> float:
 	return 1.0
 
 
-func _collected(_item: String) -> void:
+func _collected(_e: Dictionary) -> void:
 	pass
 
 

@@ -51,12 +51,17 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 		return failure("不支持的整合工厂身份。", true)
 	if value.get("definitions_sha256") != Definitions.PIN or Definitions.sha256() != Definitions.PIN:
 		return failure("整合工厂定义摘要不匹配，不能按其他规则读取。", true)
+	return decode_state(value, expected_id, IntegratedModel.new())
+
+
+static func decode_state(value: Dictionary, expected_id: String, model: RefCounted) -> Dictionary:
+	var frontier: bool = model.supply_id == Integrated.Frontier.SUPPLY_ID
 	if not fields(value, TOP_FIELDS + ["definitions_sha256"]) or not valid_id(value.world_id) or value.world_id != expected_id:
 		return failure("整合世界字段或目录身份无效。")
 	if not value.name is String or value.name.strip_edges().is_empty() or value.name.length() > 48 or "\n" in value.name or not integer(value.sequence, 1):
 		return failure("世界名称或序号无效。")
 	var s: Variant = value.state
-	if not fields(s, STATE) or not integer(s.simulation_tick, 0, 20000000000000) or not number(s.remainder_s, 0, 3600):
+	if not fields(s, STATE + (["frontier_extracted"] if frontier else [])) or not integer(s.simulation_tick, 0, 20000000000000) or not number(s.remainder_s, 0, 3600):
 		return failure("整合世界状态或时钟无效。")
 	if not integer(s.next_id, 2) or not integer(s.next_batch, 1):
 		return failure("实例或批次序号无效。")
@@ -64,7 +69,6 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 		if not integer(s[key]): return failure("累计计数无效。")
 	if s.completed >= s.next_batch or s.delivered_batch >= s.next_batch:
 		return failure("累计计数与批次序列矛盾。")
-	var model := IntegratedModel.new()
 	model.automatic_power = false
 	if not Ledger.counts(s.extracted_by_item, model.extracted_by_item.keys()) or not Ledger.counts(s.completed_by_recipe, model.recipes.keys()) or not integer(s.completed_by_recipe.solvent_trial, 0, 1):
 		return failure("采集、配方或唯一次试制计数无效。")
@@ -73,6 +77,18 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	var common: Dictionary = s.duplicate(true)
 	common.erase("simulation_tick")
 	common.erase("remainder_s")
+	var frontier_open := false
+	if frontier:
+		if not fields(s.discovery.passages, ["outer", "inner", Integrated.Frontier.PASSAGE]) or not s.discovery.passages[Integrated.Frontier.PASSAGE] is bool:
+			return failure("开拓支路状态无效。")
+		frontier_open = s.discovery.passages[Integrated.Frontier.PASSAGE]
+		var max_extracted := mini(int(s.extracted_by_item.carbon_ore),
+			floori(s.simulation_tick * model.STEP / Integrated.Frontier.ORE_SECONDS))
+		if not integer(s.frontier_extracted, 0, max_extracted) or (s.frontier_extracted > 0 and not frontier_open):
+			return failure("高产炭矿累计与矿区状态矛盾。")
+		model.frontier_extracted = int(s.frontier_extracted)
+		common.erase("frontier_extracted")
+		common.discovery.passages.erase(Integrated.Frontier.PASSAGE)
 	common.time = int(s.simulation_tick) * model.STEP
 	common.remainder = s.remainder_s
 	common.discovery.trial_completed = s.completed_by_recipe.solvent_trial == 1
@@ -83,6 +99,14 @@ static func decode(value: Variant, expected_id: String) -> Dictionary:
 	var progression := _load_progression(model, s.core, s.research)
 	if not progression.ok:
 		return progression
+	if frontier:
+		if frontier_open and (not model.discovery.passages.outer or not model.researched.has(Integrated.Frontier.RESEARCH)):
+			return failure("已开拓支路缺少外矿道或开拓工具研究。")
+		model.discovery.passages[Integrated.Frontier.PASSAGE] = frontier_open
+		if not model.item_known(Integrated.Frontier.CAPSULE):
+			for port in model.core.outputs.values():
+				if port.item == Integrated.Frontier.CAPSULE:
+					return failure("未研究的破岩胶囊不能配置出料。")
 	for item in s.statistics_ui.favorites:
 		if not model.item_known(item): return failure("统计收藏物品尚未掌握。")
 	var owned := _owned_budget(model, s)
@@ -141,20 +165,20 @@ static func _load_progression(model: RefCounted, core: Variant, research: Varian
 		if not fields(port, ["id", "item", "enabled", "cooldown_ticks"]) or port.id != id or not port.item is String or port.item not in [""] + model.admission_items or not port.enabled is bool or (port.item.is_empty() and port.enabled) or not integer(port.cooldown_ticks, 0, Integrated.COOLDOWN_TICKS):
 			return failure("核心出料物品、开关或冷却无效。")
 		model.core.outputs[id] = {"item": port.item, "enabled": port.enabled, "cooldown_ticks": int(port.cooldown_ticks)}
-	if not fields(research, ["completed"]) or not research.completed is Array or research.completed.size() > Tech.NODES.size():
+	if not fields(research, ["completed"]) or not research.completed is Array or research.completed.size() > model.research_nodes.size():
 		return failure("研究集合无效。")
 	model.researched.clear()
 	var last := ""
 	for id in research.completed:
-		if not id is String or not Tech.NODES.has(id) or id <= last:
+		if not id is String or not model.research_nodes.has(id) or id <= last:
 			return failure("研究未知、重复或顺序无效。")
 		last = id
 		model.researched[id] = true
 	if not model.researched.has(Tech.BASE):
 		return failure("缺少起步研究。")
 	for id in model.researched:
-		var node: Dictionary = Tech.NODES[id]
-		if core.level < node.level or not node.requires.all(func(dep): return model.researched.has(dep)) or (node.sample and not model.discovery.sample_taken):
+		var node: Dictionary = model.research_nodes[id]
+		if core.level < node.level or not node.requires.all(func(dep): return model.researched.has(dep)) or not model.research_fact_missing(id).is_empty():
 			return failure("已完成研究缺少等级、前置或发现。")
 	if core.level == 2 and not Tech.II_REQUIRES.all(func(id): return model.researched.has(id)):
 		return failure("核心 II 缺少研究前置。")

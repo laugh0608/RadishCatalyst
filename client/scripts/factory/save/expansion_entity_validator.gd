@@ -38,8 +38,10 @@ static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounte
 	if e.has("power_node_id") and not integer(e.power_node_id, 0, next_id - 1): return failure("供电引用无效。")
 	if e.type == "collector":
 		var mineral: String = model.mineral_at(Vector2i(e.x, e.z))
-		var cycle := Expansion.cycle(mineral)
-		if mineral.is_empty() or e.mineral != mineral or not bounded(e.buffer, {mineral: 50}, model) or not number(e.progress, 0, cycle) or e.progress >= cycle:
+		if mineral.is_empty() or e.mineral != mineral:
+			return failure("采集器矿物与矿点不符。")
+		var cycle: float = model.collector_cycle(e)
+		if not bounded(e.buffer, {mineral: 50}, model) or not number(e.progress, 0, cycle) or e.progress >= cycle:
 			return failure("矿物、采集缓冲或周期进度无效。")
 	elif e.type in model.process_types:
 		return processor(e, next_batch, model)

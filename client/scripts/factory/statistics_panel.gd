@@ -265,7 +265,7 @@ func refresh_power(result: Dictionary) -> void:
 	power_summary.text = "当前：装机 %.1f / 可用 %.1f / 请求 %.1f / 实际供用 %.1f / 分网缺口 %.1f kW" % [p.installed_kw, p.available_kw, p.request_kw, p.supplied_kw, p.deficit_kw]
 	if w.has_samples:
 		power_summary.text += "\n窗口均值：装机 %.1f / 请求 %.1f / 供用 %.1f / 缺口 %.1f kW\n窗口实际用电 %.2f kJ；累计用电 %.2f kJ" % [w.installed_kj / w.seconds, w.requested_kj / w.seconds, w.used_kj / w.seconds, w.deficit_kj / w.seconds, w.used_kj, model.statistics.totals.used_kj]
-	if model.supply_id == Rules.Integrated.SUPPLY_ID:
+	if Rules.Integrated.matches_supply(model.supply_id):
 		var ledger: Dictionary = model.energy_balance()
 		power_summary.text += "\n当前基础供能 %.1f / 燃料释能 %.1f / 弃能 %.1f kW" % [p.base_supplied_kw, p.fuel_released_kw, p.spill_kw]
 		power_summary.text += "\n累计激活 %d 件 · 释能 %.1f · 弃能 %.1f · 回收损失 %.1f · 现存余能 %.1f kJ" % [ledger.activated, ledger.released_kj, model.statistics.totals.spill_kj, ledger.discarded_kj, ledger.remaining_kj]

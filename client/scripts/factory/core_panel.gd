@@ -272,8 +272,8 @@ func _build_progression() -> void:
 	_label(content, "从核心库存一次提交材料")
 	research_choice = OptionButton.new()
 	content.add_child(research_choice)
-	for id in Progression.NODES:
-		research_choice.add_item(Progression.NODES[id].name)
+	for id in model.research_nodes:
+		research_choice.add_item(model.research_nodes[id].name)
 		research_choice.set_item_metadata(research_choice.item_count - 1, id)
 	research_choice.select(1)
 	research_choice.item_selected.connect(func(_index): _refresh_progression())
@@ -315,7 +315,7 @@ func _action_button(parent: Control, caption: String, action: Callable) -> Butto
 func _requirements(ids: Array) -> String:
 	var names := PackedStringArray()
 	for id in ids:
-		names.append(Progression.NODES[id].name + (" ✓" if model.researched.has(id) else " 待完成"))
+		names.append(model.research_nodes[id].name + (" ✓" if model.researched.has(id) else " 待完成"))
 	return "、".join(names) if not names.is_empty() else "无"
 
 
@@ -323,13 +323,15 @@ func _refresh_progression() -> void:
 	var level := "II" if model.core.level == 2 else "I"
 	title.text = "基地核心 " + level
 	var id: String = research_choice.get_selected_metadata()
-	var node: Dictionary = Progression.NODES[id]
+	var node: Dictionary = model.research_nodes[id]
 	var state: Dictionary = model.research_status(id)
 	var done: bool = model.researched.has(id)
 	var sample := ""
 	if node.sample:
 		sample = "
 外矿道入口的矿壳样本：%s" % ("已拾取" if model.discovery.sample_taken else "待拾取")
+	if id == Rules.Integrated.Frontier.RESEARCH:
+		sample = "\n矿壳试制：%s" % ("已完成" if model.discovery.trial_completed else "待完成")
 	var stock: Dictionary = model.missing_stock(node.cost)
 	var payment := "材料齐备" if stock.is_empty() else "缺少 " + Items.describe(stock)
 	if done:

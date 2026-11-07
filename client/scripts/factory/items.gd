@@ -3,7 +3,7 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 
 
-static var NAMES := Rules.NAMES.merged(Rules.Expansion.NAMES).merged(Rules.Energy.NAMES)
+static var NAMES := Rules.NAMES.merged(Rules.Expansion.NAMES).merged(Rules.Energy.NAMES).merged({Rules.Integrated.Frontier.CAPSULE: "破岩胶囊"})
 
 
 static func count(items: Dictionary) -> int:
