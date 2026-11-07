@@ -40,6 +40,10 @@ var sample_button: Button
 var interaction_button: Button
 var admission_markers := preload("res://scripts/factory/admission_markers.gd").new()
 var quota_notice := preload("res://scripts/factory/quota_notice.gd").new()
+var waypoint_panel: PanelContainer
+var waypoint_map := preload("res://scripts/factory/waypoint_map.gd").new()
+var waypoint_title: Label
+var waypoint_distance: Label
 
 
 func _ready() -> void:
@@ -198,6 +202,21 @@ func _build_world_panels() -> void:
 	_button(camera_row, "zoom_out", "−")
 	_button(camera_row, "zoom_in", "+")
 	camera_panel.name = "CameraPanel"
+	waypoint_panel = _panel(world_slot)
+	waypoint_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	waypoint_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	waypoint_panel.offset_left = -244
+	waypoint_panel.offset_right = -20
+	waypoint_panel.offset_top = -381
+	waypoint_panel.offset_bottom = -68
+	var waypoint_stack := VBoxContainer.new()
+	waypoint_panel.add_child(waypoint_stack)
+	waypoint_title = _label(waypoint_stack, "", 16)
+	_label(waypoint_stack, "↑ 北     ▲ 你     ◯ 目标", 13)
+	waypoint_stack.add_child(waypoint_map)
+	waypoint_distance = _label(waypoint_stack, "", 14)
+	_button(waypoint_stack, "clear_waypoint", "关闭定位")
+	waypoint_panel.hide()
 	help_panel = _panel(world_slot)
 	help_panel.position = Vector2(265, 22)
 	_label(help_panel, "WASD / 方向键移动 · 鼠标只选择 / 操作\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n电力图标：✓ 可用 / × 未接网 / ⊘ 无供电 / ! 不足\n电力可用但缺料时，设备仍会待机\n关闭窗口自动保存；后台继续生产")
@@ -311,7 +330,16 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 
 
 func world_panels() -> Array:
-	return [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]
+	return [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel"), waypoint_panel]
+
+
+func sync_waypoint(model: RefCounted, actor: Dictionary, ui: Dictionary, camera_yaw: float) -> void:
+	var waypoint: Dictionary = ui.waypoint
+	waypoint_panel.visible = not waypoint.is_empty() and not inspector.visible and not ui.blocked
+	if not waypoint_panel.visible:
+		return
+	waypoint_title.text = waypoint.action_label.trim_prefix("定位")
+	waypoint_distance.text = waypoint_map.sync(model, actor, waypoint.point, camera_yaw)
 
 
 func sync_markers(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
@@ -406,8 +434,10 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		var replacement: Dictionary = model.placement_replacement(ui.tool, ui.cell)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
-		if ui.tool == "belt" and model.entity_at(ui.cell).get("type", "") == "belt":
-			placement_reason.text = "已有传送带 · 可从未接通的末端拖动"
+		if ui.tool == "belt":
+			var hovered: Dictionary = model.entity_at(ui.cell)
+			if hovered.get("type", "") == "belt":
+				placement_reason.text = Model.BeltLogistics.BELT_CONFLICT if Model.BeltLogistics.belt_input_conflict(model, hovered) else "已有传送带 · 可从未接通的末端拖动"
 		if valid.ok and not replacement.is_empty():
 			var recovered := Items.contents(replacement)
 			placement_reason.text = "替换传送带 · 返还带 ×1" + ("" if recovered.is_empty() else " · 物料回收至背包")

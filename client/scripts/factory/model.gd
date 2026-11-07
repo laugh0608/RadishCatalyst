@@ -29,6 +29,7 @@ var actor := {"x": -3.5, "z": 5.7, "angle": 0.0, "walk": 0.0, "moving": false, "
 var occupancy := {}
 var instances := {}
 var input_sides := {}
+var single_inlet_belts := false
 var step_samples: Array[float] = []
 var measure_steps := false
 
@@ -193,15 +194,15 @@ static func path_directions(path: Array[Vector2i], dir: int, destination: Varian
 	return directions
 
 
-func belt_can_dock(path: Array[Vector2i], destination: Vector2i) -> bool:
+func belt_dock_status(path: Array[Vector2i], destination: Vector2i) -> Dictionary:
 	if path.is_empty() or destination in path:
-		return false
+		return failure("末段传送带与目标入口未接通")
 	var tail: Vector2i = path.back()
 	var delta := destination - tail
 	if delta not in DIRS:
-		return false
+		return failure("末段传送带与目标入口未接通")
 	var output := {"x": tail.x, "z": tail.y, "dx": delta.x, "dz": delta.y}
-	return BeltLogistics.output_connection(self, output).ok
+	return BeltLogistics.output_connection(self, output)
 
 
 func belt_join_status(e: Dictionary, direction: int) -> Dictionary:
@@ -220,8 +221,10 @@ func belt_join_status(e: Dictionary, direction: int) -> Dictionary:
 func place_path(path: Array[Vector2i], dir := 0, destination: Variant = null, reuse_start := false) -> Dictionary:
 	if path.is_empty():
 		return failure("拖动经过空格后再松开铺设")
-	if destination != null and not belt_can_dock(path, destination):
-		return failure("末段传送带与目标入口未接通")
+	if destination != null:
+		var dock := belt_dock_status(path, destination)
+		if not dock.ok:
+			return failure(dock.reason)
 	if reuse_start and path.size() == 1 and destination == null:
 		return failure("请从这段传送带拖向相邻入口或空格")
 	if path.size() - int(reuse_start) > kits.belt:
@@ -341,7 +344,10 @@ static func accepts_belt(target: Dictionary, direction: Vector2i) -> bool:
 
 
 func belt_inputs(b: Dictionary) -> Array[int]:
-	return input_sides.get(b.id, Array([], TYPE_INT, "", null))
+	var sides: Array[int] = input_sides.get(b.id, Array([], TYPE_INT, "", null))
+	if single_inlet_belts and sides.size() > 1:
+		return []
+	return sides
 
 
 func _find_belt_inputs(b: Dictionary) -> Array[int]:

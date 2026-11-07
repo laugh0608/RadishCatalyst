@@ -35,7 +35,7 @@ var original_min_size := Vector2i.ZERO
 var ui := {"build": true, "tool": "", "cell": Vector2i(-6, 0), "dir": 0, "selected": -1,
 	"focus_device": -1, "focus_ready": false, "blocked": false, "interaction_kind": "",
 	"power_from": 0, "power_hover": 0, "show_power_links": true, "paused": false, "stroke": Array([], TYPE_VECTOR2I, "", null),
-	"stroke_target": null, "stroke_reuse": false, "stroke_valid": true, "mission": true}
+	"stroke_target": null, "stroke_reuse": false, "stroke_valid": true, "mission": true, "waypoint": {}}
 var keys := {}
 var pointer := false
 var pointer_start := Vector2.ZERO
@@ -233,6 +233,7 @@ func _refresh() -> void:
 	if core_panel.visible:
 		core_panel.refresh(ui.paused)
 	hud.refresh(model, actor, ui, focused)
+	hud.sync_waypoint(model, actor, ui, view.yaw)
 
 
 func _sync_focus() -> bool:
@@ -336,6 +337,7 @@ func _action(name: String, value: Variant) -> void:
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
 			"guide_action": _guide_action()
+			"clear_waypoint": ui.waypoint = {}
 			"power_links": ui.show_power_links = not ui.show_power_links
 			"quota_gate": _locate_statistics_device(int(value))
 			"inventory":
@@ -524,8 +526,14 @@ func _preview(cell: Vector2i, screen: Vector2) -> void:
 		ui.stroke_reuse = true
 	var result := model.extend_path(ui.stroke, aim, int(ui.stroke_reuse))
 	ui.stroke = result.path
-	if model.belt_can_dock(ui.stroke, destination) and (inlet.is_empty() or ui.stroke.back() == aim):
-		ui.stroke_target = destination
+	if inlet.is_empty() or (not ui.stroke.is_empty() and ui.stroke.back() == aim):
+		var dock := model.belt_dock_status(ui.stroke, destination)
+		if dock.ok or dock.get("conflict", false):
+			ui.stroke_target = destination
+		if dock.get("conflict", false):
+			ui.stroke_valid = false
+			hud.announce(dock.reason, true)
+			return
 	if ui.stroke_reuse and (ui.stroke.size() > 1 or ui.stroke_target != null):
 		var dir := Model.path_directions(ui.stroke, ui.dir, ui.stroke_target)[0]
 		var join := model.belt_join_status(model.entity_at(ui.stroke[0]), dir)
@@ -846,6 +854,10 @@ func _guide_action() -> void:
 			actor.target = null
 			ui.tool = ""
 			ui.selected = -1
-			view.inspection_target = Vector3(step.point.x, 0.25, step.point.y)
+			if Model.DiscoveryRules.Integrated.matches_supply(model.supply_id):
+				view.inspection_target = null
+				ui.waypoint = step
+			else:
+				view.inspection_target = Vector3(step.point.x, 0.25, step.point.y)
 		"statistics", "discovery": _action(step.action, null)
 	hud.announce(step.next)

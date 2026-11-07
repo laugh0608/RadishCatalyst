@@ -99,10 +99,11 @@ func _first_run() -> void:
 	if windowed:
 		var spawn := Vector2(model.actor.x, model.actor.z)
 		await driver.click(world.hud.buttons.guide_action)
-		driver.expect(world.view.inspection_target == Vector3(-27.0, 0.25, -11.0), "first objective locates the offscreen iron site")
+		driver.expect(world.view.inspection_target == null and world.hud.waypoint_panel.visible and world.hud.waypoint_map.target == Vector2(-27.0, -11.0),
+			"first objective pins the offscreen iron site while keeping the camera on the actor")
 		driver.expect(Vector2(model.actor.x, model.actor.z) == spawn, "locating the ore leaves the actor at spawn")
 		await driver.shot("01a-iron-located")
-		world.view.inspection_target = null
+		await driver.click(world.hud.buttons.clear_waypoint)
 	var layout: Variant = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("layout.json")))
 	driver.expect(layout is Dictionary and layout.get("layout") == "S1-P", "validated four-sided layout loaded")
 	if not layout is Dictionary:

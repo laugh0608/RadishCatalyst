@@ -411,12 +411,12 @@ func invalidate() -> void:
 	clear_node(build_model)
 
 
-func _build(e: Dictionary, mask: int) -> Dictionary:
+func _build(e: Dictionary, mask: int, inlet_conflict: bool) -> Dictionary:
 	var root := Node3D.new()
 	add_child(root)
 	var def: Dictionary = Model.CATALOG[e.type]
 	root.position = Vector3(e.x + def.w * 0.5, 0, e.z + def.d * 0.5)
-	var result := {"root": root, "mask": mask, "dir": e.dir, "level": e.get("level", 0)}
+	var result := {"root": root, "mask": mask, "dir": e.dir, "level": e.get("level", 0), "inlet_conflict": inlet_conflict}
 	if e.type == "belt":
 		var belt: Node3D = assets["belt-%d" % mask].instantiate()
 		root.add_child(belt)
@@ -426,6 +426,10 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 		root.add_child(cargo)
 		result.cargo = cargo
 		result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
+		if inlet_conflict:
+			for angle in [-45.0, 45.0]:
+				var mark := _overlay_box(root, Vector3(0, 0.48, 0), Vector3(0.31, 0.02, 0.06), status_materials.blocked)
+				mark.rotation_degrees.y = angle
 	else:
 		var asset: Node3D = assets[e.type].instantiate()
 		root.add_child(asset)
@@ -450,11 +454,13 @@ func _build(e: Dictionary, mask: int) -> Dictionary:
 			result.cargo = cargo
 			result.cargo_mesh = cargo.find_children("*", "MeshInstance3D", true, false)[0]
 		if e.type != Integrated.CORE:
-			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "merger", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
+			result.lamp = Parts.mesh(root, status_mesh, Vector3(-def.w * 0.5 + 0.22, {"crusher": 1.8, "refinery": 2.6, "assembler": 2.2, "merger": 0.62}.get(e.type, 3.4 if e.type == "reactor" else 0.9 if e.type in ["splitter", "admission_gate"] else 2.1), def.d * 0.5 - 0.2), status_materials.waiting)
 			if world_model.has_method("power_state") and PowerStatus.supports(e):
 				result.power_icon = PowerStatus.marker(root, Vector3(def.w * 0.5 - 0.2, result.lamp.position.y + 0.35, -def.d * 0.5 + 0.2))
 				result.power_kind = ""
 			result.lamp.scale = Vector3.ONE * 0.21
+			if e.type == "merger":
+				result.lamp.scale *= 0.55
 			result.lamp_mat = status_materials.waiting
 			_overlay_box(root, Vector3(0, 0.035, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.04, 0.12), dark_mat)
 			result.bar = _overlay_box(root, Vector3(0, 0.064, def.d * 0.5 + 0.15), Vector3(def.w * 0.8, 0.025, 0.12), cyan_mat)
@@ -474,17 +480,18 @@ func _rebuild(model: RefCounted) -> void:
 			models.erase(id)
 	for e in model.entities:
 		var mask := 0
+		var inlet_conflict := Model.BeltLogistics.belt_input_conflict(model, e)
 		if e.type == "belt":
 			for side in model.belt_inputs(e):
 				mask |= 1 << ((side - e.dir + 4) % 4)
 			if mask == 0:
 				mask = 4
-		if models.has(e.id) and (models[e.id].mask != mask or models[e.id].dir != e.dir or models[e.id].level != e.get("level", 0)):
+		if models.has(e.id) and (models[e.id].mask != mask or models[e.id].dir != e.dir or models[e.id].level != e.get("level", 0) or models[e.id].inlet_conflict != inlet_conflict):
 			remove_child(models[e.id].root)
 			models[e.id].root.queue_free()
 			models.erase(e.id)
 		if not models.has(e.id):
-			models[e.id] = _build(e, mask)
+			models[e.id] = _build(e, mask, inlet_conflict)
 	var used_meshes := {}
 	for v in models.values():
 		for part in v.hit_parts:
@@ -589,6 +596,8 @@ func _sync_device_affordances(model: RefCounted, ui: Dictionary) -> void:
 	port_key = key
 	clear_node(port_hints)
 	for e in model.entities:
+		if e.type == "merger" and ui.tool != "belt":
+			continue
 		var shape: Dictionary = Model.CATALOG[e.type]
 		var center := Vector2(e.x + shape.w * 0.5, e.z + shape.d * 0.5)
 		if e.id == ui.selected or (not ui.tool.is_empty() and center.distance_to(Vector2(ui.cell)) <= 9):

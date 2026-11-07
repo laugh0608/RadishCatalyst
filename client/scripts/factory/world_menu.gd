@@ -58,7 +58,7 @@ func _ready() -> void:
 		Store.Codec.V9.Integrated.SUPPLY_ID: "整合工厂 · 核心研究与固定燃烧",
 	}
 	if catalog.allow_frontier:
-		types[Store.Codec.V10.Frontier.SUPPLY_ID] = "开拓工厂 · 高产炭矿隔离复核"
+		types[Store.Codec.V10.Frontier.SUPPLY_ID] = "开拓工厂 · 高产炭矿 / 普通带单路隔离复核"
 	for supply in types:
 		world_type.add_item(types[supply])
 		world_type.set_item_metadata(world_type.item_count - 1, supply)

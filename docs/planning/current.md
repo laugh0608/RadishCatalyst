@@ -13,7 +13,7 @@
 ## 当前顺位
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已按确认方案接入 schema 10 隔离档。普通矿与高产矿的同档持续供燃和混料对照已通过，D1 玩家亲测待验；可选测控和整段收口继续按总合同顺位。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。根据亲测反馈，新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。下一步仍是 D1 玩家复验，可选测控和整段收口继续按总合同顺位。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

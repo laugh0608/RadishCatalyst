@@ -83,7 +83,7 @@ func _find_belt_inputs(b: Dictionary) -> Array[int]:
 		if source.is_empty():
 			continue
 		for output in Logistics.ports(self, source, "output"):
-			if not Logistics.receiving_port(self, b, output).is_empty():
+			if Logistics.receiving_port(self, b, output) == p:
 				inputs.append(DIRS.find(Vector2i(p.dx, p.dz)))
 	return inputs
 

@@ -2,6 +2,7 @@ extends RefCounted
 
 const Tech := preload("res://data/factory/integrated_progression.gd")
 const RULESET_ID := "factory_integrated_frontier_v1"
+const SINGLE_INLET_RULESET_ID := "factory_integrated_frontier_single_inlet_v1"
 const MAP_ID := "factory_integrated_frontier_yard_64_v1"
 const SUPPLY_ID := "factory_integrated_frontier_starter_v1"
 const PASSAGE := "carbon_frontier"

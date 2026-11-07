@@ -4,6 +4,7 @@ extends RefCounted
 const DIRS := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)]
 const OUTPUT_NAMES := ["前", "左", "右"]
 const INPUT_NAMES := ["后", "左", "右"]
+const BELT_CONFLICT := "普通带只能接一路，请用汇合器"
 const Integrated := preload("res://data/factory/integrated_rules.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
@@ -49,6 +50,13 @@ static func receiving_port(model: RefCounted, target: Dictionary, output: Dictio
 	return {}
 
 
+static func belt_input_conflict(model: RefCounted, target: Dictionary) -> bool:
+	if not model.single_inlet_belts or target.type != "belt":
+		return false
+	var sides: Array = model.input_sides[target.id] if target.has("id") else model._find_belt_inputs(target)
+	return sides.size() > 1
+
+
 static func output_connection(model: RefCounted, output: Dictionary) -> Dictionary:
 	var target: Dictionary = model.entity_at(Vector2i(output.x + output.dx, output.z + output.dz))
 	if target.is_empty():
@@ -56,6 +64,11 @@ static func output_connection(model: RefCounted, output: Dictionary) -> Dictiona
 	var input := receiving_port(model, target, output)
 	if input.is_empty():
 		return {"ok": false, "reason": "方向不匹配"}
+	if model.single_inlet_belts and target.type == "belt":
+		var sides: Array = model.input_sides[target.id]
+		var incoming := DIRS.find(Vector2i(input.dx, input.dz))
+		if sides.size() > 1 or (sides.size() == 1 and incoming not in sides):
+			return {"ok": false, "reason": BELT_CONFLICT, "conflict": true}
 	return {"ok": true, "reason": "已接通", "target": target, "output": output, "input": input}
 
 
@@ -67,6 +80,8 @@ static func input_connection(model: RefCounted, target: Dictionary, input: Dicti
 		return {"ok": false, "reason": "核心出料首格需要传送带"}
 	for output in ports(model, source, "output"):
 		if receiving_port(model, target, output) == input:
+			if belt_input_conflict(model, target):
+				return {"ok": false, "reason": BELT_CONFLICT}
 			return {"ok": true, "reason": "已接通", "source": source, "output": output}
 	return {"ok": false, "reason": "方向不匹配"}
 
@@ -292,6 +307,8 @@ static func _commit(model: RefCounted, move: Dictionary) -> void:
 
 
 static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
+	if belt_input_conflict(model, e):
+		return {"kind": "blocked", "label": BELT_CONFLICT}
 	if e.cargo.is_empty():
 		if e.type == "admission_gate":
 			var input: Dictionary = ports(model, e, "input")[0]

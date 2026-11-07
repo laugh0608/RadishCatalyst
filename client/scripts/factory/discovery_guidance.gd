@@ -41,7 +41,7 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 		for cell in model.ore_sites():
 			if model.mineral_at(cell) == mineral:
 				var label: String = Items.NAMES[mineral]
-				return _action("location", "定位" + label, "%s矿点 (%d, %d)。角色未移动，走动后镜头恢复跟随。" % [label.trim_suffix("矿"), cell.x, cell.y],
+				return _action("location", "定位" + label, "已标记%s。按 WASD 移动，查看小地图上的方向。" % label,
 					{"point": Vector2(cell) + Vector2.ONE})
 	return {}
 

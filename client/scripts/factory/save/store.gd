@@ -93,6 +93,8 @@ func list_worlds() -> Array[Dictionary]:
 			entry.hash = candidate.hash
 			entry.title = candidate.document.name
 			entry.name += " · 工程规模验证" if Engineering.matches(candidate.document) else " · 开拓工厂 · 隔离复核" if entry.schema == Codec.V10.VERSION else " · 整合工厂 · 固定燃烧" if entry.schema == 9 else " · 能源循环 E2 · 待机耗电" if entry.schema == 8 else " · 能源循环 E2（旧规则）" if entry.schema == 7 else " · 生产扩建 E1" if entry.schema == 6 else " · 物品准入工厂" if entry.schema == 5 else " · 分流与汇合工厂" if entry.schema == 4 else " · 范围供电工厂" if entry.schema == 3 else " · 勘探工厂（旧接线）" if entry.schema == 2 else " · 基础工厂"
+			if entry.schema == Codec.V10.VERSION:
+				entry.name += " · 普通带单路" if candidate.model.single_inlet_belts else " · 原物流规则"
 			entry.status = "可继续" if candidate.source.ends_with("/autosave.json") else "可从备份恢复"
 		else:
 			entry.status = candidate.reason
@@ -352,7 +354,7 @@ func _create_locked(title: String, supply: String, automatic_power: bool) -> Dic
 	loaded = true
 	var model: RefCounted
 	if supply == Codec.V10.Frontier.SUPPLY_ID:
-		model = Codec.V10.FrontierModel.new()
+		model = Codec.V10.FrontierModel.new(true)
 	elif supply == Codec.V9.Integrated.SUPPLY_ID:
 		model = Codec.V9.IntegratedModel.new()
 	elif supply == Codec.V7.Energy.SUPPLY_ID:

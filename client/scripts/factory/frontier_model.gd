@@ -4,8 +4,9 @@ const Frontier := Integrated.Frontier
 var frontier_extracted := 0
 
 
-func _init() -> void:
+func _init(single_inlet := false) -> void:
 	super()
+	single_inlet_belts = single_inlet
 	map_id = Frontier.MAP_ID
 	supply_id = Frontier.SUPPLY_ID
 	discovery.passages[Frontier.PASSAGE] = false

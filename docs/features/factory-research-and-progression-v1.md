@@ -101,10 +101,10 @@ R03 / R10 路线中，X2 的电芯展开后合计 6 板、6 载体、6 解壳剂
 | 字段 | 隔离档值 |
 | --- | --- |
 | `world_kind` / `save_schema_version` | `factory_3d` / `10` |
-| `ruleset_id` | `factory_integrated_frontier_v1` |
+| `ruleset_id` | 新建使用 `factory_integrated_frontier_single_inlet_v1`，既有 `factory_integrated_frontier_v1` 按原规则继续 |
 | `map_id` | `factory_integrated_frontier_yard_64_v1` |
 | `supply_id` | `factory_integrated_frontier_starter_v1`，起步数量沿基础整合，物料为零 |
-| `definitions_sha256` | D1 专属定义，覆盖含支路的通行掩码、按矿点坐标定义的周期、配方、研究 / 开路成本、端口、供给及能源 |
+| `definitions_sha256` | D1 专属定义，覆盖含支路的通行掩码、按矿点坐标定义的周期、配方、研究 / 开路成本、端口、供给及能源。新规则以原摘要和单入口策略生成独立摘要 |
 
 独立空档通过 `sh tools/check-factory-frontier.sh play <batch>` 创建和继续。基础整合 schema 9（含 `joint-first-run`）及旧二维 / 工厂按原身份继续。公开入口待 D1 验收。
 

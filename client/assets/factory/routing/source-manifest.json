@@ -24,8 +24,8 @@
       "triangles": 2172
     },
     "merger.glb": {
-      "bytes": 165464,
-      "sha256": "83a1a0531f84b1788b87ff88a9a8cec2578053a133e97961160cd12e4e765dac",
+      "bytes": 85108,
+      "sha256": "f5b10f3a50b54745e6a439588a8b31d640ccb2da59689018ccd6643b9ea224a9",
       "footprint": [
         1,
         1
@@ -33,21 +33,21 @@
       "bounds": {
         "min": [
           -0.5,
-          2.98023217215615e-10,
+          0.0009999992325901985,
           -0.5
         ],
         "max": [
           0.5,
-          0.8255000114440918,
+          0.6299999952316284,
           0.5
         ]
       },
-      "meshes": 9,
-      "triangles": 1640
+      "meshes": 7,
+      "triangles": 821
     }
   },
   "sources": {
-    "tools/factory-content/export-routing-assets.mjs": "2b961410cefd57cd6a46fe8c5f97039a5502bb4fae7d86a3ac77610c12373295",
+    "tools/factory-content/export-routing-assets.mjs": "f8cbe29f6021c1e95d2c2ea71b804440552fd1936244e936077422fd9af9ac34",
     "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
     "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
     "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
