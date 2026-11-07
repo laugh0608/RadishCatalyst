@@ -21,7 +21,7 @@
 
 当前 R1-B 在 macOS 双击 `tools/factory-content/core-study.command` 或执行 `sh tools/factory-content/core-study.sh`，默认 C2 / 21 / 跟随；保留 R1-A `camera-study.command`。两者仅为独立样板，均不接新核心玩法或世界存档。
 
-1. 从认可的 [R1-C / D](../features/factory-camera-and-representative-scene-v1.md#r1-material-review) 提取 R2 首件规范。复看可用 `tools/factory-content/material-study.command` 切换 M0、M1 岩土和 M1 工作面。
+1. [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。下一包确认 [B1 核心 I](../features/factory-base-core-v1.md#b1-first-delivery)范围，先做采铁入仓、直炼与板材回仓。
 2. [四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 布线已复算，接续核对自举、自然供给与能源收益；360 kW、研究 / 升级成本和新 schema 仍为设计。跨进程存读、自然生产与目标平台待后续正式实现验证。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 

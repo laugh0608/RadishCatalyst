@@ -69,6 +69,23 @@ R1-C 首件候选使用五张 256² 周期贴图，分别是涂层、共享金�
 
 Godot 的 [Camera3D](https://docs.godotengine.org/en/stable/classes/class_camera3d.html)、[标准材质 / ORM / Normal](https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html)和[glTF 导入](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/available_formats.html)为接口参考；当前固定引擎构建的实际导入与表现仍需运行复核，网页能力说明不代签工程通过。
 
+<a id="r2-first-asset-baseline"></a>
+
+## R2 首件资产规范
+
+以获认可的 [R1-C / D 对照](../features/factory-camera-and-representative-scene-v1.md#r1-material-review)为参考。样板源为 `outline-06` 与 `material-02`，使用 `material-study.command` 重现。R2 的第一个应用对象是 B1 的核心，反应器和直带用于检查同场可读性。制作随实际功能批次推进。
+
+| 首件检查 | 使用的基线 |
+| --- | --- |
+| 取景 | C2 透视正向，俯角 50°、FOV 35°，默认 21 格跟随。核对 16 / 28 格与最小窗口 |
+| 模型和格位 | 模型用导入网格，单位、原点、四面 16 口、0.31 接带高沿上文。I / II 共用碰撞、包围与端口，按同一模型锚点核对真实直带 |
+| 材质和地表 | 保留浅色涂层、青灰主体、深色金属及少量琥珀标识。先在 M1 工作面检查设备与带，岩土用于环境对照，M0 用于定位视觉变化 |
+| 预算 | 首件核心按每级 4 个可见表面、12,000 三角形以内复核，当前实物为 4,060 / 4,384。五张 256² 贴图用于首件参照，新增通道、贴图和表面应记录理由与成本 |
+| 交互 | 正常视距先看得清角色、端口和流向。检查接带与空口、近身选择、建造预览和密集板。四个输出图标在最小窗口可见，端口 ID 按需查看 |
+| 交付 | 留可编辑源、GLB / 贴图、导入配置、版本哈希与同源原图。记录引擎、视口、帧时、绘制量及实际未覆盖项 |
+
+工作面用于厂坪审阅对照是实施约定，两种地表仍可切换。R1-D 的短窗口采样提供开发机对照，GPU 时长、正式货物流和目标平台各自留验。首件进入正式场景前，须在 [B1](../features/factory-base-core-v1.md#b1-first-delivery) 的真实端口与操作路径上复核。
+
 ## 制作与发布材料
 
 先建立独立候选批次，建议在获制作授权后使用 `assets/art-intake/<date>-factory-representative-assets/<batch>/` 放可编辑源 / 烘焙源与候选 GLB / PNG，不覆盖正式路径。若采用自有离线网格制作，导出工具进入 `tools/factory-content/` 的独立新入口；若采用 DCC，先说明软件、已有安装与源文件落盘，不在本轮安装或预选付费工具。

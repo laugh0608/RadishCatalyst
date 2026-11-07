@@ -12,7 +12,7 @@
 
 ## 当前顺位
 
-1. 将认可的 [R1-C / D 材质与场景对照](../features/factory-camera-and-representative-scene-v1.md#r1-material-review)转成 R2 首件资产规范。
+1. [R2 首件资产规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)已落档。接续先确认 [B1 首包](../features/factory-base-core-v1.md#b1-first-delivery)代码范围，以新核心 I 的首件板材自动回仓为第一条实机路径。
 2. [核心](../features/factory-base-core-v1.md)、[科技](../features/factory-research-and-progression-v1.md)、[能源](../features/factory-fixed-burn-energy-v1.md)、[存档](../architecture/factory-integrated-demo-save-v1.md)首轮合同与真相源同步已完成。[四面版 S0 / S1-P](../reference/factory-integrated-demo-layout-and-budget.md#four-sided-layout) 已完成离线布线复算，实际供给、操作量和扩建收益待复核；正式实现另获授权后按核心与成长 → 普通能源 / 扩建 → 开拓 → 可选测控 → 整段收口接续。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。既有 GLB / 导入文件及正式客户端规则未改。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
