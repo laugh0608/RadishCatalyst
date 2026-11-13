@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-11-07
+更新时间：2026-11-13
 
 ## 当前阶段
 
@@ -14,7 +14,7 @@
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
 2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。定向整改亲测暂未发现新增问题，完整玩家路径结论待确认。
-3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成离线对照、核心 III、E2 独立储能与 C1 节拍调度。三个隔离版本依次为 schema 11、12、13。下一步接 C2 同网储能阈值反馈，随后接 C3 负载组。C2 实施与验证顺序见 [接续事项](daily-start.md#next-day-tasks)。
+3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成离线对照、核心 III、E2 独立储能、C1 节拍调度与 C2 储能反馈，隔离版本依次为 schema 11–14。11 月 13 日 C2 按确认合同完成开发机定向、正式 Boot 窗口与跨进程验证；玩家亲测及长期收益仍待验。下一步收口 C3 负载组实施合同并确认，随后推进真实分段负载对照，见 [接续事项](daily-start.md#next-day-tasks)与 [W46](../devlogs/2026-W46.md#c2-feedback-delivery)。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

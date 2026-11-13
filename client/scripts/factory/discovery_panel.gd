@@ -43,6 +43,7 @@ var scroll := ScrollContainer.new()
 var item_labels := {}
 var guide_overview := Label.new()
 var elapsed := 0.0
+var feedback_controls := preload("res://scripts/factory/storage_feedback_controls.gd").new()
 var dispatch_controls := preload("res://scripts/factory/timed_dispatch_controls.gd").new()
 var admission_controls := preload("res://scripts/factory/admission_controls.gd").new()
 
@@ -141,6 +142,8 @@ func _ready() -> void:
 	guide_overview.add_theme_font_size_override("font_size", 18)
 	content.add_child(device_content)
 	device_content.add_theme_constant_override("separation", 16)
+	device_content.add_child(feedback_controls)
+	feedback_controls.applied.connect(apply)
 	device_summary.compact = false
 	device_content.add_child(device_summary)
 	device_summary.heading.hide()
@@ -245,6 +248,7 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	device_item = ""
 	recipe_key = ""
 	dispatch_controls.config_key = ""
+	feedback_controls.config_key = ""
 	admission_controls.config_key = ""
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
@@ -336,6 +340,9 @@ func refresh() -> void:
 	dispatch_controls.visible = device_only and e.type == Dispatch.TYPE
 	if dispatch_controls.visible:
 		dispatch_controls.refresh(model, e)
+	feedback_controls.visible = dispatch_controls.visible and e.has("feedback")
+	if feedback_controls.visible:
+		feedback_controls.refresh(model, e)
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items

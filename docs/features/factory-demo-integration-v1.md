@@ -1,8 +1,8 @@
 # Factory Demo Integration V1
 
-更新时间：2026-11-07
+更新时间：2026-11-13
 
-状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 开拓回报和 D2 核心 III、E2、C1 已接入各自隔离档。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 开拓回报和 D2 核心 III、E2、C1、C2 已接入各自隔离档。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
 
 ## 玩家结果
 
@@ -83,7 +83,7 @@
 
 B1 / B2 / C 已共同通过首程验收。正式 Boot 的工厂世界菜单选择「整合工厂 · 核心研究与固定燃烧」即可新建；保存后从工厂目录继续。旧世界入口按原身份继续。正式菜单复测和范围见 [W45 周志](../devlogs/2026-W45.md#foundation-acceptance)。
 
-D1 已完成普通矿与高产矿的持续回流对照，完整玩家路径与公开入口仍待验收。D2 已完成核心 III、独立储能及节拍调度的开发机定向与跨进程验证。C2、C3 和长期分段负载实收对照尚待实施。隔离入口及身份见[整合存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)。
+D1 已完成普通矿与高产矿的持续回流对照，完整玩家路径与公开入口仍待验收。D2 已完成核心 III、独立储能、节拍调度与储能反馈的开发机定向、窗口及跨进程验证；C2 的新增事实见 [W46](../devlogs/2026-W46.md#c2-feedback-delivery)。C3 和长期分段负载实收对照尚待实施，D2 玩家亲测未验收。隔离入口及身份见[整合存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)。
 
 <a id="joint-first-run"></a>
 

@@ -1,19 +1,25 @@
 extends "res://scripts/factory/save/codec_v1.gd"
 
+const FeedbackValidator := preload("res://scripts/factory/save/storage_feedback_validator.gd")
 const Timed := preload("res://data/factory/timed_dispatch_rules.gd")
 const Entity := preload("res://scripts/factory/save/expansion_entity_validator.gd")
 const Routing := preload("res://scripts/factory/save/routing_validator.gd")
 
 
 static func validate(e: Dictionary, next_batch: int, model: RefCounted) -> Dictionary:
+	var feedback: bool = model.supply_id == FeedbackValidator.Feedback.SUPPLY_ID
 	if not fields(e, ["id", "type", "x", "z", "dir", "cargo", "progress", "entry", "batch",
-		"filter_item", "period_s", "window_s", "quota", "active", "phase_ticks", "sent"]):
+		"filter_item", "period_s", "window_s", "quota", "active", "phase_ticks", "sent"] + (["feedback"] if feedback else [])):
 		return failure("节拍器字段无效。")
 	if not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 3) or not e.active is bool or not e.filter_item is String:
 		return failure("节拍器位置、方向或启停状态无效。")
 	var cargo := Routing.validate_cargo(e, next_batch, [2], model.admission_items, Entity.MINERALS, true, true)
 	if not cargo.ok:
 		return cargo
+	if feedback:
+		var valid := FeedbackValidator.validate(e, model)
+		if not valid.ok:
+			return valid
 	if e.filter_item.is_empty():
 		if e.active or not e.cargo.is_empty():
 			return failure("未设置的节拍器不能启用或持货。")

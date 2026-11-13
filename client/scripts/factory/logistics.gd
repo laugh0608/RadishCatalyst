@@ -89,7 +89,7 @@ static func input_connection(model: RefCounted, target: Dictionary, input: Dicti
 
 static func output_status(model: RefCounted, source: Dictionary, output: Dictionary, item: String) -> Dictionary:
 	if source.type == Timed.TYPE:
-		var reason := dispatch_reason(source)
+		var reason := dispatch_reason(source, model)
 		if not reason.is_empty():
 			return {"ok": false, "reason": reason}
 	var connection := output_connection(model, output)
@@ -322,7 +322,7 @@ static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 	if belt_input_conflict(model, e):
 		return {"kind": "blocked", "label": BELT_CONFLICT}
 	if e.type == Timed.TYPE:
-		var reason := dispatch_reason(e)
+		var reason := dispatch_reason(e, model)
 		if not reason.is_empty():
 			return {"kind": "waiting", "label": reason}
 	if e.cargo.is_empty():
@@ -349,11 +349,15 @@ static func feedback(model: RefCounted, e: Dictionary) -> Dictionary:
 	return {"kind": "blocked", "label": "全部出口未连接" if reasons == ["未连接"] else " / ".join(reasons)}
 
 
-static func dispatch_reason(e: Dictionary) -> String:
+static func dispatch_reason(e: Dictionary, model: RefCounted) -> String:
 	if e.filter_item.is_empty():
 		return "待设置节拍"
 	if not e.active:
 		return "节拍已停用 · 相位与货物保留"
+	if e.has("feedback"):
+		var reason: String = model.storage_feedback_reason(e)
+		if not reason.is_empty():
+			return reason
 	if e.phase_ticks >= e.window_s * Timed.TICKS_PER_SECOND:
 		return "等待下一放行窗口"
 	if e.sent >= e.quota:
