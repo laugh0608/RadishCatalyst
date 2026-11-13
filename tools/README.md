@@ -29,6 +29,7 @@ R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用
 
 - D1 开拓工厂用 `sh tools/check-factory-frontier.sh state <新批次>` 复算布局，从空档验证 X2、R13 / R14、支路回流、普通 / 高产矿对照和跨进程 schema 10。改用 `window` 加查窗口研究、开路、存读与截图。手动用 `sh tools/check-factory-frontier.sh play <亲测批次>` 创建或继续同一隔离档。
 - D2 核心 III 用 `sh tools/check-factory-grid-controls.sh state <新批次>` 检查自然生产所得的升级材料、严格解码和独立进程继续。改用 `window` 检查正式菜单、等级页提交和 III 外观。手动用 `sh tools/check-factory-grid-controls.sh play <亲测批次>`，新建时选择「测控工厂 · 核心 III 隔离复核」，继续时选已有世界。
+- D2 C3 用 `sh tools/check-factory-grid-controls.sh load-state <新批次>` / `load-window <新批次>`，覆盖真实产线研究、只停新批、在制完成、接管与 schema 15 独立恢复；窗口首进准备页等开始，失焦暂停输入。手动 `play <批次>` 新建选择「测控工厂 · C3 负载组隔离复核」。新增同名 PowerShell 入口保持模式一致，Windows 待验；合同见 [C3](../docs/features/factory-load-groups-c3.md)，实际证据见 [W46](../docs/devlogs/2026-W46.md#c3-load-group-delivery)。
 - D2 独立储能用同一入口的 `storage-state` / `storage-window` 检查空仓、实际充放、七炉产出对照、统计账和 schema 12 存读。手动入口选「测控工厂 · E2 独立储能隔离复核」。
 - D2 C1 节拍调度用 `timed-state` / `timed-window` 检查自然电芯进料、下游堵塞、窗口边沿、本机停复与 schema 13 的独立进程继续。手动入口选「测控工厂 · C1 节拍调度隔离复核」。
 - D2 C2 储能反馈用 `feedback-state` / `feedback-window` 检查同网绑定、步初回差、真实充放负载、失效接管和 schema 14 存读。窗口模式经准备页手动开始后依次写入与独立恢复；失焦等待，不自动抢回焦点，关闭即取消。手动入口选「测控工厂 · C2 储能反馈隔离复核」。

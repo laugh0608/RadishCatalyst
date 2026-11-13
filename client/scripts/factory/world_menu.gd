@@ -62,6 +62,7 @@ func _ready() -> void:
 		types[Store.Codec.V10.Frontier.SUPPLY_ID] = "开拓工厂 · 高产炭矿 / 普通带单路隔离复核"
 	if catalog.allow_controls:
 		types[Store.Codec.V11.Controls.SUPPLY_ID] = "测控工厂 · 核心 III 隔离复核"
+		types[Store.Codec.V15.Loads.SUPPLY_ID] = "测控工厂 · C3 负载组隔离复核"
 		types[Store.Codec.V14.Feedback.SUPPLY_ID] = "测控工厂 · C2 储能反馈隔离复核"
 		types[Store.Codec.V13.Dispatch.SUPPLY_ID] = "测控工厂 · C1 节拍调度隔离复核"
 		types[Store.Codec.V12.Buffer.SUPPLY_ID] = "测控工厂 · E2 独立储能隔离复核"

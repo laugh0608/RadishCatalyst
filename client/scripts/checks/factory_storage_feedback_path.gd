@@ -199,7 +199,7 @@ func exercise() -> void:
 	file.store_string(JSON.stringify(report, "", true, true))
 	driver.expect(model.material_balance().balanced, "C2 natural path preserves the complete material ledger")
 	Edges.new(driver).run()
-	if driver.failures.is_empty():
+	if driver.failures.is_empty() and not host.loads:
 		Saves.new(host).write_variants(model)
 
 

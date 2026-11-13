@@ -11,6 +11,8 @@ const StoragePath := preload("res://scripts/checks/factory_grid_storage_path.gd"
 const TimedPath := preload("res://scripts/checks/factory_timed_dispatch_path.gd")
 const FeedbackPath := preload("res://scripts/checks/factory_storage_feedback_path.gd")
 const FeedbackSaves := preload("res://scripts/checks/factory_storage_feedback_saves.gd")
+const LoadPath := preload("res://scripts/checks/factory_load_group_path.gd")
+const LoadSaves := preload("res://scripts/checks/factory_load_group_saves.gd")
 const NAME := "核心 III 升级与存读"
 
 var driver := Driver.new()
@@ -20,6 +22,7 @@ var windowed := false
 var storage := false
 var timed := false
 var feedback := false
+var loads := false
 
 
 func _init() -> void:
@@ -30,7 +33,8 @@ func run() -> void:
 	var args := OS.get_cmdline_user_args()
 	var playing := "--play" in args
 	storage = "--storage" in args
-	feedback = "--feedback" in args
+	loads = "--loads" in args
+	feedback = "--feedback" in args or loads
 	timed = "--timed" in args or feedback
 	for arg in args:
 		if arg.begins_with("--batch="):
@@ -43,7 +47,7 @@ func run() -> void:
 		quit(2)
 		return
 	if feedback and "--read" not in args and DisplayServer.get_name() != "headless":
-		if not await preload("res://scripts/checks/factory_diagnostic_gate.gd").wait_for_start(self, "C2 储能反馈复核", "正式 Boot 隔离产线、反馈操作、截图与独立进程恢复。点击开始后依次运行；关闭取消，不自动重开。"):
+		if not await preload("res://scripts/checks/factory_diagnostic_gate.gd").wait_for_start(self, "C3 负载组复核" if loads else "C2 储能反馈复核", "正式 Boot 隔离产线、反馈操作、截图与独立进程恢复。点击开始后依次运行；关闭取消，不自动重开。"):
 			quit(1)
 			return
 	boot = Boot.instantiate()
@@ -56,6 +60,9 @@ func run() -> void:
 	windowed = DisplayServer.get_name() != "headless"
 	driver.capture_screenshots = windowed
 	driver.shot_root = evidence
+	if loads and windowed:
+		driver.shot_root = ProjectSettings.globalize_path("res://../assets/art-intake/2026-11-13-c3-" + evidence.get_file() + "-preview")
+		DirAccess.make_dir_recursive_absolute(driver.shot_root)
 	root.add_child(driver)
 	if windowed:
 		root.mode = Window.MODE_WINDOWED
@@ -80,7 +87,7 @@ func _wait_for_focus() -> void:
 	var started := Time.get_ticks_msec()
 	while not root.has_focus():
 		if Time.get_ticks_msec() - started > 180000:
-			driver.expect(false, "C2 window focus unavailable; no focus was requested")
+			driver.expect(false, "Controls window focus unavailable; no focus was requested")
 			quit(1)
 		await process_frame
 
@@ -95,14 +102,14 @@ func _click(button: Button) -> void:
 
 
 func _version() -> int:
-	return Codec.V14.VERSION if feedback else Codec.V13.VERSION if timed else Codec.V12.VERSION if storage else Codec.V11.VERSION
+	return Codec.V15.VERSION if loads else Codec.V14.VERSION if feedback else Codec.V13.VERSION if timed else Codec.V12.VERSION if storage else Codec.V11.VERSION
 
 
 func _write() -> void:
 	var menu: Control = boot.factory_menu
-	var supply := Codec.V14.Feedback.SUPPLY_ID if feedback else Codec.V13.Dispatch.SUPPLY_ID if timed else Codec.V12.Buffer.SUPPLY_ID if storage else Controls.SUPPLY_ID
+	var supply := Codec.V15.Loads.SUPPLY_ID if loads else Codec.V14.Feedback.SUPPLY_ID if feedback else Codec.V13.Dispatch.SUPPLY_ID if timed else Codec.V12.Buffer.SUPPLY_ID if storage else Controls.SUPPLY_ID
 	var version := _version()
-	var pin := Codec.V14.PIN if feedback else Codec.V13.PIN if timed else Codec.V12.PIN if storage else Codec.V11.PIN
+	var pin := Codec.V15.PIN if loads else Codec.V14.PIN if feedback else Codec.V13.PIN if timed else Codec.V12.PIN if storage else Codec.V11.PIN
 	var index := -1
 	for i in menu.world_type.item_count:
 		if menu.world_type.get_item_metadata(i) == supply:
@@ -193,6 +200,8 @@ func _write() -> void:
 		await TimedPath.new(self, journey).exercise()
 	if feedback:
 		await FeedbackPath.new(self, journey).exercise()
+	if loads:
+		await LoadPath.new(self, journey).exercise()
 	await _click(world.hud.buttons["return"])
 	driver.expect(boot.factory_world == null, "save and return releases the world: " + world.failure_dialog.dialog_text if boot.factory_world != null else "save and return releases the world")
 	if boot.factory_world != null:
@@ -273,7 +282,16 @@ func _read() -> void:
 	before.state.remainder_s -= startup
 	driver.expect(Compare.equivalent(before, expected.before), "complete saved snapshot is restored")
 	var resume_steps := 600
-	if feedback:
+	if loads:
+		var source: Dictionary = model.entity_at(Vector2i(1, 22))
+		driver.expect(source.load_group.latch == "block" and source.load_group.evaluation_ticks_left == 19, "C3 restores exact latch and countdown")
+		world._open_device(source.id)
+		await driver.settle()
+		driver.expect(world.discovery_panel.load_controls.visible, "restored C3 panel opens")
+		await driver.shot("20-load-restored")
+		world.discovery_panel.close_panel()
+		LoadSaves.new(self).read_variants()
+	elif feedback:
 		var gate: Dictionary = model.entity_at(FeedbackPath.GATE_CELL)
 		driver.expect(gate.feedback.latch == "allow" and gate.cargo == FeedbackPath.CELL and gate.sent == 1, "C2 restores in-band decision, staged cargo and used quota")
 		world._open_device(gate.id)

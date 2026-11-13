@@ -43,6 +43,8 @@ var scroll := ScrollContainer.new()
 var item_labels := {}
 var guide_overview := Label.new()
 var elapsed := 0.0
+var load_controls := preload("res://scripts/factory/load_group_controls.gd").new()
+var load_member_status := Label.new()
 var feedback_controls := preload("res://scripts/factory/storage_feedback_controls.gd").new()
 var dispatch_controls := preload("res://scripts/factory/timed_dispatch_controls.gd").new()
 var admission_controls := preload("res://scripts/factory/admission_controls.gd").new()
@@ -142,6 +144,10 @@ func _ready() -> void:
 	guide_overview.add_theme_font_size_override("font_size", 18)
 	content.add_child(device_content)
 	device_content.add_theme_constant_override("separation", 16)
+	device_content.add_child(load_controls)
+	load_controls.applied.connect(apply)
+	load_member_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	device_content.add_child(load_member_status)
 	device_content.add_child(feedback_controls)
 	feedback_controls.applied.connect(apply)
 	device_summary.compact = false
@@ -249,6 +255,7 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	recipe_key = ""
 	dispatch_controls.config_key = ""
 	feedback_controls.config_key = ""
+	load_controls.config_key = ""
 	admission_controls.config_key = ""
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
@@ -340,6 +347,15 @@ func refresh() -> void:
 	dispatch_controls.visible = device_only and e.type == Dispatch.TYPE
 	if dispatch_controls.visible:
 		dispatch_controls.refresh(model, e)
+	load_controls.visible = device_only and e.has("load_group")
+	if load_controls.visible:
+		load_controls.refresh(model, e)
+	load_member_status.hide()
+	if device_only and model.has_method("load_group_owner"):
+		var owner: Dictionary = model.load_group_owner(e.id)
+		if not owner.is_empty():
+			load_member_status.show()
+			load_member_status.text = "所属负载组：储能 #%d (%d,%d) · %s" % [owner.id, owner.x, owner.z, model.feedback(e).label]
 	feedback_controls.visible = dispatch_controls.visible and e.has("feedback")
 	if feedback_controls.visible:
 		feedback_controls.refresh(model, e)

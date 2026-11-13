@@ -229,7 +229,7 @@ static func _load_entities(model: RefCounted, s: Dictionary) -> Dictionary:
 		var valid: Dictionary
 		match type:
 			Energy.GENERATOR: valid = _generator(source, model)
-			Integrated.Storage.TYPE: valid = _storage(source, int(s.next_id))
+			Integrated.Storage.TYPE: valid = _storage(source, int(s.next_id), model)
 			Integrated.Timed.TYPE: valid = TimedValidator.validate(source, int(s.next_batch), model)
 			_: valid = Entity.validate(source, int(s.next_id), int(s.next_batch), model, true, true)
 		if not valid.ok:
@@ -269,9 +269,12 @@ static func _generator(e: Dictionary, model: RefCounted) -> Dictionary:
 	return {"ok": true}
 
 
-static func _storage(e: Dictionary, next_id: int) -> Dictionary:
-	if not fields(e, ["id", "type", "x", "z", "dir", "enabled", "stored_j", "power_node_id"]) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
+static func _storage(e: Dictionary, next_id: int, model: RefCounted) -> Dictionary:
+	var loads: bool = model.supply_id == Integrated.Loads.SUPPLY_ID
+	if not fields(e, ["id", "type", "x", "z", "dir", "enabled", "stored_j", "power_node_id"] + (["load_group"] if loads else [])) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
 		return failure("储能设施字段、方向或位置无效。")
 	if not e.enabled is bool or not integer(e.stored_j, 0, Integrated.Storage.CAPACITY_J) or not integer(e.power_node_id, 0, next_id - 1):
 		return failure("储能电量、启停或归网状态无效。")
+	if loads:
+		return preload("res://scripts/factory/save/load_group_validator.gd").validate(e, model, next_id)
 	return {"ok": true}
