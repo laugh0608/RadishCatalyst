@@ -14,7 +14,7 @@
 ## Documentation Size Budgets
 
 - 文档篇幅按角色控制，不对所有 Markdown 套同一个硬上限。
-- Agent 根入口：`AGENTS.md`、`CLAUDE.md` 软上限 180 行、硬上限 250 行；两份文件除标题和首段入口名称外必须逐字同步。
+- Agent 根入口：`AGENTS.md`、`CLAUDE.md` 软上限 180 行、硬上限 250 行；两份文件必须逐字节一致。
 - 入口文档：`docs/README.md`、`docs/planning/current.md`、`docs/planning/daily-start.md` 和 `docs/**/README.md`，硬上限 120 行；超过前应先改写为摘要并链接细节来源。
 - 活跃专题文档：除 `devlogs/`、`reference/`、`archive/` 外的 `docs/` 正式文档，建议控制在 280 行内；接近 220 行时优先拆成“总览 + 子文档”。
 - 周志与参考：`docs/devlogs/`、`docs/reference/` 建议控制在 350 行内；继续增长时先补紧凑摘要、目录或专题拆分。
