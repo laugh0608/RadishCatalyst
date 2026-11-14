@@ -17,13 +17,14 @@
 
 ## 当前接续事项
 
-### D2 长期对照 · 停在成对预检
+### D2 长期对照 · 接续 v5 联锁短测
 
-[C3 负载组](../features/factory-load-groups-c3.md)已按 11 月 13 日确认合同接入 schema 15，开发机定向、窗口与跨进程验证见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。C3 已提交为 `f5492931`；旧档保留原身份，D2 玩家亲测仍待验。
+[原 C3 负载组](../features/factory-load-groups-c3.md)已完成 schema 15 开发机定向、窗口与跨进程验证（`f5492931`）。[schema 16 开工联锁](../architecture/factory-load-interlocks-save-v16.md)已提交（`ce4ea700`），冷父档严格读回通过，首轮短测停在驱动参数类型错误。v4 收益未达标，Fd 排空错峰诊断通过，历史证据索引见 [W46](../devlogs/2026-W46.md#d2-day-close)。
 
-1. [D2 长期真实产线对照](../features/factory-d2-production-comparison.md)完成 [v4 物流短测与成对预检](../devlogs/2026-W46.md#d2-c3-fault-v4-preflight)。九个断燃周期都观察到 C3 阻断与恢复，L4 的两窗缺电量均未减半。[Fd 排空错峰诊断](../devlogs/2026-W46.md#d2-c3-fd-drain-diagnostic)两窗均达缺电和交付目标，[C3 开工联锁首轮预检](../devlogs/2026-W46.md#d2-c3-interlock-preflight)因驱动参数类型错误未安装联锁，停在样本门禁。v1–v4 和错峰证据已保留。
-2. 有新的 D2 / D1 玩家阻断反馈时优先复现和修因；保留基础连续供燃完成主线的路径，不把进阶控制变成必选。
-3. 自然长测、独立恢复和窗口复核停在成对预检门禁，正式 P0 与亲测副本未发布。C3 的身份边界见 [schema 15](../architecture/factory-load-groups-save-v15.md)；C2 / C3 短测和离线核算不能代替 D2 整体收益结论。
+1. 先修 v5 检查驱动。在清单边界验证 A / Fd 是有效的精确整数 ID，再转为 `int` 交给原配置命令。任一组配置失败时直接记录并停止短测；保留 `20261114-d2-fault-v5-cycle-01`。
+2. 从 `20261114-d2-fault-v5-prepare-02` 的同一冷父档另建批次，跑 `fault-v5-cycle`。核对 L5 两次开批都晚于 Fd 尾批实际完工与停机，两单均在周期截止前入仓。通过后从首单开工检查点跑 `fault-v5-recheck`，确认 Fd 重启时首单继续、次单即使碰到旧 `allow` 也会等待。
+3. 两项短测都通过后才跑 `fault-preflight-v5`。O5 / L5 各两窗，沿用正常 N / B / T / F、原验收门槛和 kW、kWh / Wh 报告口径。任一门禁失败先留证汇报；两窗通过后，自然长测仍等萝卜SAMA确认。跨进程恢复、正式窗口复核、正式 P0 和亲测副本待后续。
+4. 有新的 D2 / D1 玩家阻断反馈时优先复现和修因；基础连续供燃路径继续支持完成主线。
 
 ### 已交付入口与待验
 

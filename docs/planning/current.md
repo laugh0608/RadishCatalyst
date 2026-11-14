@@ -14,7 +14,7 @@
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
 2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。定向整改亲测暂未发现新增问题，完整玩家路径结论待确认。
-3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成离线对照、核心 III、E2 独立储能、C1 节拍调度、C2 储能反馈与 [C3 负载组](../features/factory-load-groups-c3.md)，隔离版本依次为 schema 11–15。11 月 13 日 C3 按确认合同完成开发机定向、正式 Boot 窗口与跨进程验证；C3 已提交为 `f5492931`。[长期真实产线对照](../features/factory-d2-production-comparison.md)已完成 v4 故障父档派生、载体支路短测与成对预检。O4 / L4 九个断燃周期均形成开批、阻断与恢复证据，两窗缺电量均未减半，停在自然长测与跨进程恢复之前。[Fd 排空错峰诊断](../devlogs/2026-W46.md#d2-c3-fd-drain-diagnostic)两窗均达缺电与交付目标，[C3 开工联锁首轮预检](../devlogs/2026-W46.md#d2-c3-interlock-preflight)因驱动传入非整数类型的设备 ID，未安装联锁，停在样本门禁。v1–v4 和错峰证据均保留。玩家亲测及目标平台仍待验，见 [接续事项](daily-start.md#next-day-tasks)与 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。
+3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。[schema 16 联锁首轮短测](../devlogs/2026-W46.md#d2-c3-interlock-preflight)因驱动传入非整数类型的设备 ID 判样本无效。先按[接续事项](daily-start.md#next-day-tasks)修复并补齐两项短测，再做 O5 / L5 成对预检。自然长测待确认，玩家亲测和目标平台待验。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

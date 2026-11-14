@@ -35,7 +35,7 @@
 
 Store 按上下文授权隔离版本的新建、继续和保存。不同版本及 schema 10 的两种物流身份分别校验定义摘要，同身份备份才可用于恢复。
 
-C2 独立 schema 14 的身份、字段与读写边界见[增量合同](#c2-feedback-save-contract)。C3 的独立身份、负载组字段和恢复节奏见 [schema 15 合同](factory-load-groups-save-v15.md)；上述隔离入口均不提供旧档迁移。
+C2 独立 schema 14 的身份、字段与读写边界见[增量合同](#c2-feedback-save-contract)。C3 原负载组与恢复节奏见 [schema 15 合同](factory-load-groups-save-v15.md)，开工联锁的条件、尾批结果和读回规则见 [schema 16 合同](factory-load-interlocks-save-v16.md)。隔离菜单沿各身份新建或继续；v4 冷档派生仅在 D2 检查入口执行。
 
 ## 权威字段
 

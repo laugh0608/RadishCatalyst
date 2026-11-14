@@ -1,8 +1,8 @@
 # D2 测控优化
 
-更新时间：2026-11-13
+更新时间：2026-11-14
 
-核心 III、E2 独立储能、C1 节拍调度、C2 储能反馈与 [C3 负载组](factory-load-groups-c3.md)已分别接入 schema 11–15 隔离档。C3 合同已确认，开发机定向、窗口与跨进程验证通过，证据见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。C3 已提交；[长期真实产线对照方案](factory-d2-production-comparison.md)已完成 v4 物流短测及成对预检。九个正式断燃周期均形成 C3 阻断与恢复，L4 两窗缺电量未减半，自然长测暂停，见 [W46](../devlogs/2026-W46.md#d2-c3-fault-v4-preflight)。
+核心 III、E2 独立储能、C1 节拍调度、C2 储能反馈与 [C3 负载组](factory-load-groups-c3.md)已分别接入 schema 11–15 隔离档。C3 合同已确认，开发机定向、窗口与跨进程验证通过，证据见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。[长期真实产线对照](factory-d2-production-comparison.md)已完成 v4 成对预检和 Fd 排空错峰诊断。v4 收益未达标，错峰诊断通过。[schema 16 开工联锁](factory-load-groups-c3.md#c3-start-interlock)已接入，首轮短测因驱动配置失败停在样本门禁，见 [W46](../devlogs/2026-W46.md#d2-c3-interlock-preflight)。
 
 2026-11-13：萝卜SAMA已确认 [C2 实施合同](#d2-feedback-contract)及存档边界并授权实现。C2 已完成开发机定向、正式 Boot 窗口与跨进程验证；证据和亲测范围见 [W46](../devlogs/2026-W46.md#c2-feedback-delivery)，不据此宣称 D2 长期收益通过。
 
@@ -168,9 +168,11 @@ C2 短程记录实际送入 / 激活电芯数、G 余时、储能变化、缺口
 
 2026-11-13 萝卜SAMA确认 [C3 实施合同](factory-load-groups-c3.md)及 [schema 15 存档边界](../architecture/factory-load-groups-save-v15.md)后，已完成研究、成员配置、每秒预算、只暂停新批、拓扑失效 / 冲突、手动接管和严格存读。定向入口为 `load-state / load-window`，隔离新建选择 C3；旧 9–14 保留原身份。开发机证据、失败修正与亲测副本见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)，玩家亲测、目标平台及长期收益仍待验。
 
+2026-11-14 接入可选开工联锁。组功率预算沿原采样规则；配置联锁的成员在每次开批前额外检查来源设备的尾批结果、停机和同网状态。规则及隔离界面见 [C3 开工联锁](factory-load-groups-c3.md#c3-start-interlock)。
+
 ### 储能和控制验收边界
 
-- E2 与 C1 已实现的持久字段见各自交付节；C2 字段和恢复顺序以[存档合同](../architecture/factory-integrated-demo-save-v1.md#c2-feedback-save-contract)为准。C3 字段与采样倒计时见 [schema 15 合同](../architecture/factory-load-groups-save-v15.md)，不写入旧档。保存玩家本机停机状态，运行许可由恢复的权威配置与当前拓扑派生。未装配构件无储能或控制状态。分网后暂时失效的绑定保留明确失效状态，回收目标时原子清理对应引用。
+- E2 与 C1 已实现的持久字段见各自交付节；C2 字段和恢复顺序以[存档合同](../architecture/factory-integrated-demo-save-v1.md#c2-feedback-save-contract)为准。原 C3 字段与采样倒计时见 [schema 15 合同](../architecture/factory-load-groups-save-v15.md)，联锁条件和尾批结果见 [schema 16 合同](../architecture/factory-load-interlocks-save-v16.md)。保存玩家本机停机状态，运行许可由恢复的权威配置和当前拓扑派生。回收时，C2 清理反馈引用，C3 联锁来源须先解除或改绑。
 - 全局电能账为 `核心实际供能 + G 释能 + 期初储能 = 用电 + 弃能 + 充电损耗 + 储能拆除损失 + 期末储能`。燃料余时和回收损失仍在独立燃料账，负载缺口为请求减实际用电。统计分别显示充、放、损耗、拆除损失和净储能，分网时按拓扑派生当前读数，全局历史保存一次。
 - 实现顺序为核心 III 与独立存档、E2 储能、C1 真实节拍、C2 回差，再接 C3 分组。正式窗口用现有核心研究、布线与设备面板走完整路线。定向验证冷启动、满储能、跨网、多个储能、燃料尾步、短暂和持续断供、带货回压、手动接管以及相位边沿保存。独立进程比较半程带货、燃烧尾 tick、充放状态、回差与分组的 30 秒轨迹。
-- 长期吞吐、正常供燃收益与 C3 断燃收益的具体实施、计量公式和候选通过线统一见[长期真实产线对照方案](factory-d2-production-comparison.md)。该方案 2026-11-13 待萝卜SAMA确认，未实施检查驱动或运行长测；不将既有离线核算与短程结果写成通过。普通供料、Windows、目标硬件和玩家实测继续分别记录。
+- 长期吞吐、正常供燃收益与 C3 断燃收益的具体实施、计量公式和候选通过线统一见[长期真实产线对照方案](factory-d2-production-comparison.md)。已实现固定步检查驱动，当前停在 v5 首个断燃周期样本门禁。自然长测待预检通过并获萝卜SAMA确认。普通供料、Windows、目标硬件和玩家实测继续分别记录。
