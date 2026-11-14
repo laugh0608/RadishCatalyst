@@ -7,7 +7,8 @@ const Routing := preload("res://scripts/factory/save/routing_validator.gd")
 
 
 static func validate(e: Dictionary, next_batch: int, model: RefCounted) -> Dictionary:
-	var feedback: bool = model.supply_id in [FeedbackValidator.Feedback.SUPPLY_ID, preload("res://data/factory/load_group_rules.gd").SUPPLY_ID]
+	var feedback: bool = model.supply_id in [FeedbackValidator.Feedback.SUPPLY_ID, preload("res://data/factory/load_group_rules.gd").SUPPLY_ID,
+		preload("res://data/factory/load_interlock_rules.gd").SUPPLY_ID]
 	if not fields(e, ["id", "type", "x", "z", "dir", "cargo", "progress", "entry", "batch",
 		"filter_item", "period_s", "window_s", "quota", "active", "phase_ticks", "sent"] + (["feedback"] if feedback else [])):
 		return failure("节拍器字段无效。")

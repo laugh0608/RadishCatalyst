@@ -270,7 +270,7 @@ static func _generator(e: Dictionary, model: RefCounted) -> Dictionary:
 
 
 static func _storage(e: Dictionary, next_id: int, model: RefCounted) -> Dictionary:
-	var loads: bool = model.supply_id == Integrated.Loads.SUPPLY_ID
+	var loads: bool = model.supply_id in [Integrated.Loads.SUPPLY_ID, Integrated.Interlocks.SUPPLY_ID]
 	if not fields(e, ["id", "type", "x", "z", "dir", "enabled", "stored_j", "power_node_id"] + (["load_group"] if loads else [])) or not integer(e.x, -32, 31) or not integer(e.z, -32, 31) or not integer(e.dir, 0, 0):
 		return failure("储能设施字段、方向或位置无效。")
 	if not e.enabled is bool or not integer(e.stored_j, 0, Integrated.Storage.CAPACITY_J) or not integer(e.power_node_id, 0, next_id - 1):

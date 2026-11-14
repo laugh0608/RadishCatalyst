@@ -17,6 +17,10 @@ var preview := Label.new()
 var choices := {}
 var draft: Array[int] = []
 var list_key := ""
+var draft_sources := {}
+var source_rows: Array = []
+var interlock_controls := VBoxContainer.new()
+var interlock_key := ""
 
 
 func _ready() -> void:
@@ -43,7 +47,7 @@ func _ready() -> void:
 	clear_button.text = "清空组"
 	for button in [apply_button, enable_button, clear_button]:
 		actions.add_child(button)
-	apply_button.pressed.connect(func(): applied.emit(model.configure_load_group(selected, draft, int(reserve.value) * 1000)))
+	apply_button.pressed.connect(_apply)
 	enable_button.pressed.connect(func(): applied.emit(model.set_load_group_enabled(selected, not model.by_id(selected).load_group.enabled)))
 	clear_button.pressed.connect(func(): applied.emit(model.clear_load_group(selected)))
 	var expand := CheckButton.new()
@@ -58,6 +62,7 @@ func _ready() -> void:
 	add_child(hint)
 	add_child(saved_members)
 	add_child(members)
+	add_child(interlock_controls)
 	hide()
 
 
@@ -65,14 +70,22 @@ func refresh(world: RefCounted, e: Dictionary) -> void:
 	model = world
 	selected = e.id
 	var g: Dictionary = e.load_group
-	var key := str([e.id, g.member_ids, g.reserve_j])
+	var interlocks: Array = g.get("interlocks", [])
+	var key := str([e.id, g.member_ids, g.reserve_j, interlocks])
 	if key != config_key:
 		config_key = key
 		draft.assign(g.member_ids)
 		reserve.set_value_no_signal(g.reserve_j / 1000)
 		list_key = ""
+		draft_sources.clear()
+		for rule in interlocks:
+			draft_sources[rule.member_id] = rule.source_id
+	source_rows.clear()
 	var rows := []
 	for entity in model.entities:
+		if g.has("interlocks") and entity.type in model.process_types and model.load_network(entity) == model.load_network(e) \
+			and model.load_network(e) >= 0 and model.load_group_owner(entity.id).is_empty():
+			source_rows.append([entity.id, entity.x, entity.z, model.recipes[entity.recipe_id].name])
 		if not Loads.eligible(entity):
 			continue
 		var owner: Dictionary = model.load_group_owner(entity.id)
@@ -100,13 +113,20 @@ func refresh(world: RefCounted, e: Dictionary) -> void:
 			choices[member.id] = choice
 			choice.toggled.connect(func(on):
 				if on and member.id not in draft: draft.append(member.id)
-				elif not on: draft.erase(member.id)
+				elif not on:
+					draft.erase(member.id)
+					draft_sources.erase(member.id)
 				_candidate())
+	_refresh_interlocks(g.has("interlocks"))
 	status.text = "储能 #%d · 已配置 %d / 8 台 · %s\n上次决定：%s · 距下次评估 %.2f 秒" % [
 		e.id, g.member_ids.size(), "控制启用" if g.enabled else "控制关闭",
-		{"pending": "待评估", "allow": "允许新批", "block": "等待功率余量"}[g.latch], (g.evaluation_ticks_left + 1) * 0.05 if g.enabled else 0.0]
+		{"pending": "待评估", "allow": "功率允许" if g.has("interlocks") else "允许新批", "block": "等待功率余量"}[g.latch], (g.evaluation_ticks_left + 1) * 0.05 if g.enabled else 0.0]
 	var reason: String = model.load_group_reason(e)
 	if not reason.is_empty(): status.text += "\n" + reason
+	for rule in interlocks:
+		var wait: String = model.start_interlock_reason(rule.member_id)
+		if not wait.is_empty():
+			status.text += "\n成员 #%d · %s" % [rule.member_id, wait]
 	if not model.researched.has(Loads.RESEARCH): status.text += "\n请先在核心 III 研究负载管理"
 	enable_button.text = "关闭控制，恢复普通开工" if g.enabled else "启用负载组"
 	enable_button.disabled = not model.researched.has(Loads.RESEARCH) or (not g.enabled and g.member_ids.is_empty())
@@ -118,3 +138,57 @@ func refresh(world: RefCounted, e: Dictionary) -> void:
 
 func _candidate() -> void:
 	apply_button.disabled = model == null or not model.researched.has(Loads.RESEARCH) or draft.is_empty() or draft.size() > Loads.MAX_MEMBERS
+
+
+func _apply() -> void:
+	var reserve_j := int(reserve.value) * 1000
+	if not model.by_id(selected).load_group.has("interlocks"):
+		applied.emit(model.configure_load_group(selected, draft, reserve_j))
+		return
+	var rules: Array = []
+	for id in draft:
+		if draft_sources.has(id):
+			rules.append({"member_id": id, "source_id": draft_sources[id], "condition": model.Interlocks.CONDITION})
+	applied.emit(model.configure_load_group(selected, draft, reserve_j, rules))
+
+
+func _refresh_interlocks(supported: bool) -> void:
+	interlock_controls.visible = supported and not draft.is_empty()
+	if not supported:
+		return
+	var key := str([selected, draft, source_rows, draft_sources])
+	if key == interlock_key:
+		return
+	interlock_key = key
+	for child in interlock_controls.get_children():
+		interlock_controls.remove_child(child)
+		child.queue_free()
+	for id in draft:
+		var label := Label.new()
+		label.text = "成员 #%d · 开工条件" % id
+		interlock_controls.add_child(label)
+		var choice := OptionButton.new()
+		choice.fit_to_longest_item = false
+		choice.add_item("无条件")
+		choice.set_item_metadata(0, 0)
+		choice.select(0)
+		var selected_source: int = draft_sources.get(id, 0)
+		for row in source_rows:
+			if row[0] in draft:
+				continue
+			choice.add_item("等待 #%d (%d,%d) %s 完工并停机" % row)
+			choice.set_item_metadata(choice.item_count - 1, row[0])
+			if row[0] == selected_source:
+				choice.select(choice.item_count - 1)
+		if selected_source > 0 and choice.selected == 0:
+			choice.add_item("等待设备 #%d · 来源失效" % selected_source)
+			choice.set_item_metadata(choice.item_count - 1, selected_source)
+			choice.select(choice.item_count - 1)
+		choice.item_selected.connect(func(index):
+			var source_id: int = choice.get_item_metadata(index)
+			if source_id == 0:
+				draft_sources.erase(id)
+			else:
+				draft_sources[id] = source_id
+			interlock_key = str([selected, draft, source_rows, draft_sources]))
+		interlock_controls.add_child(choice)

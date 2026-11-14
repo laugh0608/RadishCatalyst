@@ -6,6 +6,7 @@ const V4 := preload("res://scripts/factory/save/codec_v4.gd")
 const V3 := preload("res://scripts/factory/save/codec_v3.gd")
 const V10 := preload("res://scripts/factory/save/codec_v10.gd")
 const V11 := preload("res://scripts/factory/save/codec_v11.gd")
+const V16 := preload("res://scripts/factory/save/codec_v16.gd")
 const V15 := preload("res://scripts/factory/save/codec_v15.gd")
 const V14 := preload("res://scripts/factory/save/codec_v14.gd")
 const V13 := preload("res://scripts/factory/save/codec_v13.gd")
@@ -15,10 +16,12 @@ const V8 := preload("res://scripts/factory/save/codec_v8.gd")
 const V7 := preload("res://scripts/factory/save/codec_v7.gd")
 const V6 := preload("res://scripts/factory/save/codec_v6.gd")
 const V5 := preload("res://scripts/factory/save/codec_v5.gd")
-const INTEGRATED_VERSIONS := [V9.VERSION, V10.VERSION, V11.VERSION, V12.VERSION, V13.VERSION, V14.VERSION, V15.VERSION]
+const INTEGRATED_VERSIONS := [V9.VERSION, V10.VERSION, V11.VERSION, V12.VERSION, V13.VERSION, V14.VERSION, V15.VERSION, V16.VERSION]
 
 
 static func snapshot(model: RefCounted, id: String, title: String, sequence: int) -> Dictionary:
+	if model.supply_id == V16.Interlocks.SUPPLY_ID:
+		return V16.snapshot(model, id, title, sequence)
 	if model.supply_id == V15.Loads.SUPPLY_ID:
 		return V15.snapshot(model, id, title, sequence)
 	if model.supply_id == V14.Feedback.SUPPLY_ID:
@@ -47,6 +50,8 @@ static func snapshot(model: RefCounted, id: String, title: String, sequence: int
 
 
 static func decode(value: Variant, expected_id: String) -> Dictionary:
+	if value is Dictionary and value.get("save_schema_version") == V16.VERSION:
+		return V16.decode(value, expected_id)
 	if value is Dictionary and value.get("save_schema_version") == V15.VERSION:
 		return V15.decode(value, expected_id)
 	if value is Dictionary and value.get("save_schema_version") == V14.VERSION:

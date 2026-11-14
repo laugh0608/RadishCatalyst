@@ -6,6 +6,7 @@ const Stats := preload("res://scripts/factory/save/statistics_validator.gd")
 const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Routing := preload("res://scripts/factory/save/routing_validator.gd")
 const Admission := preload("res://scripts/factory/save/admission_validator.gd")
+const Interlocks := preload("res://data/factory/load_interlock_rules.gd")
 const MINERALS := ["crystal", "rich_crystal", "iron_ore", "carbon_ore"]
 
 
@@ -27,6 +28,10 @@ static func validate(e: Variant, next_id: int, next_batch: int, model: RefCounte
 	if e.type in model.process_types:
 		extra = ["recipe_id", "input", "output", "invested", "processing", "progress", "active_batch", "output_batch", "power_node_id"]
 		if e.type in Expansion.PROCESSORS: extra.append("output_cursor")
+		if model.supply_id == Interlocks.SUPPLY_ID:
+			extra.append("batch_outcome")
+			if e.get("batch_outcome") not in Interlocks.OUTCOMES or (e.get("processing") == true and e.batch_outcome != "none"):
+				return failure("加工设备尾批结果无效。")
 	else:
 		extra = {"collector": ["mineral", "buffer", "progress", "power_node_id"], "storage": ["items"], "belt": ["cargo", "progress", "entry", "cursor", "batch"]}[e.type]
 	if energy and model.DiscoveryRules.POWER.has(e.type):

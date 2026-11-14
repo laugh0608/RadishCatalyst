@@ -52,7 +52,7 @@ func _load_source(id: int) -> Dictionary:
 	return success({"entity": e})
 
 
-func configure_load_group(id: int, members: Variant, reserve_j: Variant) -> Dictionary:
+func configure_load_group(id: int, members: Variant, reserve_j: Variant, _conditions: Variant = null) -> Dictionary:
 	var found := _load_source(id)
 	if not found.ok:
 		return found

@@ -83,7 +83,7 @@
 
 B1 / B2 / C 已共同通过首程验收。正式 Boot 的工厂世界菜单选择「整合工厂 · 核心研究与固定燃烧」即可新建；保存后从工厂目录继续。旧世界入口按原身份继续。正式菜单复测和范围见 [W45 周志](../devlogs/2026-W45.md#foundation-acceptance)。
 
-D1 已完成普通矿与高产矿的持续回流对照，完整玩家路径与公开入口仍待验收。D2 已完成核心 III、独立储能、节拍调度、储能反馈与负载组的开发机定向、窗口及跨进程验证；C3 的新增事实见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。长期分段负载实收对照尚待实施，D2 玩家亲测未验收。隔离入口及身份见[整合存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)。
+D1 已完成普通矿与高产矿的持续回流对照，完整玩家路径与公开入口仍待验收。D2 已完成核心 III、独立储能、节拍调度、储能反馈与负载组的开发机定向、窗口及跨进程验证；C3 的新增事实见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。[长期真实产线对照方案](factory-d2-production-comparison.md)已完成 v4 物流短测与成对预检，故障资格通过，收益未达标，停在自然长测之前，见 [W46](../devlogs/2026-W46.md#d2-c3-fault-v4-preflight)；D2 玩家亲测未验收。隔离入口及身份见[整合存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)。
 
 <a id="joint-first-run"></a>
 

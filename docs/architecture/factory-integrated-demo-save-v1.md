@@ -2,7 +2,7 @@
 
 更新时间：2026-11-13
 
-状态：基础整合 schema 9 经联合验收后已在正式 Boot 开放新建、保存和继续。本文主体用于[基础整合内容包](../features/factory-demo-integration-v1.md)的核心 I–II、7 科技节点、核心物流及固定燃烧；后续隔离身份在下表关联各自合同，末节规定已接入的 C2 schema 14 增量边界。C3 已接入独立 [schema 15 合同](factory-load-groups-save-v15.md)，旧档不升级。
+状态：基础整合 schema 9 经联合验收后已在正式 Boot 开放新建、保存和继续。本文主体用于[基础整合内容包](../features/factory-demo-integration-v1.md)的核心 I–II、7 科技节点、核心物流及固定燃烧；后续隔离身份在下表关联各自合同，末节规定已接入的 C2 schema 14 增量边界。C3 已接入独立 [schema 15 合同](factory-load-groups-save-v15.md)，[schema 16 开工联锁](factory-load-interlocks-save-v16.md)也使用隔离身份，旧档沿原规则继续。
 
 规划归属：[能力地图](../features/README.md#world-save)。承接整合切片的存档合同，不另建任务或迁移旧世界。
 
@@ -31,6 +31,7 @@
 | [D2 C1 节拍调度](../features/factory-grid-controls-d2.md#d2-timed-dispatch-delivery) | schema 13 | 同一测控入口，选择 C1，含核心 III 与 E2 |
 | [D2 C2 储能反馈](../features/factory-grid-controls-d2.md#d2-feedback-contract) | schema 14 | 同一测控入口，选择 C2，含核心 III、E2 与 C1 |
 | [D2 C3 负载组](../features/factory-load-groups-c3.md) | schema 15 | 同一测控入口，选择 C3，含核心 III、E2、C1 与 C2 |
+| [D2 C3 开工联锁](factory-load-interlocks-save-v16.md) | schema 16 | 同一测控入口，选择 C3 开工联锁隔离复核 |
 
 Store 按上下文授权隔离版本的新建、继续和保存。不同版本及 schema 10 的两种物流身份分别校验定义摘要，同身份备份才可用于恢复。
 
