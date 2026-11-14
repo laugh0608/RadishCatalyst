@@ -5,6 +5,8 @@ signal world_ready(store: RefCounted, model: RefCounted, candidate: Dictionary)
 const Store := preload("res://scripts/factory/save/store.gd")
 var save_root := Store.DEFAULT_ROOT
 var engineering_context := false
+var frontier_context := false
+var controls_context := false
 var catalog: RefCounted
 var worlds: Array[Dictionary] = []
 var list := ItemList.new()
@@ -19,10 +21,13 @@ var selected := -1
 var world_type := OptionButton.new()
 var upgrade_dialog := ConfirmationDialog.new()
 var pending_upgrade := ""
+var pending_copy_sequence := 0
+var pending_copy_hash := ""
+var pending_copy_title := ""
 
 
 func _ready() -> void:
-	catalog = Store.new(save_root, engineering_context)
+	catalog = Store.new(save_root, engineering_context, frontier_context, controls_context)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
 	shade.color = Color("182d2c")
@@ -46,8 +51,25 @@ func _ready() -> void:
 	layout.add_child(list)
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(notice)
-	world_type.add_item("基础工厂 · 原预供电规则")
-	world_type.add_item("勘探工厂 · 分流汇合、范围供电与矿道开拓")
+	var types := {
+		Store.Codec.Rules.NORMAL_SUPPLY: "基础工厂 · 原预供电规则",
+		Store.Codec.V2.Config.ADMISSION_SUPPLY_ID: "勘探工厂 · 分流汇合、范围供电与矿道开拓",
+		Store.Codec.V6.Expansion.SUPPLY_ID: "生产扩建 E1 · 制造第二台炉与混料回用",
+		Store.Codec.V7.Energy.SUPPLY_ID: "能源循环 E2 · 待机耗电与电芯供电",
+		Store.Codec.V9.Integrated.SUPPLY_ID: "整合工厂 · 核心研究与固定燃烧",
+	}
+	if catalog.allow_frontier:
+		types[Store.Codec.V10.Frontier.SUPPLY_ID] = "开拓工厂 · 高产炭矿 / 普通带单路隔离复核"
+	if catalog.allow_controls:
+		types[Store.Codec.V11.Controls.SUPPLY_ID] = "测控工厂 · 核心 III 隔离复核"
+		types[Store.Codec.V16.Interlocks.SUPPLY_ID] = "测控工厂 · C3 开工联锁隔离复核"
+		types[Store.Codec.V15.Loads.SUPPLY_ID] = "测控工厂 · C3 负载组隔离复核"
+		types[Store.Codec.V14.Feedback.SUPPLY_ID] = "测控工厂 · C2 储能反馈隔离复核"
+		types[Store.Codec.V13.Dispatch.SUPPLY_ID] = "测控工厂 · C1 节拍调度隔离复核"
+		types[Store.Codec.V12.Buffer.SUPPLY_ID] = "测控工厂 · E2 独立储能隔离复核"
+	for supply in types:
+		world_type.add_item(types[supply])
+		world_type.set_item_metadata(world_type.item_count - 1, supply)
 	layout.add_child(world_type)
 	title_input.placeholder_text = "新工厂名称（最多 48 字）"
 	title_input.max_length = 48
@@ -84,15 +106,16 @@ func refresh() -> void:
 func _selection() -> void:
 	continue_button.disabled = selected < 0 or not worlds[selected].ok
 	continue_button.text = "继续选中世界"
-	upgrade_button.disabled = selected < 0 or not worlds[selected].ok or worlds[selected].get("schema", 0) not in [2, 3, 4]
+	upgrade_button.disabled = selected < 0 or not worlds[selected].ok or worlds[selected].get("schema", 0) not in [2, 3, 4, 6, 7]
 	upgrade_button.text = _upgrade_title(int(worlds[selected].get("schema", 0))) if selected >= 0 else "升级选中世界"
 	recover_button.disabled = selected < 0 and not DirAccess.dir_exists_absolute(catalog.root.path_join("creation.lock"))
 	notice.text = "创建空工厂，从第一条产线开始。旧二维世界保留在原入口。" if selected < 0 else worlds[selected].status
 
 
 func _create() -> void:
-	var store := Store.new(save_root, engineering_context)
-	var result := store.create(title_input.text, Store.Codec.V2.Config.ADMISSION_SUPPLY_ID if world_type.selected == 1 else Store.Codec.Rules.NORMAL_SUPPLY, world_type.selected == 1)
+	var store := Store.new(save_root, engineering_context, frontier_context, controls_context)
+	var supply: String = world_type.get_selected_metadata()
+	var result := store.create(title_input.text, supply, supply != Store.Codec.Rules.NORMAL_SUPPLY)
 	if not result.ok:
 		notice.text = result.reason
 		return
@@ -106,12 +129,19 @@ func _continue() -> void:
 
 
 func _ask_upgrade() -> void:
-	if selected < 0 or worlds[selected].get("schema", 0) not in [2, 3, 4]:
+	if selected < 0 or worlds[selected].get("schema", 0) not in [2, 3, 4, 6, 7]:
 		return
 	pending_upgrade = worlds[selected].id
 	pending_schema = int(worlds[selected].schema)
 	upgrade_dialog.title = _upgrade_title(pending_schema)
+	upgrade_dialog.ok_button_text = "复制并进入" if pending_schema in [6, 7] else "升级并继续"
 	match pending_schema:
+		6, 7:
+			pending_copy_sequence = worlds[selected].sequence
+			pending_copy_hash = worlds[selected].hash
+			pending_copy_title = worlds[selected].title.left(41) + " · 待机新版"
+			var source_label := "E1" if pending_schema == 6 else "E2"
+			upgrade_dialog.dialog_text = "复制为待机耗电新版「%s」。原 %s 保留，之后两份进度独立。\n启用设备缺料 / 堵塞时消耗少量待机电，手动停机零耗电；旧历史不追扣。\n人物、布局、物料、在制与能源账完整接续，不补发构件或电芯。" % [pending_copy_title, source_label]
 		4: upgrade_dialog.dialog_text = "增加 8 个物品准入口，可筛选物品、设置本轮总配额。原物流轮转与吞吐保持。\n设备、物料、在制、探索与统计保留；原 V4 存档会独立备份。\n也可取消后继续 V4。升级后的进度需要使用支持准入口的版本。"
 		3: upgrade_dialog.dialog_text = "增加 8 个分流器、8 个汇合器。物流采用统一公平轮转，机器补带可能多等 50ms。\n设备、物料、在制及探索进度保留；升级前存档会独立备份。\n此次只升级分流与汇合，之后可另行选择准入口；也可取消后按原规则继续。"
 		2: upgrade_dialog.dialog_text = "范围内节点和设备改为自动接电。设备、物料、在制与探索进度保留，原档会独立备份。\n此次只升级供电，之后可另行选择分流与汇合。也可取消后按原规则继续。"
@@ -119,11 +149,18 @@ func _ask_upgrade() -> void:
 
 
 func _upgrade_title(schema: int) -> String:
-	return {2: "升级范围自动供电", 3: "升级分流与汇合", 4: "升级物品准入口"}.get(schema, "升级选中世界")
+	return {2: "升级范围自动供电", 3: "升级分流与汇合", 4: "升级物品准入口", 6: "复制为能源世界（新版）", 7: "复制为待机耗电新版"}.get(schema, "升级选中世界")
 
 
 func _open_world(id: String, upgrade_schema := 0) -> void:
-	var store := Store.new(save_root, engineering_context)
+	var store := Store.new(save_root, engineering_context, frontier_context, controls_context)
+	if upgrade_schema in [6, 7]:
+		var copied: Dictionary = store.copy_energy(id, pending_copy_sequence, pending_copy_hash, pending_copy_title)
+		if not copied.ok:
+			notice.text = copied.reason
+			return
+		world_ready.emit(store, copied.model, {})
+		return
 	var result := store.prepare(id)
 	if result.ok and upgrade_schema != 0:
 		match upgrade_schema:

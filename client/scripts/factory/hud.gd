@@ -6,6 +6,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const PowerRange := preload("res://scripts/factory/power_range.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
+const Integrated := preload("res://data/factory/integrated_rules.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
 var world_slot := Control.new()
@@ -24,6 +25,10 @@ var inspector_scroll := ScrollContainer.new()
 var placement_reason := Label.new()
 var connection_preview := Label.new()
 var connection_preview_slot := VBoxContainer.new()
+var power_connection := Label.new()
+var assembly_row := HBoxContainer.new()
+var assembly_target := OptionButton.new()
+var assembly_info := Label.new()
 var tool_row := HFlowContainer.new()
 var placement_row := HBoxContainer.new()
 var build_help := Label.new()
@@ -33,6 +38,12 @@ var cell_z := SpinBox.new()
 var help_panel: PanelContainer
 var sample_button: Button
 var interaction_button: Button
+var admission_markers := preload("res://scripts/factory/admission_markers.gd").new()
+var quota_notice := preload("res://scripts/factory/quota_notice.gd").new()
+var waypoint_panel: PanelContainer
+var waypoint_map := preload("res://scripts/factory/waypoint_map.gd").new()
+var waypoint_title: Label
+var waypoint_distance: Label
 
 
 func _ready() -> void:
@@ -63,6 +74,7 @@ func _ready() -> void:
 	world_image.resized.connect(_sync_render_resolution)
 	get_window().size_changed.connect(_sync_render_resolution.call_deferred)
 	_sync_render_resolution.call_deferred()
+	world_slot.add_child(admission_markers)
 	_build_world_panels()
 	_build_footer(stack)
 
@@ -148,6 +160,12 @@ func _build_world_panels() -> void:
 	mission.custom_minimum_size.x = 198
 	mission.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_stack.add_child(mission)
+	world_slot.add_child(quota_notice)
+	quota_notice.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	quota_notice.offset_left = 270
+	quota_notice.offset_right = -20
+	quota_notice.offset_top = 22
+	quota_notice.locate.connect(func(id): action.emit("quota_gate", id))
 	_button(mission_stack, "guide_action", "开始首条产线")
 	_button(mission_stack, "mission", "收起目标")
 	_button(mission_stack, "discovery", "工艺、物料与矿道")
@@ -184,9 +202,24 @@ func _build_world_panels() -> void:
 	_button(camera_row, "zoom_out", "−")
 	_button(camera_row, "zoom_in", "+")
 	camera_panel.name = "CameraPanel"
+	waypoint_panel = _panel(world_slot)
+	waypoint_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	waypoint_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	waypoint_panel.offset_left = -244
+	waypoint_panel.offset_right = -20
+	waypoint_panel.offset_top = -381
+	waypoint_panel.offset_bottom = -68
+	var waypoint_stack := VBoxContainer.new()
+	waypoint_panel.add_child(waypoint_stack)
+	waypoint_title = _label(waypoint_stack, "", 16)
+	_label(waypoint_stack, "↑ 北     ▲ 你     ◯ 目标", 13)
+	waypoint_stack.add_child(waypoint_map)
+	waypoint_distance = _label(waypoint_stack, "", 14)
+	_button(waypoint_stack, "clear_waypoint", "关闭定位")
+	waypoint_panel.hide()
 	help_panel = _panel(world_slot)
 	help_panel.position = Vector2(265, 22)
-	_label(help_panel, "WASD / 方向键移动 · 点空地移动\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n关闭窗口自动保存；后台继续生产")
+	_label(help_panel, "WASD / 方向键移动 · 鼠标只选择 / 操作\n1–4 选构件 · R 转带向 · Enter 精确放置\n按住鼠标拖铺，松开确认；回拖可缩短\nEsc 依次取消拖铺 / 构件 / 详情 / 建造\nQ / E 转相机 · 滚轮缩放\nF 近身交互 · Tab 切换目标 · I 背包\n金色出口 → 传送带 → 青色入口\n电力图标：✓ 可用 / × 未接网 / ⊘ 无供电 / ! 不足\n电力可用但缺料时，设备仍会待机\n关闭窗口自动保存；后台继续生产")
 	help_panel.hide()
 	sample_button = _button(world_slot, "sample", "矿壳样本 · F 拾取")
 	sample_button.hide()
@@ -210,18 +243,30 @@ func _build_footer(parent: Node) -> void:
 	notice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	first.add_child(notice)
+	_button(first, "power_links", "电网连线：开").tooltip_text = "切换连线，不隐藏电力状态图标。\n✓ 电力可用（含待机） · × 未接网 · ⊘ 无供电 / 电源关闭 · ! 供电不足"
 	_button(first, "help", "操作说明")
 	_button(first, "save", "保存")
 	_button(first, "return", "保存并返回")
 	tool_row.add_theme_constant_override("separation", 10)
 	rows.add_child(tool_row)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
+	for type in Model.CATALOG.keys():
 		var button := _button(tool_row, type, Model.CATALOG[type].name)
 		if type in ["splitter", "merger", "admission_gate"]:
 			button.icon = load("res://assets/icons/factory_" + type + ".svg")
 			button.add_theme_constant_override("icon_max_width", 22)
 			button.tooltip_text = "单物品筛选 · 不限量或本轮总配额；配置后允许来料" if type == "admission_gate" else "一入三出，跳过堵塞出口；单件行程 1 秒" if type == "splitter" else "三入一出，轮流接收；单件行程 1 秒"
 
+	rows.add_child(assembly_row)
+	assembly_row.add_child(assembly_target)
+	for type in Model.DiscoveryRules.Expansion.ASSEMBLY_COST:
+		assembly_target.add_item("装配：" + Model.CATALOG[type].name)
+		assembly_target.set_item_metadata(assembly_target.item_count - 1, type)
+		if type == "refinery": assembly_target.select(assembly_target.item_count - 1)
+	assembly_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	assembly_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	assembly_row.add_child(assembly_info)
+	_button(assembly_row, "assemble", "装配一批")
+	assembly_row.hide()
 	rows.add_child(placement_row)
 	placement_row.add_theme_constant_override("separation", 10)
 	_label(placement_row, "落位 X")
@@ -246,6 +291,9 @@ func _build_footer(parent: Node) -> void:
 	power_help.add_theme_color_override("font_color", Color("b1d5cb"))
 	rows.add_child(power_help)
 	power_help.hide()
+	power_connection.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rows.add_child(power_connection)
+	power_connection.hide()
 	var last := HBoxContainer.new()
 	rows.add_child(last)
 	build_help.text = "WASD 移动 · 拖动铺带 · Q / E 转角 · 滚轮缩放"
@@ -281,10 +329,28 @@ func viewport_to_screen(point: Vector2) -> Vector2:
 	return world_image.global_position + point * world_image.size / Vector2(subviewport.size)
 
 
+func world_panels() -> Array:
+	return [mission_panel, quota_notice, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel"), waypoint_panel]
+
+
+func sync_waypoint(model: RefCounted, actor: Dictionary, ui: Dictionary, camera_yaw: float) -> void:
+	var waypoint: Dictionary = ui.waypoint
+	waypoint_panel.visible = not waypoint.is_empty() and not inspector.visible and not ui.blocked
+	if not waypoint_panel.visible:
+		return
+	waypoint_title.text = waypoint.action_label.trim_prefix("定位")
+	waypoint_distance.text = waypoint_map.sync(model, actor, waypoint.point, camera_yaw)
+
+
+func sync_markers(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
+	view.logical_pixel_scale = Vector2(subviewport.size).y / maxf(1, world_image.size.y)
+	admission_markers.sync(view, model, self, ui)
+
+
 func world_point(screen: Vector2) -> Variant:
 	if not world_image.get_global_rect().has_point(screen):
 		return null
-	for panel in [mission_panel, inspector, help_panel, sample_button, interaction_button, world_slot.get_node("CameraPanel")]:
+	for panel in world_panels():
 		if panel.visible and panel.get_global_rect().has_point(screen):
 			return null
 	return (screen - world_image.global_position) * Vector2(subviewport.size) / world_image.size
@@ -311,34 +377,75 @@ func announce(message: String, error := false) -> void:
 
 
 func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: bool) -> void:
+	var integrated: bool = Integrated.matches_supply(model.supply_id)
+	buttons.save.visible = not ui.get("transient_review", false)
+	buttons.return.text = "结束复核" if ui.get("transient_review", false) else "保存并返回"
 	totals.text = "催化剂入仓  %d    %02d:%02d" % [model.delivered, int(model.time) / 60, int(model.time) % 60]
+	quota_notice.refresh(model)
+	buttons.power_links.visible = model.has_method("power_state")
+	buttons.power_links.text = "电网连线：" + ("开" if ui.get("show_power_links", true) else "关")
 	buttons.pause.text = "继续" if ui.paused else "暂停"
 	buttons.build.text = "建造中 B" if ui.build else "进入建造 B"
 	tool_row.visible = ui.build
+	assembly_row.visible = ui.build and not integrated and model.has_method("assemble") and not model.assembly_costs.is_empty()
+	if assembly_row.visible:
+		_sync_assembly(model)
+		var type: String = assembly_target.get_selected_metadata()
+		var cost: int = model.assembly_costs[type]
+		var quantity: int = Model.DiscoveryRules.Expansion.yield_for(type)
+		var remaining: int = Model.DiscoveryRules.Expansion.MAX_OWNED - model.owned_count()
+		assembly_info.text = "%d 包 → %d 件 · 背包 %d 包 · 总额 %d/326（已放 %d / 库存 %d）" % [cost, quantity, model.bag.get("construction_pack", 0), model.owned_count(), model.entities.size(), Items.count(model.kits)]
+		buttons.assemble.disabled = model.bag.get("construction_pack", 0) < cost or remaining < quantity
+		buttons.assemble.tooltip_text = "还缺 %d 包、%d 个预算空位；只从背包扣包，整批发放。" % [maxi(0, cost - model.bag.get("construction_pack", 0)), maxi(0, quantity - remaining)]
+	if model.has_method("assemble"):
+		totals.text = "构件包已产 %d · 第二炉%s  %02d:%02d" % [model.completed_by_recipe.construction_assembly, "已落位" if model.first_expansion_placed else "待扩建", int(model.time) / 60, int(model.time) % 60]
+	if model.supply_id == Model.DiscoveryRules.Energy.SUPPLY_ID:
+		totals.text = "电芯已产 %d · 已激活 %d · 构件包 %d  %02d:%02d" % [model.completed_by_recipe.cell_assembly, model.statistics.totals.cells_activated, model.completed_by_recipe.construction_assembly, int(model.time) / 60, int(model.time) % 60]
+	if integrated:
+		totals.text = "核心 %s · 板材在库 %d　%02d:%02d" % [model.Progression.TIER_LABELS[model.core.level], model.core.items.get("metal_plate", 0), int(model.time) / 60, int(model.time) % 60]
 	placement_row.visible = not ui.tool.is_empty()
 	connection_preview.hide()
 	connection_preview_slot.hide()
 	power_help.visible = not PowerRange.origin(model, ui).is_empty()
+	power_connection.hide()
 	if power_help.visible:
 		power_help.text = PowerRange.legend(model.automatic_power)
-	for type in ["collector", "reactor", "storage", "belt", "power_source", "power_junction", "splitter", "merger", "admission_gate"]:
-		buttons[type].visible = model.kits.has(type)
+	for type in Model.CATALOG.keys():
+		buttons[type].visible = model.kits.has(type) and (type != "cell_generator" or (model.device_unlocked(type) if integrated else model.first_expansion_placed))
 		if not model.kits.has(type):
 			continue
-		buttons[type].text = "%s  %d" % [Model.CATALOG[type].name, model.kits[type]]
+		if integrated:
+			var id: String = model.device_research(type)
+			var locked: bool = not model.device_unlocked(type)
+			buttons[type].disabled = locked
+			if locked and id != "":
+				var node: Dictionary = model.research_nodes[id]
+				buttons[type].tooltip_text = "先在基地核心研究%s · %s" % [node.name, Items.describe(node.cost)]
+			elif type == Integrated.Timed.TYPE:
+				buttons[type].tooltip_text = "单槽后进前出 · 仅在设定窗口内按额度放行 · 无需供电"
+			elif type in ["reactor", "crusher", "assembler"]:
+				buttons[type].tooltip_text = ""
+		var name: String = "采集器" if integrated and type == "collector" else Model.CATALOG[type].name
+		buttons[type].text = "%s  %d" % [name, model.kits[type]]
 		buttons[type].modulate = Color("eac178" if ui.tool == type else "ffffff")
 	if not ui.tool.is_empty():
 		cell_x.set_value_no_signal(ui.cell.x)
 		cell_z.set_value_no_signal(ui.cell.y)
-		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger", "admission_gate"]
+		buttons.rotate.visible = ui.tool in ["belt", "splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 		buttons.rotate.text = "方向：" + DIRECTIONS[ui.dir]
 		var valid: Dictionary = model.placement(ui.tool, ui.cell, actor)
 		var replacement: Dictionary = model.placement_replacement(ui.tool, ui.cell)
 		placement_reason.text = "可放置" if valid.ok else valid.reason
+		if ui.tool == "belt":
+			var hovered: Dictionary = model.entity_at(ui.cell)
+			if hovered.get("type", "") == "belt":
+				placement_reason.text = Model.BeltLogistics.BELT_CONFLICT if Model.BeltLogistics.belt_input_conflict(model, hovered) else "已有传送带 · 可从未接通的末端拖动"
 		if valid.ok and not replacement.is_empty():
 			var recovered := Items.contents(replacement)
 			placement_reason.text = "替换传送带 · 返还带 ×1" + ("" if recovered.is_empty() else " · 物料回收至背包")
 		buttons.place.disabled = not valid.ok
+		if ui.tool == "power_junction" and model.automatic_power:
+			_show_junction_link(model, ui.cell, valid.ok)
 		if Model.DiscoveryRules.routing_world(model.supply_id):
 			var preview := {"type": ui.tool, "x": ui.cell.x, "z": ui.cell.y, "dir": ui.dir}
 			var connections: String = model.Logistics.preview_text(model, preview)
@@ -348,6 +455,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			connection_preview.visible = valid.ok and ui.stroke.is_empty() and not connections.is_empty()
 	bag.text = "背包：" + Items.describe(model.bag) if model.has_method("power_state") else "回收箱：晶体 %d / 催化剂 %d" % [model.bag.crystal, model.bag.catalyst]
 	buttons.discovery.visible = model.has_method("power_state")
+	buttons.discovery.text = "样本与矿道" if integrated else "工艺、物料与矿道"
 	buttons.inventory.visible = model.has_method("power_state")
 	buttons.statistics.visible = model.has_method("power_state")
 	coordinates.text = "X %.1f / Z %.1f" % [actor.x, actor.z]
@@ -366,25 +474,104 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			"storage": info = "晶体 %d · 催化剂 %d\n容量 %d / 200\n青色入口位于左侧" % [e.crystal, e.catalyst, e.crystal + e.catalyst]
 			"belt": info = "方向 %s\n带上物品：%s\n速度 1 格 / 秒" % [DIRECTIONS[e.dir], {"": "空", "crystal": "晶体", "catalyst": "催化剂"}[e.cargo]]
 		details.text = "%s\n%s\n\n%s" % [Model.CATALOG[e.type].name, model.feedback(e).label, info]
-		buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
+		buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))
 	interaction_button.visible = powered and not ui.get("blocked", false) and not target.is_empty()
 	if interaction_button.visible:
-		interaction_button.text = "F  查看 %s #%d" % [Model.CATALOG[target.type].name, target.id]
-		if ui.get("interaction_count", 0) > 1:
+		interaction_button.text = ("F  查看 " if ui.focus_ready else "走近后操作 · ") + "%s #%d" % [Model.CATALOG[target.type].name, target.id]
+		if target.type == "admission_gate":
+			interaction_button.text += " · " + Items.NAMES.get(target.filter_item, "待配置")
+			var gate_state: String = admission_markers.status(target)
+			if gate_state in ["closed", "complete"]:
+				interaction_button.text += " · " + ("配额完成" if gate_state == "complete" else "停止接收")
+				if not target.cargo.is_empty(): interaction_button.text += " · 尾货排空中"
+		if ui.get("interaction_count", 0) > 1 and ui.interaction_index >= 0:
 			interaction_button.text += "  ·  Tab 切换 %d/%d" % [ui.interaction_index + 1, ui.interaction_count]
-		interaction_button.position.x = (world_slot.size.x - interaction_button.size.x) * 0.5
+		interaction_button.position.x = 20.0 if integrated else (world_slot.size.x - interaction_button.size.x) * 0.5
 		interaction_button.disabled = not ui.focus_ready
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
 		text = "继续扩建\n已有 %d 件催化剂入仓\n\n走到其他青色矿点建立第二条产线。保存后可从启动菜单继续这个世界。" % model.delivered
-	if model.has_method("power_state"):
+	if integrated:
+		text = "首件板材回仓\n铁矿 → 精炼炉 → 核心\n\n靠近核心按 F 查看库存，在接口页配置出料。用配电节点将核心电力送到矿点和精炼炉。"
+		if model.core.level == 2:
+			text = "核心 II\n在研究页解锁工业电芯、混料冶炼与矿渣回用。"
+			if model.discovery.passages.inner:
+				text = "富集矿道已开放\n可将富集晶体加工为催化剂，在生产统计查看产量与用电。"
+			elif model.recipe_available("slag_sintering"):
+				text = "联产与回用已解锁\n在样本与矿道面板查看试制和开路要求。"
+			elif model.statistics.totals.cells_activated > 0:
+				text = "已启动电芯供电\n维持供料并观察用电与弃能。可继续研究混料冶炼与矿渣回用。"
+			elif model.recipe_available("cell_assembly"):
+				text = "电芯供电\n装配并放置发电机，接入电芯后在设备面板启用。无负载也会燃烧。"
+		elif model.core.items.has("metal_plate") or model.researched.size() > 1:
+			text = "从产线到研究\n在核心提交板材和载体。精炼炉可切换到直接烧结，矿壳样本在外矿道入口。"
+		if model.map_id == Integrated.Frontier.MAP_ID and model.discovery.trial_completed:
+			if model.discovery.passages[Integrated.Frontier.PASSAGE]:
+				text = "高产炭矿支路已开启\n已采 %d 件。接回炭粉产线，观察电芯供燃与混料产出。" % model.frontier_extracted
+			elif model.researched.has(Integrated.Frontier.RESEARCH):
+				text = "开拓高产炭矿\n打通外矿道后，携带 4 颗破岩胶囊从支路北入口开路。"
+			else:
+				text = "研究开拓工具\n在核心 II 的研究页查看解壳剂、电芯等成本。"
+		if model.core_upgrades.has(3):
+			if model.core.level == 3:
+				text = "核心 III 已启用\n保留 360 kW 额定功率。可继续既有生产和开拓。"
+				if model.kits.has(Integrated.Storage.TYPE):
+					text = "电网储能\n研究电网缓冲后装配储能。靠近配电节点落位，观察充放电。" if not model.device_unlocked(Integrated.Storage.TYPE) else "电网储能\n用低负载时的发电余电充电，在供电不足时补缺。"
+			elif model.core.level == 2 and model.researched.has(model.Progression.REUSE):
+				text = "升级核心 III\n在核心的等级页查看前置与材料。"
+		var location := Guidance.integrated_location(model)
+		buttons.guide_action.visible = ui.mission and not location.is_empty()
+		if not location.is_empty():
+			buttons.guide_action.text = location.action_label
+			buttons.guide_action.tooltip_text = location.next
+	elif model.has_method("power_state"):
 		var step := Guidance.current(model)
 		text = Guidance.describe(step)
 		buttons.guide_action.text = step.action_label
 		buttons.guide_action.tooltip_text = step.next
-	buttons.guide_action.visible = powered and ui.mission
+		buttons.guide_action.visible = ui.mission
+	else:
+		buttons.guide_action.hide()
 	mission.text = text if ui.mission else text.split("\n")[0]
 	buttons.mission.text = "收起目标" if ui.mission else "展开目标"
+
+
+func _show_junction_link(model: RefCounted, cell: Vector2i, valid: bool) -> void:
+	power_connection.show()
+	power_connection.add_theme_color_override("font_color", Color("b1d5cb"))
+	power_connection.text = "接电预览 · 选择可放置位置"
+	if not valid:
+		return
+	var link := PowerRange.junction_link(model, cell)
+	if link.is_empty():
+		power_connection.text = "接电预览 · 场内暂无电源或节点"
+		return
+	var limit: float = PowerRange.Grid.Rules.NODE_RANGE
+	var state := "可自动接入"
+	var color := Color("9de5d5")
+	match link.rank:
+		PowerRange.Link.NO_SUPPLY:
+			state = "可连通，上游无电"
+			color = Color("f0c16b")
+		PowerRange.Link.UNREACHABLE:
+			state = "超出范围" if link.distance > limit + 1e-9 else "矿壳阻挡"
+			color = Color("ff967f")
+	power_connection.add_theme_color_override("font_color", color)
+	power_connection.text = "接电预览 · %s #%d · %.2f / %.0f 格 · %s" % [
+		Model.CATALOG[link.node.type].name, link.node.id, link.distance, limit, state]
+
+
+func _sync_assembly(model: RefCounted) -> void:
+	var types: Array = model.assembly_costs.keys().filter(func(type): return type != "cell_generator" or model.first_expansion_placed)
+	var previous: Variant = assembly_target.get_selected_metadata() if assembly_target.item_count > 0 else null
+	var current: Array = []
+	for i in assembly_target.item_count: current.append(assembly_target.get_item_metadata(i))
+	if current == types: return
+	assembly_target.clear()
+	for type in types:
+		assembly_target.add_item("装配：" + Model.CATALOG[type].name)
+		assembly_target.set_item_metadata(assembly_target.item_count - 1, type)
+		if type == previous: assembly_target.select(assembly_target.item_count - 1)

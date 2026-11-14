@@ -3,6 +3,8 @@ extends Control
 signal device_action(name: String, id: int)
 signal closed
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Dispatch := Rules.Integrated.Timed
+const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
 const DeviceSummary := preload("res://scripts/factory/device_summary.gd")
 const ItemSlot := preload("res://scripts/factory/item_slot.gd")
@@ -22,6 +24,7 @@ var heading := Label.new()
 var runtime := Label.new()
 var summary := Label.new()
 var inventory := Label.new()
+var bag_empty := Label.new()
 var result_label := Label.new()
 var recipe := OptionButton.new()
 var recipe_ids: Array[String] = []
@@ -40,6 +43,10 @@ var scroll := ScrollContainer.new()
 var item_labels := {}
 var guide_overview := Label.new()
 var elapsed := 0.0
+var load_controls := preload("res://scripts/factory/load_group_controls.gd").new()
+var load_member_status := Label.new()
+var feedback_controls := preload("res://scripts/factory/storage_feedback_controls.gd").new()
+var dispatch_controls := preload("res://scripts/factory/timed_dispatch_controls.gd").new()
 var admission_controls := preload("res://scripts/factory/admission_controls.gd").new()
 
 
@@ -69,6 +76,8 @@ func _ready() -> void:
 	header.add_child(runtime)
 	button(header, "pause", "暂停", func(): device_action.emit("pause", selected))
 	button(header, "close", "关闭  ×  Esc", close_panel)
+	layout.add_child(dispatch_controls)
+	dispatch_controls.applied.connect(apply)
 	layout.add_child(admission_controls)
 	admission_controls.applied.connect(apply)
 	body.add_theme_constant_override("separation", 24)
@@ -77,7 +86,11 @@ func _ready() -> void:
 	bag_frame.custom_minimum_size.x = 348
 	bag_frame.add_theme_stylebox_override("panel", _style("1c3231", 16))
 	body.add_child(bag_frame)
-	bag_frame.add_child(bag_content)
+	var bag_scroll := ScrollContainer.new()
+	bag_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	bag_frame.add_child(bag_scroll)
+	bag_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bag_scroll.add_child(bag_content)
 	bag_content.add_theme_constant_override("separation", 12)
 	bag_content.add_child(inventory)
 	inventory.add_theme_font_size_override("font_size", 20)
@@ -86,7 +99,9 @@ func _ready() -> void:
 	bag_grid.add_theme_constant_override("h_separation", 10)
 	bag_grid.add_theme_constant_override("v_separation", 10)
 	bag_content.add_child(bag_grid)
-	for item in Rules.ITEMS:
+	bag_empty.text = "暂无物品"
+	bag_content.add_child(bag_empty)
+	for item in Items.NAMES:
 		var slot := ItemSlot.new()
 		slot.item_id = item
 		bag_grid.add_child(slot)
@@ -124,10 +139,17 @@ func _ready() -> void:
 	button(discovery_row, "sample", "拾取样本", func(): apply(model.survey_sample(true)))
 	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
 	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
+	button(discovery_content, "frontier", "开拓高产炭矿 · 用 4 颗破岩胶囊", func(): apply(model.open_passage(Frontier.PASSAGE)))
 	discovery_content.add_child(guide_overview)
 	guide_overview.add_theme_font_size_override("font_size", 18)
 	content.add_child(device_content)
 	device_content.add_theme_constant_override("separation", 16)
+	device_content.add_child(load_controls)
+	load_controls.applied.connect(apply)
+	load_member_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	device_content.add_child(load_member_status)
+	device_content.add_child(feedback_controls)
+	feedback_controls.applied.connect(apply)
 	device_summary.compact = false
 	device_content.add_child(device_summary)
 	device_summary.heading.hide()
@@ -140,7 +162,7 @@ func _ready() -> void:
 		if recipe.selected >= 0:
 			apply(model.change_recipe(selected, recipe_ids[recipe.selected])))
 	button(recipe_row, "cancel_batch", "取消本批并返料", func(): apply(model.cancel_batch(selected)))
-	for item in Rules.ITEMS:
+	for item in Items.NAMES:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		device_content.add_child(row)
@@ -157,7 +179,7 @@ func _ready() -> void:
 			buttons[item + "_" + suffix].set_meta("bag_side", false)
 	device_content.add_child(actions)
 	actions.add_theme_constant_override("separation", 8)
-	for option in [["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转物流构件"], ["salvage", "回收设备与物料"]]:
+	for option in [["device_toggle", "停机 / 恢复"], ["power_toggle", "启用 / 关闭电源"], ["power_connect", "从此节点接线"], ["power_disconnect", "选择连接并断开"], ["rotate_selected", "旋转物流构件"], ["salvage", "回收设备与物料"]]:
 		button(actions, option[0], option[1], func(): device_action.emit(option[0], selected))
 	for label in [summary, inventory, result_label, guide_overview]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -231,12 +253,17 @@ func _open(world: RefCounted, id: int, only_device: bool, only_inventory := fals
 	bag_item = ""
 	device_item = ""
 	recipe_key = ""
+	dispatch_controls.config_key = ""
+	feedback_controls.config_key = ""
+	load_controls.config_key = ""
 	admission_controls.config_key = ""
 	discovery_content.visible = not device_only and not inventory_only
 	device_content.visible = device_only
 	result_label.text = "点选物品，再取出或放入。产线持续运行；在制材料需取消本批后返还。" if device_only else "背包按物料汇总；容量按件数计算。走近设备后可取放物品。" if inventory_only else "工艺回查期间生产暂停；关闭后保持原暂停偏好。"
-	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate"]:
+	if device_only and model.by_id(selected).type in ["splitter", "merger", "admission_gate", Dispatch.TYPE]:
 		result_label.text = "物料自动通过附件；空载时可旋转，回收时整件返还内部物料。"
+	elif device_only and model.by_id(selected).type == Rules.Integrated.Storage.TYPE:
+		result_label.text = "同网发电余电自动充入，供电不足时放电。停用保留电量，带电回收需确认。"
 	result_label.remove_theme_color_override("font_color")
 	scroll.scroll_vertical = 0
 	scroll.visible = not inventory_only
@@ -296,13 +323,42 @@ func refresh() -> void:
 		close_panel()
 		return
 	heading.text = "%s  #%d" % [Rules.CATALOG[e.type].name, e.id] if device_only else "背包" if inventory_only else "工艺、物料与矿道"
-	inventory.text = "背包  ·  %d / 200 件" % Items.count(model.bag)
-	guide_overview.text = Guidance.overview(model)
-	summary.text = "外矿道：%s　内矿道：%s\n试制掌握量产方法；携带解壳剂在矿道西侧使用。" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
+	var bag_count := Items.count(model.bag)
+	inventory.text = "背包  ·  %d / 200 件" % bag_count
+	bag_empty.visible = bag_count == 0
+	if model.bag.get(bag_item, 0) <= 0:
+		bag_item = ""
+	var integrated: bool = Rules.Integrated.matches_supply(model.supply_id)
+	guide_overview.text = "样本支持核心的样本工艺研究。试制消耗唯一实物。" if integrated else Guidance.overview(model)
+	summary.text = "外矿道：%s　内矿道：%s" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
+	summary.text += "\n完成矿壳试制后，携带解壳剂在矿道西侧使用。" if integrated else "\n试制掌握量产方法；携带解壳剂在矿道西侧使用。"
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
 	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
 	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
-	var stores_items: bool = device_only and e.type in ["collector", "reactor", "storage"]
+	var frontier: bool = model.map_id == Frontier.MAP_ID
+	buttons.frontier.visible = frontier
+	if frontier:
+		var status: Dictionary = model.frontier_status()
+		buttons.frontier.disabled = not status.ok
+		buttons.frontier.tooltip_text = "永久开启北入口，允许步行、铺带和接电。" if status.ok else status.reason
+		summary.text += "\n高产炭矿支路 · " + ("已开启 · 炭矿 1 件 / 5 秒" if d.passages[Frontier.PASSAGE] else "背包胶囊 %d / %d · %s" % [model.bag.get(Frontier.CAPSULE, 0), Frontier.OPEN_COST, "可永久打通" if status.ok else status.reason])
+		guide_overview.text += "\n高产矿接回炭粉产线，可持续供给电芯和混料炉。"
+	var stores_items: bool = device_only and e.type in model.process_types + ["collector", "storage", "cell_generator"]
+	dispatch_controls.visible = device_only and e.type == Dispatch.TYPE
+	if dispatch_controls.visible:
+		dispatch_controls.refresh(model, e)
+	load_controls.visible = device_only and e.has("load_group")
+	if load_controls.visible:
+		load_controls.refresh(model, e)
+	load_member_status.hide()
+	if device_only and model.has_method("load_group_owner"):
+		var owner: Dictionary = model.load_group_owner(e.id)
+		if not owner.is_empty():
+			load_member_status.show()
+			load_member_status.text = "所属负载组：储能 #%d (%d,%d) · %s" % [owner.id, owner.x, owner.z, model.feedback(e).label]
+	feedback_controls.visible = dispatch_controls.visible and e.has("feedback")
+	if feedback_controls.visible:
+		feedback_controls.refresh(model, e)
 	admission_controls.visible = device_only and e.type == "admission_gate"
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
@@ -310,48 +366,54 @@ func refresh() -> void:
 		device_summary.refresh(model, e)
 	if stores_items and not device_item.is_empty() and item_button(device_item, false) == null:
 		device_item = ""
-	recipe_row.visible = device_only and e.type == "reactor"
+	recipe_row.visible = device_only and e.type in model.process_types
 	if recipe_row.visible:
 		_sync_recipes(e)
 		buttons.recipe.disabled = e.processing or not e.input.is_empty() or not e.output.is_empty()
 		buttons.recipe.tooltip_text = "切换前须结束本批，并取空输入和输出。"
 		buttons.cancel_batch.disabled = not e.processing
 	var contents := Items.contents(e) if stores_items else {}
-	for item in Rules.ITEMS:
-		var known: bool = item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or d.trial_completed
+	for item in Items.NAMES:
+		var bag_amount: int = model.bag.get(item, 0)
 		var available: int = contents.get(item, 0) - e.get("invested", {}).get(item, 0)
-		if bag_item.is_empty() and known:
+		if bag_item.is_empty() and bag_amount > 0:
 			bag_item = item
-		bag_slots[item].visible = known
-		bag_slots[item].update_amount(model.bag.get(item, 0))
+		bag_slots[item].visible = bag_amount > 0
+		bag_slots[item].update_amount(bag_amount)
 		bag_slots[item].mark_selected(bag_item == item)
-		bag_rows[item].visible = known and bag_item == item
-		bag_labels[item].text = "%s   ×%d" % [Rules.NAMES[item], model.bag.get(item, 0)]
+		bag_rows[item].visible = bag_amount > 0 and bag_item == item
+		bag_labels[item].text = "%s   ×%d" % [Items.NAMES[item], bag_amount]
 		for action in ["put_one", "put_all"]:
 			buttons[item + "_" + action].visible = stores_items
-			buttons[item + "_" + action].disabled = not stores_items or model.bag.get(item, 0) == 0 or model.input_room(e, item, true) <= 0
+			buttons[item + "_" + action].disabled = not stores_items or bag_amount == 0 or model.input_room(e, item, true) <= 0
 		var has_slot: bool = stores_items and item_button(item, false) != null
 		if device_item.is_empty() and has_slot:
 			device_item = item
 		rows[item].visible = has_slot and device_item == item
-		item_labels[item].text = "%s · 可取 %d" % [Rules.NAMES[item], available]
+		item_labels[item].text = "%s · 可取 %d" % [Items.NAMES[item], available]
 		for action in ["take_one", "take_all"]:
-			buttons[item + "_" + action].disabled = available <= 0 or Items.count(model.bag) >= 200
+			buttons[item + "_" + action].disabled = available <= 0 or bag_count >= 200
 	device_summary.select_item(device_item)
 	if not device_only:
 		return
+	buttons.device_toggle.visible = model.has_method("set_device_enabled") and (Rules.POWER.has(e.type) or e.type in ["cell_generator", Rules.Integrated.Storage.TYPE])
+	buttons.device_toggle.text = "停机 · 保留进度" if e.get("enabled", false) else "恢复运行"
+	if e.type == Rules.Integrated.Storage.TYPE:
+		buttons.device_toggle.text = "停用储能 · 保留电量" if e.enabled else "启用储能"
 	buttons.power_toggle.visible = e.type == "power_source"
 	buttons.power_toggle.text = "关闭电源" if e.get("enabled", false) else "启用电源"
 	buttons.power_connect.visible = not model.automatic_power and model.Grid.is_node(e)
 	buttons.power_disconnect.visible = not model.automatic_power and not model.connections(e.id).is_empty()
-	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate"]
+	buttons.rotate_selected.visible = e.type in ["belt", "splitter", "merger", "admission_gate", Dispatch.TYPE]
 	buttons.salvage.text = "回收传送带与货物" if e.type == "belt" else "回收设备与物料"
+	if e.type == Rules.Integrated.Storage.TYPE:
+		buttons.salvage.text = "回收储能设施"
 
 
 func _sync_recipes(e: Dictionary) -> void:
 	var available: Array[String] = []
-	for id in Rules.RECIPES:
-		if model.recipe_available(id):
+	for id in model.recipes:
+		if model.recipe_available(id) and model.recipes[id].get("machine", "reactor") == e.type:
 			available.append(id)
 	var key := str([available, e.recipe_id])
 	if key == recipe_key:
@@ -361,7 +423,7 @@ func _sync_recipes(e: Dictionary) -> void:
 	recipe_ids = available
 	recipe.clear()
 	for id in recipe_ids:
-		var r: Dictionary = Rules.RECIPES[id]
+		var r: Dictionary = model.recipes[id]
 		recipe.add_item("%s · %.0fs / %.0fkW" % [r.name, r.seconds, r.kw])
 		if e.recipe_id == id:
 			recipe.select(recipe_ids.find(id))

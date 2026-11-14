@@ -15,20 +15,13 @@ SPEC.loader.exec_module(CHECK_DOCS)
 
 
 class AgentEntryChecks(unittest.TestCase):
-    def write_entries(self, root: Path, agents_body: str, claude_body: str) -> None:
-        (root / "AGENTS.md").write_text(
-            f"# AGENTS 指南\n\nAgent intro.\n{agents_body}",
-            encoding="utf-8",
-        )
-        (root / "CLAUDE.md").write_text(
-            f"# CLAUDE 指南\n\nClaude intro.\n{claude_body}",
-            encoding="utf-8",
-        )
+    GUIDE = b"# Project guide\n\nProject intro.\n\n## Rules\n"
 
-    def test_accepts_distinct_intros_with_matching_shared_body(self) -> None:
+    def test_accepts_identical_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self.write_entries(root, "\n## Shared\n", "\n## Shared\n")
+            for name in ("AGENTS.md", "CLAUDE.md"):
+                (root / name).write_bytes(self.GUIDE)
             errors: list[str] = []
             warnings: list[str] = []
 
@@ -37,19 +30,24 @@ class AgentEntryChecks(unittest.TestCase):
             self.assertEqual([], errors)
             self.assertEqual([], warnings)
 
-    def test_rejects_divergent_shared_body(self) -> None:
+    def test_rejects_any_difference(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self.write_entries(root, "\n## Agents\n", "\n## Claude\n")
-            errors: list[str] = []
-            warnings: list[str] = []
+            (root / "AGENTS.md").write_bytes(self.GUIDE)
+            for original, changed in (
+                (b"Project guide", b"Claude guide"),
+                (b"Project intro.", b"Claude intro."),
+                (b"## Rules", b"## Other rules"),
+                (b"\n", b"\r\n"),
+            ):
+                with self.subTest(original=original):
+                    (root / "CLAUDE.md").write_bytes(self.GUIDE.replace(original, changed, 1))
+                    errors: list[str] = []
+                    warnings: list[str] = []
 
-            CHECK_DOCS.check_agent_entries(root, errors, warnings)
+                    CHECK_DOCS.check_agent_entries(root, errors, warnings)
 
-            self.assertIn(
-                "AGENTS.md and CLAUDE.md must match exactly from line 4",
-                errors,
-            )
+                    self.assertEqual(["AGENTS.md and CLAUDE.md must have identical contents"], errors)
 
 
 if __name__ == "__main__":

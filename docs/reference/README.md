@@ -9,6 +9,8 @@
 
 ## Current Reference Guides
 
+- [Asset Inventory And Transition](asset-inventory-and-transition-v1.md)；[Asset Source And Export Map](asset-source-and-export-map.md)
+- [Factory Camera Study Layout And Framing](factory-camera-study-layout-and-framing.md)
 - [Client Data Dictionary](client-data-dictionary.md)
 - [Content Authoring Guide](content-authoring-guide.md)
 - [Godot Runtime Verification Guide](godot-runtime-verification-guide.md)
@@ -19,6 +21,7 @@
 
 ## Historical / External References
 
+- [Riftbreaker Camera And Visual Study](riftbreaker-camera-and-visual-study.md)
 - [Endfield Production Planning Study](endfield-production-planning-study.md)
 - [Factory Game Production Study](factory-game-production-study.md)
 - [Chemical Automation Game Outline](chemical-automation-game-outline.md)

@@ -4,6 +4,7 @@ signal locate_requested(id: int)
 signal pause_requested
 const Query := preload("res://scripts/factory/statistics_query.gd")
 const Chart := preload("res://scripts/factory/statistics_chart.gd")
+const Items := preload("res://scripts/factory/items.gd")
 const Rules := Query.Rules
 var model: RefCounted
 var elapsed := 0.0
@@ -24,6 +25,7 @@ var device_list := VBoxContainer.new()
 var power_body := VBoxContainer.new()
 var power_summary := Label.new()
 var power_chart := Chart.new()
+var power_legend := Label.new()
 var network_list := VBoxContainer.new()
 var rows := {}
 var selected_item := ""
@@ -98,7 +100,8 @@ func _ready() -> void:
 	power_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	power_chart.custom_minimum_size.y = 180
 	power_body.add_child(power_chart)
-	label(power_body, "青实线：供电＝用电　金虚线：请求　灰实线：装机　红虚线：缺口")
+	power_legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	power_body.add_child(power_legend)
 	power_body.add_child(network_list)
 	var foot := label(stack, "只读统计 · 理论值为当前配置上限；历史曲线不代表当前故障原因。搬运不计产消，试制与开路不计持续理论速率。")
 	foot.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -172,7 +175,7 @@ func create_row(item: String) -> Dictionary:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)
 	box.add_child(line)
-	var name_button := button(line, item, Rules.NAMES[item], func():
+	var name_button := button(line, item, Items.NAMES[item], func():
 		selected_item = item
 		detail_ids = [-1]
 		refresh())
@@ -204,7 +207,7 @@ func refresh_materials(result: Dictionary) -> void:
 			return left.net < right.net
 		if sort_choice.selected == 2 and left.storage != right.storage:
 			return left.storage < right.storage
-		return Rules.NAMES[a] < Rules.NAMES[b])
+		return Items.NAMES[a] < Items.NAMES[b])
 	for item in ids:
 		if not rows.has(item):
 			rows[item] = create_row(item)
@@ -220,7 +223,7 @@ func refresh_materials(result: Dictionary) -> void:
 	if selected_item.is_empty():
 		return
 	var r: Dictionary = result.rows[selected_item]
-	detail_summary.text = "%s · 库存分解（件）\n仓库 %d　背包 %d　设备可取缓冲 %d　在途 %d　在制原投入 %d　合计 %d\n本窗口外部取得 %d 件；工业生产 / 消耗见青实线 / 金虚线。以下为当前设备状态。" % [Rules.NAMES[selected_item], r.storage, r.bag, r.buffer, r.transit, r.invested, r.held, r.acquired]
+	detail_summary.text = "%s · 库存分解（件）\n仓库 %d　背包 %d　设备可取缓冲 %d　在途 %d　在制原投入 %d　合计 %d\n本窗口外部取得 %d 件；工业生产 / 消耗见青实线 / 金虚线。以下为当前设备状态。" % [Items.NAMES[selected_item], r.storage, r.bag, r.buffer, r.transit, r.invested, r.held, r.acquired]
 	if detail_ids != r.devices:
 		detail_ids = r.devices.duplicate()
 		clear_children(device_list)
@@ -258,9 +261,27 @@ func update_devices(parent: Node) -> void:
 func refresh_power(result: Dictionary) -> void:
 	var p: Dictionary = result.current
 	var w: Dictionary = result.window
+	power_legend.text = "青：实际用电　金虚线：请求　灰：装机　红虚线：缺口" + ("　紫：其中待机" if w.has("standby_kj") else "")
 	power_summary.text = "当前：装机 %.1f / 可用 %.1f / 请求 %.1f / 实际供用 %.1f / 分网缺口 %.1f kW" % [p.installed_kw, p.available_kw, p.request_kw, p.supplied_kw, p.deficit_kw]
 	if w.has_samples:
-		power_summary.text += "\n窗口均值：装机 %.1f / 请求 %.1f / 供用 %.1f / 缺口 %.1f kW\n窗口供电＝用电 %.2f kJ；累计用电 %.2f kJ" % [w.installed_kj / w.seconds, w.requested_kj / w.seconds, w.used_kj / w.seconds, w.deficit_kj / w.seconds, w.used_kj, model.statistics.totals.used_kj]
+		power_summary.text += "\n窗口均值：装机 %.1f / 请求 %.1f / 供用 %.1f / 缺口 %.1f kW\n窗口实际用电 %.2f kJ；累计用电 %.2f kJ" % [w.installed_kj / w.seconds, w.requested_kj / w.seconds, w.used_kj / w.seconds, w.deficit_kj / w.seconds, w.used_kj, model.statistics.totals.used_kj]
+	if Rules.Integrated.matches_supply(model.supply_id):
+		var ledger: Dictionary = model.energy_balance()
+		power_summary.text += "\n当前基础供能 %.1f / 燃料释能 %.1f / 弃能 %.1f kW" % [p.base_supplied_kw, p.fuel_released_kw, p.spill_kw]
+		power_summary.text += "\n累计激活 %d 件 · 释能 %.1f · 弃能 %.1f · 回收损失 %.1f · 现存余能 %.1f kJ" % [ledger.activated, ledger.released_kj, model.statistics.totals.spill_kj, ledger.discarded_kj, ledger.remaining_kj]
+	elif model.supply_id == Rules.Energy.SUPPLY_ID:
+		var ledger: Dictionary = model.energy_balance()
+		power_summary.text += "\n启用额定 %.1f kW · 当前基础 %.1f / 电芯 %.1f kW\n累计激活 %d 件 · 电芯供能 %.1f kJ · 回收损失 %.1f kJ · 现存余能 %.1f kJ" % [p.enabled_kw, p.base_supplied_kw, p.cell_supplied_kw, ledger.activated, ledger.supplied_kj, ledger.discarded_kj, ledger.remaining_kj]
+		if w.has_samples: power_summary.text += "\n窗口基础 %.1f / 电芯 %.1f kJ · 激活 %d 件" % [w.base_supplied_kj, w.cell_supplied_kj, w.cells_activated]
+	if w.has("standby_kj"):
+		power_summary.text += "\n当前运行 %.1f / 待机 %.1f kW · 累计运行 %.1f / 待机 %.1f kJ" % [p.supplied_kw - p.standby_supplied_kw, p.standby_supplied_kw, model.statistics.totals.used_kj - model.statistics.totals.standby_kj, model.statistics.totals.standby_kj]
+		if w.has_samples: power_summary.text += "\n窗口运行 %.1f / 待机 %.1f kJ" % [w.used_kj - w.standby_kj, w.standby_kj]
+	if p.has("buffers"):
+		var totals: Dictionary = model.statistics.totals
+		power_summary.text += "\n储能 %.3f kJ · 当前充 / 放 %.1f / %.1f kW" % [
+			model.stored_joules() / 1000.0, p.charge_j / (1000.0 * model.STEP), p.discharge_j / (1000.0 * model.STEP)]
+		power_summary.text += "\n累计充入 %.3f / 放出 %.3f / 充电损耗 %.3f / 拆除损失 %.3f kJ" % [
+			totals.charge_j / 1000.0, totals.discharge_j / 1000.0, totals.storage_loss_j / 1000.0, totals.storage_discarded_j / 1000.0]
 	power_chart.show_points(result.points, true)
 	# Rebuild only when membership changes; stable buttons retain keyboard focus.
 	var signature := []

@@ -7,6 +7,8 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const ItemSlot := preload("res://scripts/factory/item_slot.gd")
 const DevicePreview := preload("res://scripts/factory/device_preview.gd")
+const Dispatch := Rules.Integrated.Timed
+const Buffer := Rules.Integrated.Storage
 const COLORS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 var compact := true
 var heading := Label.new()
@@ -68,7 +70,7 @@ func _ready() -> void:
 			stack.add_child(grid)
 			grids[role] = grid
 			slots[role] = {}
-			for item in Rules.ITEMS:
+			for item in Items.NAMES:
 				var slot := ItemSlot.new()
 				slot.item_id = item
 				grid.add_child(slot)
@@ -101,9 +103,12 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 	production.text = ""
 	power.text = ""
 	match e.type:
-		"reactor":
-			var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
-			_card("input", "01  输入 · 下一批" if e.processing else "01  输入", _quantities(e.input, recipe.input))
+		"reactor", "crusher", "refinery", "assembler":
+			var recipe: Dictionary = model.recipes[e.recipe_id]
+			var capacity: Dictionary = recipe.input.duplicate()
+			if e.type != "reactor":
+				for item in capacity: capacity[item] *= 2
+			_card("input", "01  输入 · 两批缓存" if e.type != "reactor" else "01  输入", _quantities(e.input, capacity))
 			_card("process", "02  加工 →", "%s\n%.1f / %.0f 秒" % [recipe.name, e.progress, recipe.seconds])
 			_card("output", "03  输出 →", _quantities(e.output, recipe.output))
 			progress.show()
@@ -117,32 +122,63 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 				if not missing.is_empty():
 					production.text = "还需：" + Items.describe(missing)
 			elif not e.output.is_empty():
-				production.text = "输出尚未清空；取出或接带送走后才能开下一批。"
+				production.text = "副口矿渣积压；主口可继续排出，全部清空后再开批。" if e.type == "refinery" and e.output.has("mineral_slag") else "输出尚未清空；取出或接带送走后才能开下一批。"
 		"collector":
 			_card("output", "采集缓冲 →", "%s\n%d / 50 件" % [Items.describe(e.buffer), Items.count(e.buffer)])
-			production.text = "采集：%s · 满供电 1 件 / 秒" % Rules.NAMES[e.mineral]
+			production.text = "采集：%s · 满供电 1 件 / %.0f 秒" % [Items.NAMES[e.mineral], model.collector_cycle(e)]
 		"storage":
 			_card("input", "库存", "%s\n%d / 200 件" % [Items.describe(e.items), Items.count(e.items)])
 			production.text = "终端仓库 · 只接收物流，可近身取放。"
 		"belt":
-			_card("process", "运输 →", "%s\n带上：%s" % [["东 →", "南 ↓", "西 ←", "北 ↑"][e.dir], Rules.NAMES.get(e.cargo, "空")])
+			_card("process", "运输 →", "%s\n带上：%s" % [["东 →", "南 ↓", "西 ←", "北 ↑"][e.dir], Items.NAMES.get(e.cargo, "空")])
 	if e.type == "admission_gate":
-		_card("process", "物品准入", "只允许：%s\n单件行程 1 秒 · 容量 1" % Rules.NAMES.get(e.filter_item, "未配置"))
-		_card("output", "在途物料", Rules.NAMES.get(e.cargo, "空"))
+		_card("process", "物品准入", "只允许：%s\n单件行程 1 秒 · 容量 1" % Items.NAMES.get(e.filter_item, "未配置"))
+		_card("output", "在途物料", Items.NAMES.get(e.cargo, "空"))
 		progress.show()
 		progress.value = e.progress * 100
 		production.text = model.Admission.quantities(e)
+	elif e.type == Dispatch.TYPE:
+		_show_dispatch(model, e)
 	elif e.type in ["splitter", "merger"]:
-		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Rules.NAMES.get(e.cargo, "空"))
+		_card("process", "分流调度" if e.type == "splitter" else "汇合调度", "单件行程 1 秒 · 容量 1\n货物：" + Items.NAMES.get(e.cargo, "空"))
 		_card("output", "在途物料", "")
 		progress.show()
 		progress.value = e.progress * 100
 		production.text = "下一次先尝试%s%s" % [(model.Logistics.OUTPUT_NAMES[e.output_cursor] if e.type == "splitter" else model.Logistics.INPUT_NAMES[e.input_cursor]), "出口" if e.type == "splitter" else "入口"]
-	if e.type in ["collector", "reactor"]:
+	if e.type in model.process_types + ["collector"]:
 		var device: Dictionary = model.power_state().devices[e.id]
-		power.text = "供电：%s\n请求 %.1f / 获供 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
+		power.text = "供电：%s\n请求 %.1f / 实际用电 %.1f kW" % [feedback.power, device.request_kw, device.supplied_kw]
+		if Rules.Integrated.matches_supply(model.supply_id) or (model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power):
+			power.text += "\n运行额定 %.0f / 待机额定 %.0f kW" % [device.running_kw, Rules.Energy.STANDBY_KW[e.type]]
+			production.text = ("已停机 · 0 kW" if not e.enabled else "运行" if model.work_spec(e).ready else "待机") + " · " + production.text
 		if e.power_node_id != 0:
 			power.text += " · 节点 #%d" % e.power_node_id
+	elif e.type == "cell_generator":
+		var state: Dictionary = model.power_state()
+		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
+		var output: float = state.sources[e.id]
+		_card("input", "完整电芯 · 最多 5 件", "%d / 5 件" % Items.count(e.fuel))
+		progress.show()
+		if e.has("burn_remaining_ticks"):
+			var seconds: float = e.burn_remaining_ticks * model.STEP
+			_card("process", "剩余燃烧时间", "%.2f / 60 秒" % seconds)
+			_card("output", "当前释能", "%.0f / 120 kW" % output)
+			progress.value = e.burn_remaining_ticks * 100.0 / Rules.Integrated.BURN_TICKS
+			production.text = feedback.label
+		else:
+			_card("process", "已激活余能", "%.1f / 7,200 kJ" % e.remaining_kj)
+			_card("output", "实际输出", "%.1f / 120 kW" % output)
+			progress.value = e.remaining_kj / 72.0
+			production.text = "当前余能约 %.1f 秒；负载变化会改变估计。" % (e.remaining_kj / output) if output > 0 else "当前不消耗 · 余能保留；完整电芯可取回。"
+		power.text = "同网请求 %.1f · 基础容量 %.0f · 供后缺口 %.1f kW" % [network.request_kw, network.base_capacity_kw, maxf(0, network.request_kw - network.supplied_kw)]
+	elif e.type == Buffer.TYPE:
+		var plan: Dictionary = model.power_state().buffers[e.id]
+		_card("process", "已存电量", "%.3f / %.0f kJ" % [e.stored_j / 1000.0, Buffer.CAPACITY_J / 1000.0])
+		_card("input", "当前充电", "%.1f / %d kW · 90%% 效率" % [plan.charge_j / (1000.0 * model.STEP), Buffer.CHARGE_KW])
+		_card("output", "当前放电", "%.1f / %d kW" % [plan.discharge_j / (1000.0 * model.STEP), Buffer.DISCHARGE_KW])
+		progress.show()
+		progress.value = 100.0 * e.stored_j / Buffer.CAPACITY_J
+		power.text = "节点 #%d · 吸收同网发电余电" % e.power_node_id if e.power_node_id > 0 else "靠近电源或配电节点 6 格内自动接入。"
 	elif model.Grid.is_node(e):
 		var network: Dictionary = model.grid.groups[model.grid.membership[e.id]]
 		_card("process", "当前电网", "容量 %.0f kW\n请求 %.1f / 获供 %.1f kW" % [network.capacity_kw, network.request_kw, network.supplied_kw])
@@ -158,6 +194,25 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		label.visible = not label.text.is_empty()
 
 
+func _show_dispatch(model: RefCounted, e: Dictionary) -> void:
+	_card("process", "单槽行程", "")
+	_card("output", "槽内物料", Items.NAMES.get(e.cargo, "空") if compact or e.cargo.is_empty() else "")
+	progress.show()
+	progress.value = e.progress * 100
+	if e.period_s > 0:
+		var phase: float = e.phase_ticks * model.STEP
+		production.text = "相位 %.2f / %d 秒 · 窗口 %d 秒 · 本周期已送 %d / %d 件" % [phase, e.period_s, e.window_s, e.sent, e.quota]
+		if e.active:
+			production.text += " · %.2f 秒后开下一窗" % (e.period_s - phase)
+	var outputs: Array = model.Logistics.ports(model, e, "output")
+	var connection: Dictionary = model.Logistics.output_connection(model, outputs[0])
+	if connection.ok and connection.target.type == "cell_generator":
+		var generator: Dictionary = connection.target
+		production.text += "\n下游发电机 · 缓存 %d / %d 件 · 剩余燃烧 %.2f 秒" % [
+			Items.count(generator.fuel), Rules.Energy.FUEL_CAPACITY, generator.burn_remaining_ticks * model.STEP]
+		production.text = production.text.strip_edges()
+
+
 func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 	preview.show_device(e.type, e.get("dir", 0))
 	for role in slots:
@@ -166,12 +221,16 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 			var stock := {}
 			var required := {}
 			match e.type:
-				"reactor":
+				"reactor", "crusher", "refinery", "assembler":
 					stock = e[role]
-					required = Rules.RECIPES[e.recipe_id][role]
-				"splitter", "merger", "admission_gate":
+					required = model.recipes[e.recipe_id][role]
+				"splitter", "merger", "admission_gate", Dispatch.TYPE:
 					if role == "output" and not e.cargo.is_empty():
 						stock = {e.cargo: 1}
+				"cell_generator":
+					if role == "input":
+						stock = e.fuel
+						required = {"industrial_cell": 0}
 				"collector":
 					if role == "output":
 						stock = e.buffer
@@ -179,21 +238,21 @@ func _sync_slots(model: RefCounted, e: Dictionary) -> void:
 				"storage":
 					if role == "input":
 						stock = e.items
-						for known in Rules.ITEMS:
-							if known in ["crystal", "catalyst"] or model.discovery.trial_completed or (known == "crust_sample" and model.discovery.sample_taken):
-								required[known] = 0
 			var slot: Button = slots[role][item]
 			slot.visible = stock.has(item) or required.has(item)
-			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type == "reactor" else 0)
+			slot.update_amount(stock.get(item, 0), required.get(item, 0) if role == "input" and e.type in model.process_types else 0)
 		values[role].visible = false
 		if e.type == "storage" and role == "input":
-			values[role].text = "%d / 200 件" % Items.count(e.items)
+			var capacity := "%d / 200 件" % Items.count(e.items)
+			values[role].text = "暂无物品\n" + capacity if e.items.is_empty() else capacity
+			values[role].show()
+		elif e.type in ["cell_generator", Buffer.TYPE, Dispatch.TYPE]:
 			values[role].show()
 		elif e.type == "collector" and role == "output":
 			values[role].text = "%d / 50 件" % Items.count(e.buffer)
 			values[role].show()
 	if e.type == "collector":
-		_card("process", "晶体采集器", "采集缓冲")
+		_card("process", "矿物采集器", "采集缓冲")
 
 
 func select_item(item: String) -> void:
@@ -211,7 +270,7 @@ func _card(role: String, caption: String, value: String) -> void:
 static func _quantities(stock: Dictionary, batch: Dictionary) -> String:
 	var lines := PackedStringArray()
 	for item in batch:
-		lines.append("%s  %d / %d" % [Rules.NAMES[item], int(stock.get(item, 0)), batch[item]])
+		lines.append("%s  %d / %d" % [Items.NAMES[item], int(stock.get(item, 0)), batch[item]])
 	return "\n".join(lines)
 
 

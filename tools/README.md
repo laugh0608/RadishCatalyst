@@ -21,12 +21,50 @@
 
 正式工厂 D1 模型导出、布局检查与静态预览见 [Factory Content Authoring](factory-content/README.md)。独立低投入交互样板使用 `bash tools/factory-content/refinement-demo.sh`；两件自有模型导出和 `check-refinement.gd` 定向检查也见该文。样板通过双根隔离 Boot 挂载、内存运行，不接入正式新世界菜单或保存规则；不支持上述四个入口的 `--verify` 约定，开窗前仍须告知。
 
+R1-A 镜头用 `sh tools/factory-content/camera-study.sh`，R1-B 核心轮廓用 `sh tools/factory-content/core-study.sh`，R1-C / D 材质对照追加 `--materials`。macOS 提供对应的 `.command` 准备页入口。样板默认 C2 / 21 格 / 跟随。R1-A 54 项回归通过，R1-B 的 `outline-06` 1,360 项通过，轮廓和 R1-C / D 代表品质已获认可。旧候选的失败与本轮证据分别保留。见 [Factory Content](factory-content/README.md) 与 [R1 专题](../docs/features/factory-camera-and-representative-scene-v1.md)。
+
 ## 正式工厂定向检查
+
+从普通 Boot 可以新建或继续 schema 9。下列复核脚本使用隔离根，`state` 和 `window` 的结果位于 `tools/runtime-intake/check-runs/`，`play` 使用 `tools/runtime-intake/review-worlds/`。运行 Godot 前先告知。工厂格式与旧二维版本分别识别。见[运行时验证指南](../docs/reference/godot-runtime-verification-guide.md)。
+
+- D1 开拓工厂用 `sh tools/check-factory-frontier.sh state <新批次>` 复算布局，从空档验证 X2、R13 / R14、支路回流、普通 / 高产矿对照和跨进程 schema 10。改用 `window` 加查窗口研究、开路、存读与截图。手动用 `sh tools/check-factory-frontier.sh play <亲测批次>` 创建或继续同一隔离档。
+- D2 核心 III 用 `sh tools/check-factory-grid-controls.sh state <新批次>` 检查自然生产所得的升级材料、严格解码和独立进程继续。改用 `window` 检查正式菜单、等级页提交和 III 外观。手动用 `sh tools/check-factory-grid-controls.sh play <亲测批次>`，新建时选择「测控工厂 · 核心 III 隔离复核」，继续时选已有世界。
+- D2 C3 用 `sh tools/check-factory-grid-controls.sh load-state <新批次>` / `load-window <新批次>`，覆盖真实产线研究、只停新批、在制完成、接管与 schema 15 独立恢复；窗口首进准备页等开始，失焦暂停输入。手动 `play <批次>` 新建选择「测控工厂 · C3 负载组隔离复核」。新增同名 PowerShell 入口保持模式一致，Windows 待验；合同见 [C3](../docs/features/factory-load-groups-c3.md)，实际证据见 [W46](../docs/devlogs/2026-W46.md#c3-load-group-delivery)。
+- D2 独立储能用同一入口的 `storage-state` / `storage-window` 检查空仓、实际充放、七炉产出对照、统计账和 schema 12 存读。手动入口选「测控工厂 · E2 独立储能隔离复核」。
+- D2 C1 节拍调度用 `timed-state` / `timed-window` 检查自然电芯进料、下游堵塞、窗口边沿、本机停复与 schema 13 的独立进程继续。手动入口选「测控工厂 · C1 节拍调度隔离复核」。
+- D2 C2 储能反馈用 `feedback-state` / `feedback-window` 检查同网绑定、步初回差、真实充放负载、失效接管和 schema 14 存读。窗口模式经准备页手动开始后依次写入与独立恢复；失焦等待，不自动抢回焦点，关闭即取消。手动入口选「测控工厂 · C2 储能反馈隔离复核」。
+
+- 整合工厂 C 用 `sh tools/check-factory-integrated-c.sh state` 在两个进程验证写入、恢复与后续轨迹，`window` 复核 Boot 新建、发电机、保存返回和继续。`play current` 使用稳定隔离目录，可用同一命令跨进程继续。验证批次位于 `tools/runtime-intake/check-runs/factory-integrated-c-v1/`，亲测根位于 `tools/runtime-intake/review-worlds/factory-integrated-c-v1/`。
+
+- 联合首程用 `sh tools/check-factory-integrated-first-run.sh state` 从空档走完整四面 S1-P，另启进程核对保存快照及继续 30 模拟秒。改用 `window` 在两个进程操作正式 Boot 菜单并截图，两个存档根指向隔离批次。建造、研究、搬运和产线推进由正式模型命令驱动。日志、原图与结果 JSON 位于 `tools/runtime-intake/check-runs/factory-integrated-first-run-v1/<batch>/`。既有亲测档使用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
+
+- 基地核心 B1：`sh tools/check-factory-base-core.sh state` 检查多口、库存、冷却和自然板材回仓；`window` 用隔离 Boot 操作并截图，`framing` 检查最小窗口的缩放与四个输出图标。`play` 打开空物料的 S0 子路线，`empty-yard` 仅预置核心。`progression-state` 检查自然生产、七节点与材料账，`progression-window` 短测研究、升级和装配。两个 `state` 模式无需窗口，其余模式会开 Godot 窗口；进度只在内存，日志与原图保存在 `tools/runtime-intake/check-runs/factory-base-core-v1/<batch>/`。
 
 以下均使用已安装 Godot，启动前先告知；存档与日志仅写忽略的运行检查目录。完整隔离要求见 [Godot Runtime Verification Guide](../docs/reference/godot-runtime-verification-guide.md)，实际覆盖由脚本及当批日志确认。
 
 | 入口 | 模式与用途 |
 | --- | --- |
+| `sh tools/check-factory-energy-feedback.sh state <新 batch>` | V8 固定步运行 / 待机 / 尾步欠供、严格能量账、V7 显式复制；原 V7 状态回归仍用 `check-factory-energy` |
+| `sh tools/check-factory-energy-feedback.sh process-read <新 batch> <state 父 batch>` | 独立进程比较完整 80 秒运行 / 待机账轨迹 |
+| `sh tools/check-factory-energy-feedback.sh menu <新 batch>` | 正式菜单新建 V8；原 V7 继续，E1 / V7 复制与取消、源档保护 |
+| `sh tools/check-factory-energy-feedback.sh review <新 batch> <父 batch> [--legacy-source]` | V8 正式窗口的物品图标、密集设备描边、鼠标 / F / Tab、启停及统计；`feedback` 为无窗口同路径 |
+| `sh tools/check-factory-energy-feedback.sh background-write/background-read/background-complete-read/background-off/background-recovered-read <新 batch> [父 batch] [--legacy-source]` | 新版自然 C 自举、D 对照 / D+ 耗尽自救与独立接续，模式含义同下列 E2 表；跨旧 E2 根读取仅显式使用 `--legacy-source`，复制后保留原档 |
+| `sh tools/check-factory-energy.sh state <新 batch>` | E2 固定步：R12 / 启停 / 供电边界、自然物料 C/P/D/D+、同源开关对照、耗尽恢复、V7 与复制 / 保存故障；显式步和人物定位单列 |
+| `sh tools/check-factory-energy.sh process-read <新 batch> <state 父 batch>` | 独立进程恢复能源半程，比较完整 80 秒轨迹 |
+| `sh tools/check-factory-energy.sh menu <新 batch>` | 正式 Boot 四种入口 / 继续；带真实半批的 E1 显式复制、取消、原档字节保护与全部旧字段投影比对 |
+| `sh tools/check-factory-energy.sh background-write <新 batch>` | 正式 Boot 零物料自然完成第二炉，P 造 G，C 自举两电芯；真实主循环、碰撞行走和控件操作 |
+| `sh tools/check-factory-energy.sh background-read <新 batch> <write 父 batch>` | 独立恢复 C，P 自然制造其余构件，改建 D 并保留 R12 半批 / 实际缺口 |
+| `sh tools/check-factory-energy.sh background-complete-read/background-off <新 batch> <read 父 batch>` | 同一 D 父档分别启用 / 停用 G，比较四包新入仓；启用分支继续真实制造 D+、耗尽和停机自救，两个模式须用不同新批次 |
+| `sh tools/check-factory-energy.sh background-recovered-read <新 batch> <complete-read 父 batch>` | 独立恢复耗尽自救后的 R12 半批 / 发电余能，真实继续加工与供电 |
+| `sh tools/check-factory-energy.sh review <新 batch> <write 或 read 父 batch>` | 短窗口：自然检查点副本、近身面板与发电机模型；截图与后台结果分列 |
+| `sh tools/check-factory-expansion.sh state <新 batch>` | E1 11 配方、原子装配 / 326 总预算、主副产物、逐物料账、独立 schema 6 与真实文件故障；模型显式步。状态脚本已登记默认 Godot 检查 |
+| `sh tools/check-factory-expansion.sh process-read <新 batch> <state 父 batch>` | 炭矿半周期、混料半批、矿渣持货、制造未放置与第二炉完成，独立进程完整恢复和续跑 |
+| `sh tools/check-factory-expansion.sh menu <新 batch>` | 正式 Boot 默认基础、旧 V5 与第三个显式 E1 世界的创建 / 继续及身份隔离 |
+| `sh tools/check-factory-expansion.sh background-write <新 batch>` | 正式 Boot 零物料按 A 直接工艺自然制造两包，装配并放下第二炉；无窗口 |
+| `sh tools/check-factory-expansion.sh background-read <新 batch> <write 父 batch>` | 独立恢复 A，实际改建 B 回用线，保存 R08 混料半批 |
+| `sh tools/check-factory-expansion.sh background-complete-read <新 batch> <read 父 batch>` | 再次独立恢复，回用产出两包并取入背包供玩家选择下一次扩建 |
+| `sh tools/check-factory-expansion.sh review <新 batch> <write 或 read 父 batch>` | 短窗口：自然半批副本、真实主副口拆带 / 修复、三设备两种窗口、背包与装配栏；窗口关闭即停 |
+| `sh tools/check-factory-expansion.sh feedback/feedback-window <新 batch> <read 父 batch>` | 混料半批的电力常显 / 连线开关、配额提示与镜头定位、鼠标不移动 / WASD 行走、自然完成与保存；前者无窗口，后者两种尺寸原图 |
 | `sh tools/check-factory-engineering.sh identity/identity-read <新 batch> [父 batch]` | [D4-S0 工程合同](../docs/architecture/factory-engineering-scale-v1.md)的严格身份、地图与隔离；identity-read 必须指定成功 identity 父批次 |
 | `sh tools/check-factory-engineering.sh prepare/prepare-read <新 batch> [父 batch]` | 零库存合法前置、20 单元全量构建、服务路线和真实 600 秒历史；prepare-read 从成功 prepare 副本独立比对首态与 20 步轨迹 |
 | `sh tools/check-factory-engineering.sh capacity/density/repair/competition <新 batch> <prepare 父 batch>` | 分别为 2,500 秒总容量、900–1,000 件高密度、拆带 / 停复电、真实竞争 / 配额；全为模型显式步，不计前台性能 |
@@ -38,6 +76,19 @@
 | `sh tools/check-factory-engineering.sh sustained-preflight <新 batch> <prepare 父 batch>` | 正式 Boot 35 秒真实时钟、周期自动保存与工作记录；无窗口，不计前台性能 |
 | `sh tools/check-factory-engineering.sh sustained-interrupt <新 batch> <prepare 父 batch> --interrupt-at before/sampling/close` | S1 工作记录启用时的三个中断边界，分别运行，保留部分样本且禁止后续档位 |
 | `sh tools/check-factory-engineering.sh sustained <新 batch> <prepare 父 batch>` | S1 手动开始、同一世界连续四档各 450 秒；沿原画质 / 门槛，逐台事件、滚动工作覆盖、每秒负载与全部自动保存；失焦 / 关闭停止全轮 |
+| `sh tools/check-factory-d2-comparison.sh prepare <新 batch>` | schema 15 正式 Boot 零物料起步、真实生产支付、固定步整理库存、Store 保存候选；不发布正式 P0 或自然成绩 |
+| `sh tools/check-factory-d2-comparison.sh preflight <新 batch> --parent <prepare 父 batch>` | 只读父档副本、冷启动与库存边界、两轮整批命令 / 实收、600 步观察无副作用、能量账及 24 分钟仓容上界；通过不代表允许长测 |
+| `sh tools/check-factory-d2-comparison.sh feasibility <新 batch> --parent <prepare 父 batch>` | 保留的 v1 B / O 固定步资格预测，各 28,800 步；无效返回 3 |
+| `sh tools/check-factory-d2-comparison.sh fault-preflight-v2 <新 batch> --parent <prepare 父 batch> --preflight-parent <两轮预检 batch>` | O2 / L2 各 28,800 固定步，核对同源候选与仓容，保留供燃时表、实收来源、故障归因、控制与恢复证据；样本无效或收益未达标返回 3 |
+| `sh tools/check-factory-d2-comparison.sh fault-preflight-v3 <新 batch> --parent <prepare 父 batch> --preflight-parent <两轮预检 batch>` | O3 / L3 各 28,800 固定步，正式断燃九周期的 A 开工机会在相位 65 秒，逐窗核对同边沿开批 / 阻断 / 恢复和原收益门槛；报告用 kW、kWh / Wh，未通过返回 3 |
+| `sh tools/check-factory-d2-comparison.sh fault-prepare-v4 <新 batch> --parent <原 prepare batch> --preflight-parent <两轮预检 batch>` | 从原 P0 的隔离 Store 副本付费装配 F2 载体余料支路，封存冷父档，再用解码副本证明 A 满时 F2 可出料、再开批，且 A 消耗后能补料 |
+| `sh tools/check-factory-d2-comparison.sh fault-preflight-v4 <新 batch> --parent <v4 派生 batch>` | 使用通过物流短测的派生父档，O4 / L4 各 28,800 固定步，在相同生产状态与采样节拍下开放 A，保留未开放周期和原验收门槛，结果用 kW、kWh / Wh |
+| `sh tools/check-factory-d2-comparison.sh fault-fd-cycle <新 batch> --parent <v4 派生 batch>` | C3 关闭，按原首周期推进至首个断燃周期截止，验证 Fd 尾批排完且停机后开放 A，两单按期入仓 |
+| `sh tools/check-factory-d2-comparison.sh fault-fd-diagnostic <新 batch> --parent <v4 派生 batch> --cycle-parent <通过短测 batch> --reference <v4 成对 batch>` | 同一冷父档独立推进 28,800 步，九个断燃周期按 Fd 实际停机开放 A，使用已留存 O4 的完整同窗数据核对原缺电、交付、恢复期限和耗芯门槛 |
+| `sh tools/check-factory-d2-comparison.sh fault-prepare-v5 <新 batch> --parent <v4 派生 batch>` | 从 v4 冷父档副本派生隔离 schema 16，保留父档来源哈希并核对 Store 首态 |
+| `sh tools/check-factory-d2-comparison.sh fault-v5-cycle <新 batch> --parent <v5 派生 batch>` | O5 / L5 短测至首个断燃周期截止，核对 L5 两批都等 Fd 完工、停机并按期入仓 |
+| `sh tools/check-factory-d2-comparison.sh fault-v5-recheck <新 batch> --parent <v5 派生 batch> --cycle-parent <通过短测 batch>` | 恢复首单开工检查点，重启 Fd 验证次单不能沿用旧许可 |
+| `sh tools/check-factory-d2-comparison.sh fault-preflight-v5 <新 batch> --parent <v5 派生 batch> --cycle-parent <通过短测 batch> --recheck-parent <通过重启短测 batch>` | 两个短测均通过后，完整 O5 / L5 两窗，按原门槛计分 |
 | `sh tools/check-factory-foundation.sh <mode>` | 基础工厂状态 / 保存 / 规模与 Boot；各模式、前置和窗口边界见运行时指南 |
 | `sh tools/check-factory-power.sh state [batch]` | 无窗口电图、能量守恒、半批存读及版本保护 |
 | `sh tools/check-factory-power.sh write/read <batch>` | 同一唯一 batch、两个独立进程的普通线窗口写入 / 恢复；实际执行时分别使用 `write` 或 `read` |
@@ -79,6 +130,8 @@
 | `sh tools/check-factory-combination.sh review <新 batch> <write 父 batch>` | 正式 Boot 短窗口：C3 原图、普通 / 最小面板、Tab / F / I、统计定位与旋转预览；随后在该子副本真实阻挡 / 修复第八件并捕获 8/8，不重走 C0–C4 |
 | `sh tools/check-factory-range-power.sh state [batch]` | schema 3 自动图、确定改接、遮挡、供能、样本唯一性、严格解码、升级原档保留及 IO 失败；已登记默认 Godot 检查 |
 | `sh tools/check-factory-range-power.sh write/read <batch>` | 新自动世界鼠标建线与自然生产、停复电、远近样本 / F 拾取；另用声明的旧布局夹具检查菜单升级和地面点击拾取。read 独立恢复新世界完整快照及半批；要求新 write 批次、同批 read 仅一次 |
+
+PowerShell 使用同名 `-Mode`、`-Batch`、`-ParentBatch` 和对应的 `-PreflightParentBatch`、`-CycleParentBatch`、`-ReferenceBatch`。批次落在 `tools/runtime-intake/check-runs/factory-d2-production-v1/`，退出码 0 表示对应门禁通过。v3 / v4 和错峰诊断的 `report.md` 用 kW、kWh / Wh 展示，原始账本见 `result.json`。
 
 范围供电窗口走真实正式创建 / 升级菜单；创建使用聚焦 Enter，恢复时列表 / 按钮信号用于首帧冻结核对。模型、HUD、升级弹窗与地面图标走路由合成鼠标，人物 WASD 行走，近身 F 拾取。新世界不注入物料 / 位置或加速；旧布局夹具仅承担迁移验证，不冒充自然建线。截图 / 世界在 `factory-range-power-v1` 与对应 `factory-range-power-preview` 忽略目录。
 
@@ -145,3 +198,15 @@ python3 -m venv .venv-art
 ```
 
 发现状态检查支持 `--evidence=<仓库隔离目录>`，可将本轮夹具与历史固定快照分开；独立读进程须明确指向同一批目录。routing 的 `write/read` 为对应有窗口完整模式，普通功能验证优先 `background-*`；所有 read / review 都会继续生产和保存，不重复消费同一起点。
+
+E1 / E2 runner 使用已有 Python 3 标准库，Shell / PowerShell 均要求全新 batch；恢复模式明确指定成功父批次，复制前后核对整目录 SHA-256，父档不消费。日志同时核对退出码与 Godot 错误。源码哈希写入 `execution-inputs.json`；窗口原图和无窗口功能时长分列。路径、合同和亲测入口见 [E1 专题](../docs/features/factory-production-expansion-e1.md)。V8 使用 `check-factory-energy-feedback.sh` / `.ps1`（PowerShell 的 `-LegacySource` 对应 `--legacy-source`），批次根为 `tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1/`，截图根为 `assets/art-intake/2026-10-27-factory-energy-feedback-preview/`。旧 runner 的新建入口随产品创建 V8，旧 V7 状态测试仍保留原规则；需要新版完整反馈证据时使用新 runner。原 E2 批次根独立为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`，窗口原图在 `assets/art-intake/2026-10-23-factory-energy-e2-preview/`。`check-client` 的显式 Godot 路径包含 E2 状态检查，不因此代表自然 Boot 或窗口通过。PowerShell 可通过 `GODOT_EXE` 指定现有程序；不自动安装任何依赖。
+
+## 整合设计离线核算
+
+`python3 tools/design/audit-demo-integration.py` 复核[整合布局与预算](../docs/reference/factory-integrated-demo-layout-and-budget.md)的 S0 双原料几何，追加 `--layout S1` 复核三原料电芯链。两者检查足印 / 端口 / 带路、供电范围、保守通行、首包研究 DAG / 成本可达性和首阶段材料账。仅使用 Python 标准库，分别写入忽略的 `tools/runtime-intake/design-references/2026-11-01-integrated-contracts/audit.json` / `audit-s1.json`；不修改客户端、不启动 Godot，不证明能源 / 构件并行布局、自然吞吐或玩家体验。
+
+`python3 tools/design/audit-asset-inventory.py` 只读盘点已跟踪的媒体 / Godot 资源，输出逐文件归属、字面引用 / 动态候选、来源清单哈希、制作工具候选和本地缓存元数据；CSV / JSON 位于忽略的 `tools/runtime-intake/design-references/2026-11-01-asset-inventory/`。详见[资产盘点](../docs/reference/asset-inventory-and-transition-v1.md)与[来源映射](../docs/reference/asset-source-and-export-map.md)。不运行导出器、不修改资产或客户端；未命中字面引用不是可删除证明，旧工具候选也不代表当前可重放入口。
+
+`python3 tools/design/audit-camera-study.py` 核对[R1 镜头 / 布局候选](../docs/reference/factory-camera-study-layout-and-framing.md)的占格、口锚点、中心尺度、示例视锥与贴图字节估算，并读取选用 GLB 元数据。仅用标准库，报告在忽略的 `tools/runtime-intake/design-references/2026-11-01-camera-study/design-audit.json`；不运行 Godot、不写资产，结果不代表遮挡、点击、画面或性能通过。
+
+D2 长期对照入口目前仅有上述三个模式；`run / resume-check / review / play` 尚未实现。PowerShell 用同名 `.ps1 -Mode <mode> -Batch <新 batch> -ParentBatch <prepare 父 batch>`（prepare 省略 ParentBatch），共用 Python 标准库驱动；本轮未执行 PowerShell / Windows。失败批次与父档保留，不自动清仓、续跑、改变工作负载或重试找通过样本。方案与故障预检停止原因见 [D2 长期对照](../docs/features/factory-d2-production-comparison.md)。

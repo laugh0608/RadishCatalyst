@@ -8,23 +8,23 @@ static func near(a: float, b: float) -> bool:
 	return absf(a - b) <= 1e-7 + 1e-10 * maxf(absf(a), absf(b))
 
 
-static func items(value: Variant, limit := MAX_NUMBER) -> bool:
+static func items(value: Variant, limit := MAX_NUMBER, allowed: Array = Config.ITEMS) -> bool:
 	if not value is Dictionary:
 		return false
 	for item in value:
-		if item not in Config.ITEMS or not integer(value[item], 1, limit):
+		if item not in allowed or not integer(value[item], 1, limit):
 			return false
 	return true
 
 
-static func valid_record(r: Variant, duration: float, installed_kw := 240.0, request_kw := 1440.0) -> bool:
+static func valid_record(r: Variant, duration: float, installed_kw := 240.0, request_kw := 1440.0, allowed: Array = Config.ITEMS) -> bool:
 	if not fields(r, Stats.ENERGY + Stats.MATERIAL):
 		return false
 	for key in Stats.ENERGY:
 		if not number(r[key], 0, 1e15):
 			return false
 	for key in Stats.MATERIAL:
-		if not items(r[key]):
+		if not items(r[key], MAX_NUMBER, allowed):
 			return false
 	return near(r.supplied_kj, r.used_kj) and near(r.requested_kj, r.used_kj + r.deficit_kj) and r.used_kj <= r.available_kj + 1e-7 and r.available_kj <= r.installed_kj + 1e-7 and r.installed_kj <= installed_kw * duration + 1e-7 and r.requested_kj <= request_kw * duration + 1e-7
 
@@ -33,43 +33,8 @@ static func validate(value: Variant, time: float, model: RefCounted) -> Dictiona
 	var engineering: bool = model.supply_id == Config.Engineering.SUPPLY_ID
 	var installed_kw: float = Config.Engineering.INSTALLED_KW if engineering else 240.0
 	var request_kw: float = Config.Engineering.REQUEST_KW if engineering else 1440.0
-	if not fields(value, ["ticks", "totals", "buckets", "current"]) or not integer(value.ticks, 0, 20000000000000):
-		return failure("统计字段或模拟步计数无效。")
-	if absf(time - value.ticks * 0.05) > 1e-6 or not valid_record(value.totals, time, installed_kw, request_kw):
-		return failure("统计累计量与时钟或能量不一致。")
-	if not value.buckets is Array or value.buckets.size() != mini(600, int(value.ticks) / 20):
-		return failure("近期统计完整秒数量不一致。")
-	var expected: int = int(value.ticks) - int(value.ticks) % 20 - value.buckets.size() * 20
-	var summed := Stats.record()
-	var records: Array = value.buckets.duplicate()
-	records.append(value.current)
-	for i in records.size():
-		var b: Variant = records[i]
-		var count := 20 if i < value.buckets.size() else int(value.ticks) % 20
-		if not fields(b, Stats.ENERGY + Stats.MATERIAL + ["start_tick", "ticks"]) or not integer(b.start_tick) or b.start_tick != expected or not integer(b.ticks, 0, 20) or b.ticks != count:
-			return failure("统计桶重叠、缺失或超长。")
-		var r: Dictionary = b.duplicate(true)
-		r.erase("start_tick")
-		r.erase("ticks")
-		if not valid_record(r, count * 0.05, installed_kw, request_kw):
-			return failure("统计桶数值或能量不守恒。")
-		for kind in Stats.MATERIAL:
-			for item in r[kind]:
-				summed[kind][item] = summed[kind].get(item, 0) + r[kind][item]
-		for key in Stats.ENERGY:
-			summed[key] += r[key]
-		expected += count
-	for key in Stats.ENERGY:
-		if summed[key] > value.totals[key] and not near(summed[key], value.totals[key]):
-			return failure("近期电量超过累计电量。")
-		if value.ticks < 12020 and not near(summed[key], value.totals[key]):
-			return failure("未截断历史与累计电量不同。")
-	for kind in Stats.MATERIAL:
-		for item in Config.ITEMS:
-			var total: Variant = value.totals[kind].get(item, 0)
-			var recent: Variant = summed[kind].get(item, 0)
-			if recent > total or (value.ticks < 12020 and recent != total):
-				return failure("近期物料与累计量不一致。")
+	var timeline := validate_timeline(value, time, installed_kw, request_kw)
+	if not timeline.ok: return timeline
 	var totals: Dictionary = value.totals
 	var made: Dictionary = totals.produced
 	var used: Dictionary = totals.consumed
@@ -96,4 +61,45 @@ static func validate(value: Variant, time: float, model: RefCounted) -> Dictiona
 			return failure("入仓件数超过可物流产物。")
 	if balance.equivalent + 4 * spent != made.get("crystal", 0) + 6 * made.get("rich_crystal", 0):
 		return failure("矿物等价值不守恒。")
+	return {"ok": true}
+
+
+static func validate_timeline(value: Variant, time: float, installed_kw: float, request_kw: float, allowed: Array = Config.ITEMS) -> Dictionary:
+	if not fields(value, ["ticks", "totals", "buckets", "current"]) or not integer(value.ticks, 0, 20000000000000):
+		return failure("统计字段或模拟步计数无效。")
+	if absf(time - value.ticks * 0.05) > 1e-6 or not valid_record(value.totals, time, installed_kw, request_kw, allowed):
+		return failure("统计累计量与时钟或能量不一致。")
+	if not value.buckets is Array or value.buckets.size() != mini(600, int(value.ticks) / 20):
+		return failure("近期统计完整秒数量不一致。")
+	var expected: int = int(value.ticks) - int(value.ticks) % 20 - value.buckets.size() * 20
+	var summed := Stats.record()
+	var records: Array = value.buckets.duplicate()
+	records.append(value.current)
+	for i in records.size():
+		var b: Variant = records[i]
+		var count := 20 if i < value.buckets.size() else int(value.ticks) % 20
+		if not fields(b, Stats.ENERGY + Stats.MATERIAL + ["start_tick", "ticks"]) or not integer(b.start_tick) or b.start_tick != expected or not integer(b.ticks, 0, 20) or b.ticks != count:
+			return failure("统计桶重叠、缺失或超长。")
+		var r: Dictionary = b.duplicate(true)
+		r.erase("start_tick")
+		r.erase("ticks")
+		if not valid_record(r, count * 0.05, installed_kw, request_kw, allowed):
+			return failure("统计桶数值或能量不守恒。")
+		for kind in Stats.MATERIAL:
+			for item in r[kind]:
+				summed[kind][item] = summed[kind].get(item, 0) + r[kind][item]
+		for key in Stats.ENERGY:
+			summed[key] += r[key]
+		expected += count
+	for key in Stats.ENERGY:
+		if summed[key] > value.totals[key] and not near(summed[key], value.totals[key]):
+			return failure("近期电量超过累计电量。")
+		if value.ticks < 12020 and not near(summed[key], value.totals[key]):
+			return failure("未截断历史与累计电量不同。")
+	for kind in Stats.MATERIAL:
+		for item in allowed:
+			var total: Variant = value.totals[kind].get(item, 0)
+			var recent: Variant = summed[kind].get(item, 0)
+			if recent > total or (value.ticks < 12020 and recent != total):
+				return failure("近期物料与累计量不一致。")
 	return {"ok": true}

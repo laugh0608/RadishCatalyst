@@ -1,10 +1,10 @@
 # Image Generation And Review Workflow
 
-更新时间：2026-08-22
+更新时间：2026-11-01
 
 ## 用途
 
-本文定义 AI 图像生成、候选落盘、批次交接和图像读取的稳定工作流。仅在生成或密集审阅图像时按需读取；像素网格、调色板、尺寸和风格合同仍以 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md) 为准，具体素材目标仍以当前功能专题和提示词库为准。
+本文定义 AI 图像生成、候选落盘、批次交接和图像读取的稳定工作流。仅在生成或密集审阅图像时按需读取；现行 3D 气质 / 资产方向以[视觉方向](../product/visual-and-ui-direction.md)为准；保留二维的像素网格、调色板与尺寸以 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md) 为准，具体素材目标仍以当前功能专题和提示词库为准。
 
 ## 会话拆分
 

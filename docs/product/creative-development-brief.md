@@ -5,7 +5,7 @@
 
 本文已按主题拆分为子文档；当前文件只保留入口索引，避免新会话读取过长背景。
 
-口径说明（2026-07-13）：本总纲为创始定调材料。美术介质已由“2D / 2.5D”定为像素 + 2D 俯视网格（见 [Pixel Art And Grid Standard](../reference/pixel-art-and-grid-standard.md)）；首个交付版结构以 `docs/planning/current.md` 为准。
+口径说明（2026-11-01）：本总纲及子文档为创始定调参考；当前产品 / 技术 / 视觉以[产品定义](project-definition.md)、[生产方向](production-centered-direction.md)和[整合基线](../planning/demo-consolidation-proposal.md)为准，正式工厂为 Godot 3D。旧像素 / ARPG / 后端建议保留其形成时点，不覆盖现行合同。
 
 ## 子文档
 

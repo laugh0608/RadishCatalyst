@@ -42,19 +42,19 @@ func end_step() -> void:
 		buckets.append(current)
 		if buckets.size() > 600:
 			buckets.pop_front()
-		current = bucket(ticks)
+		current = new_bucket(ticks)
 		revision += 1
 
 
 func window(seconds: int) -> Dictionary:
 	assert(seconds in [60, 300, 600])
 	var selected := buckets.slice(maxi(0, buckets.size() - seconds))
-	var result := record().merged({"seconds": selected.size(), "through_tick": ticks - ticks % 20, "has_samples": not selected.is_empty()})
+	var result := new_record().merged({"seconds": selected.size(), "through_tick": ticks - ticks % 20, "has_samples": not selected.is_empty()})
 	for b in selected:
 		for kind in MATERIAL:
 			for item in b[kind]:
 				result[kind][item] = result[kind].get(item, 0) + b[kind][item]
-		for key in ENERGY:
+		for key in energy_keys() + count_keys():
 			result[key] += b[key]
 	return result
 
@@ -75,3 +75,19 @@ func restore(value: Dictionary) -> void:
 		for kind in MATERIAL:
 			for item in r[kind]:
 				r[kind][item] = int(r[kind][item])
+
+
+func new_record() -> Dictionary:
+	return record()
+
+
+func new_bucket(start: int) -> Dictionary:
+	return new_record().merged({"start_tick": start, "ticks": 0})
+
+
+func energy_keys() -> Array:
+	return ENERGY
+
+
+func count_keys() -> Array:
+	return []

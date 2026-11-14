@@ -1,5 +1,8 @@
 # Platform And Compatibility - 运行时兼容规则
 
+2026-11-01 当前基线：Godot 4.x / GDScript / 3D 桌面、20 Hz 权威模拟、版本化独立存档；Windows 产品主目标与 macOS 开发验证分列。新整合设计见[总合同](../features/factory-demo-integration-v1.md)与[新存档合同](factory-integrated-demo-save-v1.md)，未实施；下文 Web 可选性不要求重开技术选型或引入混合脚本。
+
+
 返回：[Platform And Compatibility](platform-and-compatibility.md)
 
 ## GDScript 与 .NET / C# 边界

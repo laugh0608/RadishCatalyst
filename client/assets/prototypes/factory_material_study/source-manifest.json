@@ -1,0 +1,50 @@
+{
+  "scope": "R1-C isolated material study",
+  "source": "tools/factory-content/export-representative-materials.py",
+  "source_sha256": "d1a8dab40b29e4737c7d79c4ce043ef2035bf477f986e029cab57a1e2ea3141b",
+  "license": "Project-authored periodic maps",
+  "batch": "material-02",
+  "projection": "Triplanar with mipmaps; no exclusive UV bake",
+  "files": {
+    "enamel.png": {
+      "sha256": "de376ad65b88b69ce85da1d775822fc25297a0651fcd33a3d0c37e75b41bcc3e",
+      "size": [
+        256,
+        256
+      ],
+      "role": "sRGB modulation for core and reactor coatings"
+    },
+    "trim.png": {
+      "sha256": "b61db50960ba09bad1950d1c042cc754129b14abb298c6030aeca1a2122f687b",
+      "size": [
+        256,
+        256
+      ],
+      "role": "sRGB modulation for shared metal and trim"
+    },
+    "rock.png": {
+      "sha256": "0b5103f42b53c429d8e4ead48a34e06c34e563cfb14b4d2bea30c8e9edd3de55",
+      "size": [
+        256,
+        256
+      ],
+      "role": "sRGB mineral ground"
+    },
+    "work-surface.png": {
+      "sha256": "553b2ade7c81c5adf526652726a63e983c97b44e16cbb645321c70de25a00a87",
+      "size": [
+        256,
+        256
+      ],
+      "role": "sRGB compacted working ground"
+    },
+    "rock-normal.png": {
+      "sha256": "76b101345f1629c3900ed991a790c8a4deb44702c4641c9ea5528222bda7544e",
+      "size": [
+        256,
+        256
+      ],
+      "role": "linear OpenGL +Y normal for mineral ground"
+    }
+  }
+}

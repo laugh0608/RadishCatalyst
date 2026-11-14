@@ -49,18 +49,9 @@ function Get-LineCount([string]$Content) {
     return $lineCount
 }
 
-function Get-AgentBody([string]$Content) {
-    $parts = $Content -split "`n", 4
-    if ($parts.Count -lt 4) {
-        return $null
-    }
-
-    return $parts[3]
-}
-
 $errors = [System.Collections.Generic.List[string]]::new()
 $warnings = [System.Collections.Generic.List[string]]::new()
-$agentBodies = @{}
+$agentEntries = @{}
 
 foreach ($relativePath in @("AGENTS.md", "CLAUDE.md")) {
     $fullPath = Join-Path $RepoRoot $relativePath
@@ -69,7 +60,8 @@ foreach ($relativePath in @("AGENTS.md", "CLAUDE.md")) {
         continue
     }
 
-    $content = [System.IO.File]::ReadAllText($fullPath)
+    $raw = [System.IO.File]::ReadAllBytes($fullPath)
+    $content = [System.Text.Encoding]::UTF8.GetString($raw)
     $lineCount = Get-LineCount $content
     if ($lineCount -gt 250) {
         $errors.Add("${relativePath}: Agent root entry has ${lineCount} lines, over 250 line hard limit")
@@ -78,20 +70,21 @@ foreach ($relativePath in @("AGENTS.md", "CLAUDE.md")) {
         $warnings.Add("${relativePath}: Agent root entry has ${lineCount} lines, over 180 line soft limit; move task-specific detail into docs")
     }
 
-    $body = Get-AgentBody $content
-    if ($null -eq $body) {
+    if (($content -split "`n", 4).Count -lt 4) {
         $errors.Add("${relativePath}: Agent root entry must have a title, blank line, intro line, and shared body")
         continue
     }
-    $agentBodies[$relativePath] = $body
+    $agentEntries[$relativePath] = $raw
 }
 
 if (
-    $agentBodies.ContainsKey("AGENTS.md") -and
-    $agentBodies.ContainsKey("CLAUDE.md") -and
-    $agentBodies["AGENTS.md"] -cne $agentBodies["CLAUDE.md"]
+    $agentEntries.ContainsKey("AGENTS.md") -and
+    $agentEntries.ContainsKey("CLAUDE.md") -and
+    -not [System.Collections.StructuralComparisons]::StructuralEqualityComparer.Equals(
+        $agentEntries["AGENTS.md"], $agentEntries["CLAUDE.md"]
+    )
 ) {
-    $errors.Add("AGENTS.md and CLAUDE.md must match exactly from line 4")
+    $errors.Add("AGENTS.md and CLAUDE.md must have identical contents")
 }
 
 foreach ($relativePath in Get-DocFiles) {

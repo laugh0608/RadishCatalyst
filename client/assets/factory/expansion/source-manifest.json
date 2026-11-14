@@ -1,0 +1,193 @@
+{
+  "source": "Repository-authored E1 machinery and mineral sites; offline existing Three.js",
+  "files": {
+    "crusher.glb": {
+      "bytes": 473456,
+      "sha256": "3e3f0e243dad8d0653cb9f0860aaaab2a385b71a4f4a67c03ad7fed49141c62c",
+      "footprint": [
+        2,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          2.6822091214739885e-9,
+          -0.9300000071525574
+        ],
+        "max": [
+          1,
+          1.7899999618530273,
+          0.9300000071525574
+        ]
+      },
+      "meshes": 8,
+      "triangles": 4854
+    },
+    "refinery.glb": {
+      "bytes": 211572,
+      "sha256": "2ce43a773980cdae49b12d17fd31275c1511b13261ff2813952ac91a2ce12863",
+      "footprint": [
+        2,
+        3
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          2.6822091214739885e-9,
+          -1.4299999475479126
+        ],
+        "max": [
+          1,
+          2.700000047683716,
+          1.4299999475479126
+        ]
+      },
+      "meshes": 10,
+      "triangles": 2108
+    },
+    "assembler.glb": {
+      "bytes": 123388,
+      "sha256": "79bda5e7b0058c4a5b29238074171c01ef362f8acda5274c3d9a432d9902caad",
+      "footprint": [
+        3,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -1.5,
+          2.6822091214739885e-9,
+          -1
+        ],
+        "max": [
+          1.5,
+          2.2125000953674316,
+          0.9300000071525574
+        ]
+      },
+      "meshes": 8,
+      "triangles": 1208
+    },
+    "iron-ore.glb": {
+      "bytes": 30772,
+      "sha256": "77d151ba6d82682532dd82a2cd2ff6890599802ef87f426b3b9db226a22e3049",
+      "footprint": [
+        2,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -0.9200000166893005,
+          -3.7252903539730653e-10,
+          -0.9200000166893005
+        ],
+        "max": [
+          0.9200000166893005,
+          0.6713553071022034,
+          0.9200000166893005
+        ]
+      },
+      "meshes": 3,
+      "triangles": 288
+    },
+    "carbon-ore.glb": {
+      "bytes": 24640,
+      "sha256": "2978e792211fb01565984f3ef581d655cdee51f9ee08bf2476d5c23686e67a35",
+      "footprint": [
+        2,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -0.9200000166893005,
+          -3.7252903539730653e-10,
+          -0.9200000166893005
+        ],
+        "max": [
+          0.9200000166893005,
+          0.6426239013671875,
+          0.9200000166893005
+        ]
+      },
+      "meshes": 3,
+      "triangles": 224
+    },
+    "../../icons/factory_iron_ore.svg": {
+      "bytes": 461,
+      "sha256": "21fc45827a7ad45a07e7315b5084f76e58940b7e0ecd33dc10621d28b4e8121c",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#b77b57"
+    },
+    "../../icons/factory_carbon_ore.svg": {
+      "bytes": 465,
+      "sha256": "f1f10a027c6875dde2e9c22e3dd9cfb7c6111f2f34e6cb610ecce84a8a1e1b94",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#87909c"
+    },
+    "../../icons/factory_iron_powder.svg": {
+      "bytes": 619,
+      "sha256": "7998ef9503e931390f0358030d0d87edbfea1340190d35ca34019d73536d9c4f",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#d39b79"
+    },
+    "../../icons/factory_carbon_powder.svg": {
+      "bytes": 619,
+      "sha256": "d6090be54de456204eaeed2aad576bdb7dacf23a2371fbcd699d27bcc930274f",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#a1abb4"
+    },
+    "../../icons/factory_metal_plate.svg": {
+      "bytes": 518,
+      "sha256": "328c0ae4fd8d1859eba394bf6a0d363de56d404b724a08e4c3ed9e5eaa16358b",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#a5cfda"
+    },
+    "../../icons/factory_mineral_slag.svg": {
+      "bytes": 578,
+      "sha256": "c95682f04ddc43b2ee43c47daa3814fd50136784711ee26378f2009df15408d0",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#a9ae88"
+    },
+    "../../icons/factory_porous_carrier.svg": {
+      "bytes": 657,
+      "sha256": "47cbd2f310f003bb3e4a41bbd7ee9af52919a0ced20cd9d2a33ae6e5e3b29eec",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#d8c999"
+    },
+    "../../icons/factory_construction_pack.svg": {
+      "bytes": 560,
+      "sha256": "9c3f95f36ef2dad2a79c345cd1d03ff869c01120786497530b4f9d87aa33a82a",
+      "size": [
+        96,
+        96
+      ],
+      "accent": "#7cd7c6"
+    }
+  },
+  "sources": {
+    "tools/factory-content/export-expansion-assets.mjs": "ffb5b51a21fc6b613b3b7d7154ce0adfedf5de9d45a956c85a4ad55f3aafbe0c",
+    "tools/visual-studies/web-topdown-3d/parts.mjs": "f64a97ee97fc4f3f3e3ae6af6dda725113a4745075b2501f6deadad8c74b0bb1",
+    "tools/visual-studies/web-topdown-3d/factory.mjs": "9342712d393eb888b601195b31db3db8e99c8ae00a0e6e388842b9d3078eceb9",
+    "tools/visual-studies/web-topdown-3d/node_modules/three/package.json": "1d5c438acdc1fe5a52fb8ede2e417afd91fec91d22275c40f7b739591b24e4df"
+  }
+}

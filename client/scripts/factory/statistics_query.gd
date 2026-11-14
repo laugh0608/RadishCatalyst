@@ -5,12 +5,7 @@ const Items := preload("res://scripts/factory/items.gd")
 
 
 static func known_items(model: RefCounted) -> Array:
-	var result := ["crystal", "catalyst"]
-	if model.discovery.sample_taken:
-		result.append("crust_sample")
-	if model.discovery.trial_completed:
-		result.append_array(["crust_solvent", "rich_crystal"])
-	return result
+	return model.item_ids.filter(func(item): return model.item_known(item))
 
 
 static func materials(model: RefCounted, seconds: int) -> Dictionary:
@@ -30,18 +25,21 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 		match e.type:
 			"collector":
 				locations.buffer = e.buffer
-				produces[e.mineral] = 60.0
-			"reactor":
+				produces[e.mineral] = 60.0 / model.collector_cycle(e)
+			"reactor", "crusher", "refinery", "assembler":
 				locations.buffer = e.input.duplicate()
 				Items.merge(locations.buffer, e.output)
 				locations.invested = e.invested
 				if e.recipe_id != "solvent_trial" and model.recipe_available(e.recipe_id):
-					var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
+					var recipe: Dictionary = model.recipes[e.recipe_id]
 					for item in recipe.output:
 						produces[item] = recipe.output[item] * 60.0 / recipe.seconds
 					for item in recipe.input:
 						consumes[item] = recipe.input[item] * 60.0 / recipe.seconds
-			"storage": locations.storage = e.items
+			"cell_generator":
+				locations.buffer = e.fuel
+				consumes["industrial_cell"] = 1.0
+			"storage", "base_core": locations.storage = e.items
 			"belt", "splitter", "merger", "admission_gate": locations.transit = {e.cargo: 1} if not e.cargo.is_empty() else {}
 		for item in rows:
 			var row: Dictionary = rows[item]
@@ -53,8 +51,8 @@ static func materials(model: RefCounted, seconds: int) -> Dictionary:
 			row.theory_produced += produces.get(item, 0.0)
 			row.theory_consumed += consumes.get(item, 0.0)
 			var related: bool = produces.has(item) or consumes.has(item)
-			if e.type == "reactor":
-				var recipe: Dictionary = Rules.RECIPES[e.recipe_id]
+			if e.type in model.process_types:
+				var recipe: Dictionary = model.recipes[e.recipe_id]
 				related = related or recipe.input.has(item) or recipe.output.has(item)
 			if present or related:
 				row.devices.append(e.id)
@@ -77,22 +75,24 @@ static func rate(amount: float, seconds: float) -> float:
 static func electricity(model: RefCounted, seconds: int) -> Dictionary:
 	var window: Dictionary = model.statistics.window(seconds)
 	var power: Dictionary = model.power_state()
+	var endpoints: Dictionary = power.devices.merged(power.get("buffers", {}))
 	var groups: Array = []
 	for i in model.grid.groups.size():
 		var group: Dictionary = model.grid.groups[i]
 		var devices: Array = group.nodes.duplicate()
-		for id in power.devices:
-			if power.devices[id].network == i:
+		for id in endpoints:
+			if endpoints[id].network == i:
 				devices.append(id)
 		groups.append({"nodes": group.nodes.duplicate(), "capacity": group.capacity_kw,
 			"request": group.request_kw, "supply": group.supplied_kw,
-			"deficit": maxf(0, group.request_kw - group.capacity_kw), "devices": devices})
+			"deficit": maxf(0, group.request_kw - group.supplied_kw), "devices": devices})
 	var unplugged := []
-	for id in power.devices:
-		if power.devices[id].network < 0:
+	for id in endpoints:
+		if endpoints[id].network < 0:
 			unplugged.append(id)
 	var points := []
 	for b in model.statistics.buckets.slice(maxi(0, model.statistics.buckets.size() - seconds)):
 		points.append({"start": b.start_tick * 0.05, "seconds": b.ticks * 0.05,
 			"a": b.supplied_kj, "b": b.requested_kj, "c": b.installed_kj, "d": b.deficit_kj})
+		if b.has("standby_kj"): points.back().e = b.standby_kj
 	return {"window": window, "current": power, "groups": groups, "unplugged": unplugged, "points": points}

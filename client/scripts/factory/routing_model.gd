@@ -13,7 +13,7 @@ func _init() -> void:
 
 
 func placement_replacement(type: String, cell: Vector2i) -> Dictionary:
-	if type not in ["splitter", "merger", "admission_gate"] or not kits.has(type):
+	if type not in ["splitter", "merger", "admission_gate", DiscoveryRules.Integrated.Timed.TYPE] or not kits.has(type):
 		return {}
 	var target := entity_at(cell)
 	return target if target.get("type", "") == "belt" else {}
@@ -83,7 +83,7 @@ func _find_belt_inputs(b: Dictionary) -> Array[int]:
 		if source.is_empty():
 			continue
 		for output in Logistics.ports(self, source, "output"):
-			if not Logistics.receiving_port(self, b, output).is_empty():
+			if Logistics.receiving_port(self, b, output) == p:
 				inputs.append(DIRS.find(Vector2i(p.dx, p.dz)))
 	return inputs
 

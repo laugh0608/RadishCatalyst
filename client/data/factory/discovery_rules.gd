@@ -1,5 +1,8 @@
 extends RefCounted
 
+const Integrated := preload("res://data/factory/integrated_rules.gd")
+const Energy := preload("res://data/factory/energy_rules.gd")
+const Expansion := preload("res://data/factory/expansion_rules.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 const Foundation := preload("res://data/factory/rules.gd")
 const RULESET_ID := "factory_discovery_v1"
@@ -12,6 +15,13 @@ const ADMISSION_RULESET_ID := "factory_discovery_admission_v1"
 const ADMISSION_SUPPLY_ID := "factory_discovery_admission_starter_v1"
 const SUPPLY := {"collector": 8, "reactor": 16, "storage": 8, "belt": 256, "power_source": 2, "power_junction": 12}
 const CATALOG := {
+	Integrated.CORE: Integrated.CORE_SHAPE,
+	Integrated.Storage.TYPE: Integrated.Storage.SHAPE,
+	Integrated.Timed.TYPE: Integrated.Timed.SHAPE,
+	"cell_generator": {"name": "电芯发电机", "w": 2, "d": 2, "input": Vector2i(0, 1)},
+	"crusher": {"name": "粉碎机", "w": 2, "d": 2},
+	"refinery": {"name": "精炼炉", "w": 2, "d": 3},
+	"assembler": {"name": "组装机", "w": 3, "d": 2},
 	"collector": Foundation.CATALOG.collector,
 	"reactor": Foundation.CATALOG.reactor,
 	"storage": Foundation.CATALOG.storage,
@@ -31,10 +41,10 @@ static func admission_supply() -> Dictionary:
 	return routing_supply().merged({"admission_gate": 8})
 
 static func routing_world(supply: String) -> bool:
-	return supply == ROUTING_SUPPLY_ID or admission_world(supply)
+	return supply == ROUTING_SUPPLY_ID or Integrated.matches_supply(supply) or admission_world(supply)
 
 static func admission_world(supply: String) -> bool:
-	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID]
+	return supply in [ADMISSION_SUPPLY_ID, Engineering.SUPPLY_ID, Expansion.SUPPLY_ID, Energy.SUPPLY_ID]
 
 const ITEMS := ["crystal", "catalyst", "crust_sample", "crust_solvent", "rich_crystal"]
 const NAMES := {"crystal": "晶体", "catalyst": "催化剂", "crust_sample": "矿壳样本", "crust_solvent": "解壳剂", "rich_crystal": "富集晶体"}
@@ -50,12 +60,20 @@ const PASSAGES := {"outer": {"x": 4, "cost": 4}, "inner": {"x": 20, "cost": 8}}
 const SOURCE_KW := 120.0
 const NODE_RANGE := 12.0
 const CONSUMER_RANGE := 6.0
-const POWER := {"collector": 20.0, "reactor": 40.0}
+const POWER := {"crusher": 20.0, "refinery": 60.0, "assembler": 40.0, "collector": 20.0, "reactor": 40.0}
 const CYCLE := {"collector": 1.0, "reactor": 10.0}
 
 static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
 	if map_id == Engineering.MAP_ID:
 		return Engineering.ore_sites()
+	if map_id == Integrated.Frontier.MAP_ID:
+		var sites := ore_sites(Integrated.MAP_ID)
+		sites.append(Integrated.Frontier.ORE)
+		return sites
+	if map_id in [Expansion.MAP_ID, Integrated.MAP_ID]:
+		var sites: Array[Vector2i] = ore_sites()
+		sites.append_array([Vector2i(-28, -12), Vector2i(-28, 10)])
+		return sites
 	if map_id != MAP_ID:
 		return []
 	return [Vector2i(-20, -13), Vector2i(-20, -1), Vector2i(-20, 11), Vector2i(10, -1), Vector2i(26, -13), Vector2i(26, 11)]
@@ -63,12 +81,18 @@ static func ore_sites(map_id: String = MAP_ID) -> Array[Vector2i]:
 static func mineral_at(cell: Vector2i, map_id: String = MAP_ID) -> String:
 	if map_id == Engineering.MAP_ID:
 		return Engineering.mineral_at(cell)
+	if map_id == Integrated.Frontier.MAP_ID:
+		return "carbon_ore" if cell == Integrated.Frontier.ORE else mineral_at(cell, Integrated.MAP_ID)
+	if map_id in [Expansion.MAP_ID, Integrated.MAP_ID]:
+		if cell == Vector2i(-28, -12): return "iron_ore"
+		if cell == Vector2i(-28, 10): return "carbon_ore"
+		return mineral_at(cell)
 	if map_id != MAP_ID or cell not in ore_sites():
 		return ""
 	return "crystal" if cell.x < 4 else "rich_crystal"
 
 static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP_ID) -> bool:
-	if map_id not in [MAP_ID, Engineering.MAP_ID]:
+	if map_id not in [MAP_ID, Engineering.MAP_ID, Expansion.MAP_ID, Integrated.MAP_ID, Integrated.Frontier.MAP_ID]:
 		return false
 	if cell.x < -32 or cell.x >= 32 or cell.y < -32 or cell.y >= 32:
 		return false
@@ -81,6 +105,8 @@ static func open_cell(cell: Vector2i, passages: Dictionary, map_id: String = MAP
 	if cell.x < 8:
 		return cell.y >= -2 and cell.y <= 1
 	if cell.x < 20:
+		if map_id == Integrated.Frontier.MAP_ID and Integrated.Frontier.POCKET.has_point(cell):
+			return passages.get(Integrated.Frontier.PASSAGE, false) and (Integrated.Frontier.MOUTH.has_point(cell) or Integrated.Frontier.INTERIOR.has_point(cell))
 		return true
 	if not passages.inner:
 		return false

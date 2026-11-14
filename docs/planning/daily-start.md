@@ -1,42 +1,51 @@
 # Daily Start
 
-更新时间：2026-10-18
+更新时间：2026-11-14
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[生产内容扩展 V1](../features/factory-production-expansion-v1.md)和[本周周志](../devlogs/2026-W42.md)。研究参考时读[六款生产游戏对照](../reference/factory-game-production-study.md)及其中的来源链接；只有任务涉及原验收或历史证据时再展开[D4 记录](factory-d3-exit-and-d4-validation.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W46.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
 ## 当前交接
 
-- 萝卜SAMA明确将当前重点切到 Demo 内容扩展：增加物品、设备和合成链，以完整生产用途验证玩法。先做方案，随后分批交付可玩的内容。
-- 10 月 18 日本轮明确只更新规划与专题，不写代码。已核对 `build/endfield-sample/out/` 离线资料目录并重点阅读代表页面 / 布局图，提炼见[离线研究补充](../reference/endfield-production-planning-study.md#offline-industrial-materials)；下一次接续先完成 E1 设计，不视为已获代码实施确认。
-- 修订提案仍为 15 种物品 / 14 配方、3 类新加工设备与电芯发电机；跨游戏研究补充工艺取舍、回用需求变化与成品消费形态。高产矿长期价值尚未证明，不能用四件胶囊的一次性需求代替持续压力；数值 / 存档方案未实现。
-- 附件原位替换和取消带货两格限制已通过定向工程验证，萝卜SAMA亲测反馈无明显问题，本次整改收口。三类附件、原四配方、两次开路及统计 / 存读基础供新包复用。
-- 原 D3 工程退出已批准，D4-P / S 开发机验证已完成；D4-U / X 和原保留项继续登记，**不作为内容扩展设计 / 开发的前置门槛**。Windows 暂缓，目标硬件待验。
+- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B `outline-06` 四面轮廓。R1-C / D 代表品质已获认可。B1 / B2 / C 通过基础整合首程验收。
+- 核心每物品 99,999、等级解锁能力；初始电力按设备预算确定，固定燃烧与后续可选 PWM；Godot 3D / GDScript、生产经营主线与工业科幻方向已确认。
+- 主视角已选：[R1-A](../features/factory-camera-and-representative-scene-v1.md)亲测后，萝卜SAMA选 C2 透视正向、默认 21 格、跟随角色；滚轮调节距离 / 高度，保持俯角与 FOV。R1-B 保持此镜头，旧正式世界镜头尚未接入。
+- E1 / E2 / V8 及原 D3 / D4 工程能力继续复用，旧档和亲测进度按原身份保留。D1 开路后收益已完成隔离对照。
 
 <a id="next-day-tasks"></a>
 
 ## 当前接续事项
 
-1. **先收敛 E1 实施合同**：按[布局与吞吐接续](../features/factory-production-expansion-v1.md#e1-layout-and-throughput)补“首次两包构件”与“扩建后混料回用”两份草图，核算全链吞吐 / 瓶颈、占地、电力、构件支出和手动搬料 / 换配方次数；再一并确认起步供给、制造账、足印 / 端口及内容存档。第一目标仍是直炼 / 直接烧结做两包构件、实际放下第二台炉；草图与吞吐尚未完成。
-2. **确认后交付完整 E1**：新矿源、三加工设备、R05–R11 与制造 / 存读一起落地；首次扩建后分离板材 / 载体线，再比较同样两包构件的混料回用。目标有数量与去向，完成后由玩家选择扩建 / 备料，不强制持续生产有限需求成品。
-3. **随后接 E2 / E3**：先证明扩建有真实缺电、电芯能支撑新增负载；再做四件胶囊、接回高产炭矿，观察开路后持续负载是否受益。3 / 12 件每分钟尚未冻结；若没有实际收益，调整回报和节拍，不靠新增无用途物品制造需求。
-4. **快速试玩驱动调整**：重点看是否愿意建线、分配材料、修瓶颈和继续扩建；观察副产物停线是否可理解、是否变成反复手工清理。最终处理设施与多场景开拓工具留作反馈后的候选，不要求先完成旧体验细分清单。
-5. **按风险保留必要验证**：新配方 / 制造账、回压 / 满包、独立存读和关键正式 Boot 操作；美术做能辨认和使用的程度。只有变化影响旧证据时补相应回归，不例行重跑历史长测，不把自动通过写成玩法成立。
+### D2 长期对照 · 接续 v5 联锁短测
 
-本轮已授权规划与设计文档，不自动实现提案中的新经济 / 电力 / 存档机制。后续代码按确认后的内容批次推进；无需另行完成原 D4 才能开始。
+[原 C3 负载组](../features/factory-load-groups-c3.md)已完成 schema 15 开发机定向、窗口与跨进程验证（`f5492931`）。[schema 16 开工联锁](../architecture/factory-load-interlocks-save-v16.md)已提交（`ce4ea700`），冷父档严格读回通过，首轮短测停在驱动参数类型错误。v4 收益未达标，Fd 排空错峰诊断通过，历史证据索引见 [W46](../devlogs/2026-W46.md#d2-day-close)。
 
-## 保留待办与边界
+1. 先修 v5 检查驱动。在清单边界验证 A / Fd 是有效的精确整数 ID，再转为 `int` 交给原配置命令。任一组配置失败时直接记录并停止短测；保留 `20261114-d2-fault-v5-cycle-01`。
+2. 从 `20261114-d2-fault-v5-prepare-02` 的同一冷父档另建批次，跑 `fault-v5-cycle`。核对 L5 两次开批都晚于 Fd 尾批实际完工与停机，两单均在周期截止前入仓。通过后从首单开工检查点跑 `fault-v5-recheck`，确认 Fd 重启时首单继续、次单即使碰到旧 `allow` 也会等待。
+3. 两项短测都通过后才跑 `fault-preflight-v5`。O5 / L5 各两窗，沿用正常 N / B / T / F、原验收门槛和 kW、kWh / Wh 报告口径。任一门禁失败先留证汇报；两窗通过后，自然长测仍等萝卜SAMA确认。跨进程恢复、正式窗口复核、正式 P0 和亲测副本待后续。
+4. 有新的 D2 / D1 玩家阻断反馈时优先复现和修因；基础连续供燃路径继续支持完成主线。
 
-- 首次理解、独立诊断、20–40 分钟首程目标；Windows / PowerShell 与目标硬件；约 0.3 秒保存停顿、输入风险、仓库 / 原生切窗、统计图标 / 精细美术及测试入口暂停 / 朝向反馈均保留，详见 [Current Plan](current.md#retained-d4)和 [D4 记录](factory-d3-exit-and-d4-validation.md)。
-- 现有新世界仍为 V5。新内容建议独立世界身份 / 新版本；不静默改旧档、不消费用户亲测档，普通供给与工程夹具分开。
-- 固体内容包之外的液气、种植、交易、通用科技树、战斗、多人、随机地图、物流桥 / 自动出仓和自动蓝图仍未纳入。打包、分发和发布不随主线切换自动授权。
-- Godot 开窗前告知；用户关闭后不自动重开。功能检查优先无窗口，必要的关键操作与截图单独补证；遵循[运行时指南](../reference/godot-runtime-verification-guide.md)。
-- 文档修改执行 `./scripts/check-docs.sh`、`./scripts/check-repo.sh` 和 `git diff --check`；客户端实现再执行 `sh ./scripts/check-client.sh` 及按风险选定的运行时检查。
+### 已交付入口与待验
+
+1. [基础整合验收](../devlogs/2026-W45.md#foundation-acceptance)通过。正式菜单选择「整合工厂 · 核心研究与固定燃烧」新建，后续从目录继续。已有亲测档仍用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
+2. 用 `sh tools/check-factory-frontier.sh play <batch>` 开始 [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)隔离亲测。从核心 II 的 X2 到胶囊开路，实地把高产矿接回工厂并观察回报。Windows 与目标硬件待验。
+3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
+4. [D2 C3 负载组](../features/factory-load-groups-c3.md)已接入，含核心 III、E2、C1 和 C2。用 `sh tools/check-factory-grid-controls.sh play c3-load-groups-20261113` 继续已备好的阻断 / 在制检查点；另用新批次新建选择 C3。C2 / C1 / E2 / III 旧档沿原选项继续。D2 玩家亲测仍待验。
+5. R1 镜头、四面轮廓及材质对照可从各自独立样板回查。入口和原图索引见 [Factory Content](../../tools/factory-content/README.md)。
+
+## 边界与验证
+
+- D1 公开入口待验收。R1-A 复用旧资产，R1-B 使用自有轮廓；安装依赖、引入外部资产及打包 / 推送 / 发布仍须另行授权。
+- 旧二维与工厂不同 schema / 身份分别保留；不为了统一界面整仓迁入旧代码，不默认提供跨规则转换。
+- 新内容布局核算只是纸面证据，不能写成自然主循环、人工可玩性或性能通过。用户亲测、Windows / PowerShell、目标硬件与旧 D4 保留项继续区分。
+- 文档执行 `./scripts/check-docs.sh`、`./scripts/check-repo.sh` 和 `git diff --check`；样板执行客户端静态检查、定向 Godot 检查及窗口路径，不重复旧 Godot 全套或长测。
+- Godot / 桌面程序启动前告知；准备页等待开始，关闭即取消，不自动重开。
 
 ## 按任务继续阅读
 
-- 加工与物料：[发现生产](../features/factory-discovery-and-production-v1.md)、[统计](../features/factory-production-statistics-v1.md)。
-- 物流与接口：[分流 / 汇合](../features/factory-conveyor-routing-v1.md)、[准入口](../features/factory-item-admission-v1.md)、[C 组合](../features/factory-conveyor-combination-v1.md)。
-- 交互与存档：[设备交互](../features/factory-device-interaction-v1.md)、[V5 存档](../architecture/factory-admission-save-v5.md)。
-- 性能或规模：[工程合同](../architecture/factory-engineering-scale-v1.md)与对应批次记录；旧性能不自动覆盖新设备负载。
+- 核心：[Base Core](../features/factory-base-core-v1.md)。
+- 科技树：[Research And Progression](../features/factory-research-and-progression-v1.md)。
+- 能源：[Fixed Burn Energy](../features/factory-fixed-burn-energy-v1.md)。
+- 存档：[Integrated Demo Save](../architecture/factory-integrated-demo-save-v1.md)。
+- 现行配方 / 旧证据：[生产内容扩展](../features/factory-production-expansion-v1.md)、[V8](../architecture/factory-energy-save-v8.md)、[D4](factory-d3-exit-and-d4-validation.md)。

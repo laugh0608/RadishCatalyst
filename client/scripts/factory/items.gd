@@ -3,6 +3,9 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 
 
+static var NAMES := Rules.NAMES.merged(Rules.Expansion.NAMES).merged(Rules.Energy.NAMES).merged({Rules.Integrated.Frontier.CAPSULE: "破岩胶囊"})
+
+
 static func count(items: Dictionary) -> int:
 	var result := 0
 	for amount in items.values():
@@ -33,9 +36,9 @@ static func contains(items: Dictionary, needed: Dictionary) -> bool:
 
 static func describe(items: Dictionary) -> String:
 	var parts := PackedStringArray()
-	for item in Rules.ITEMS:
+	for item in NAMES:
 		if items.get(item, 0) > 0:
-			parts.append("%s ×%d" % [Rules.NAMES[item], items[item]])
+			parts.append("%s ×%d" % [NAMES[item], items[item]])
 	return "、".join(parts) if not parts.is_empty() else "空"
 
 
@@ -43,11 +46,12 @@ static func contents(e: Dictionary) -> Dictionary:
 	var result := {}
 	match e.type:
 		"collector": merge(result, e.buffer)
-		"reactor":
+		"cell_generator": merge(result, e.fuel)
+		"reactor", "crusher", "refinery", "assembler":
 			for key in ["input", "output", "invested"]:
 				merge(result, e[key])
-		"storage": merge(result, e.items)
-		"belt", "splitter", "merger", "admission_gate":
+		"storage", "base_core": merge(result, e.items)
+		"belt", "splitter", "merger", "admission_gate", "timed_dispatch":
 			if not e.cargo.is_empty():
 				result[e.cargo] = 1
 	return result

@@ -223,7 +223,11 @@ func _boot() -> void:
 	var menu: Control = boot.factory_menu
 	menu.list.select(0)
 	menu.list.item_selected.emit(0)
-	expect(menu.world_type.item_count == 2 and menu.continue_button.disabled and not menu.worlds[0].ok, "default formal menu hides engineering continuation and offers no engineering creation")
+	var offered_supplies: Array[String] = []
+	for i in menu.world_type.item_count:
+		offered_supplies.append(menu.world_type.get_item_metadata(i))
+	expect(Config.SUPPLY_ID not in offered_supplies and menu.continue_button.disabled and not menu.worlds[0].ok,
+		"default formal menu hides engineering continuation and offers no engineering creation")
 	expect(FileAccess.get_sha256(store.path("autosave.json")) == original, "default menu keeps engineering source unchanged")
 	boot.free()
 	boot = scene.instantiate()

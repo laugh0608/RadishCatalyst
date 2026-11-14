@@ -1,6 +1,6 @@
 # Godot Runtime Verification Guide (For AI Agents)
 
-更新时间：2026-10-08
+更新时间：2026-11-07
 
 ## 用途与定位
 
@@ -11,6 +11,12 @@
 - 定位：玩家可见目标以**实机截图与运行时路径复核为主证据**，`check-client` 静态检查只兜底；本方法就是产出主证据的机械化手段。
 - 约束：启动 Godot 属 `CLAUDE.md` 中"需要先告知用户再执行"的操作，跑之前先在回复中告知萝卜SAMA。
 - 平台：macOS 下 Godot 可执行文件为 `/Applications/Godot.app/Contents/MacOS/Godot`；以下记为 `$GODOT`。
+
+V8 待机耗电与焦点反馈使用 `sh tools/check-factory-energy-feedback.sh` / `.ps1`；完整模式见 [Tools](../../tools/README.md#正式工厂定向检查)。批次根为 `tools/runtime-intake/check-runs/factory-energy-and-focus-feedback-v1/`，旧 E2 父批次仅通过显式 `--legacy-source` 另建隔离副本再复制至 V8，不改原档。状态、自然 Boot、窗口及原生操作证据分列于 [W44](../devlogs/2026-W44.md)。
+
+E1 的定向入口是 `sh tools/check-factory-expansion.sh <mode> <新 batch> [父 batch]`，模式和前置见 [Tools](../../tools/README.md#正式工厂定向检查)。`state / process-read` 为模型显式步，`menu / background-*` 为无窗口正式 Boot，`review / feedback-window` 渲染窗口原图；`feedback` 为同一亲测整改路径的无窗口预检。检查双根位于 `tools/runtime-intake/check-runs/factory-production-expansion-e1/<batch>/`，恢复从成功父批次哈希复制并核对父目录不变；亲测另用 `tools/runtime-intake/review-worlds/factory-production-expansion-e1/`。E1 不迁移 V5，不将自然路线时长当玩家首程时长；窗口和失败记录见 [W43](../devlogs/2026-W43.md)。
+
+基础整合 schema 9 使用 C 与联合首程入口，D1 / D2 分别使用 `check-factory-frontier.sh` 与 `check-factory-grid-controls.sh`。定向模式、亲测批次和新建选项见 [Tools](../../tools/README.md#正式工厂定向检查)。窗口报告须区分合成输入点击和显式模型命令备料，实际玩家亲测与目标平台另记。见 [W45](../devlogs/2026-W45.md)。
 
 ## 焦点与用户桌面
 
@@ -202,3 +208,10 @@ B 使用 `sh tools/check-factory-admission.sh`，模式及参数见 [Tools](../.
 C 使用 `sh tools/check-factory-combination.sh`；完整模式 / 参数见 [Tools](../../tools/README.md#正式工厂定向检查)。`geometry` 为构造几何；`state/process-read` 为声明来源的严格快照与显式固定步重放。`background-write` 才承担普通空世界的自然 C0–C3，`background-read` 和 `background-complete-read` 分别承担两次独立 Boot 继续；不以状态夹具补签自然路径。检查只读跟踪连续固定步上的富集 batch、制剂整批投入及 G4 放行，采样跨步时清除未完成来源链，不从稀疏库存统计猜测来源。
 
 每个模式都使用新 batch。恢复 / 故障 / review 指定成功父批次，由 runner 复制输入并记录 SHA-256；禁止覆盖、消费原父档或以失败父结果继续验收，子结束后复核父目录未变。运行根为 `tools/runtime-intake/check-runs/factory-conveyor-combination-v1/`，原图为 `assets/art-intake/2026-10-17-factory-conveyor-combination-preview/`，亲测另用同专题 `review-worlds/`。`review` 先证明暂停下镜头 / 面板只读，再在独立子档中用真实回收、返料和短时自然推进演示末件堵塞 / 修复 / 8/8；该短段不是重新完成全程。Godot 日志使用绝对仓库路径，退出码、脚本断言与日志错误共同决定通过；不忽略字体或脚本错误。
+
+
+## E2 能源定向入口
+
+`tools/check-factory-energy.sh` / `.ps1` 复用带全目录哈希核对的 runner，独立批次根为 `tools/runtime-intake/check-runs/factory-production-expansion-e2/`。固定步与自然时钟模式、父批次要求见 [Tools](../../tools/README.md#正式工厂定向检查)。无窗口自然链从普通零材料 E2 经第二炉、P 备建、C 冷启动，再独立恢复扩为 D；开关对照各消费同一个成功 D 父档的副本，不能拿两个不同起点比较产出。状态检查中的人物定位、固定步及孤立边界夹具不计为 Boot 行走或自然生产。
+
+有窗口原图使用 `assets/art-intake/2026-10-23-factory-energy-e2-preview/<batch>/`。启动前告知；用户关闭则终止，不自动重开。E1 显式复制检查包含完整旧字段、原档字节与来源哈希，不能只验证菜单中出现第二条记录。Windows 暂缓仍单列。

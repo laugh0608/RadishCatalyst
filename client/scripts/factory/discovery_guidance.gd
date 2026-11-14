@@ -1,11 +1,15 @@
 extends RefCounted
 
 const Rules := preload("res://data/factory/discovery_rules.gd")
+const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
 
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
 static func current(model: RefCounted) -> Dictionary:
+	if Rules.Integrated.matches_supply(model.supply_id): return integrated_location(model)
+	if model.supply_id == Rules.Energy.SUPPLY_ID: return _energy(model)
+	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion(model)
 	var d: Dictionary = model.discovery
 	var produced: int = model.statistics.totals.produced.get("catalyst", 0)
 	if d.passages.inner:
@@ -19,8 +23,27 @@ static func current(model: RefCounted) -> Dictionary:
 	if produced < 2:
 		return _step("first_line", "准备首批试制材料", "累计催化剂 %d / 2" % produced, "晶体 → 催化剂；样本%s。" % ("已收好" if d.sample_taken else "可稍后拾取"), _first_line(model))
 	if not d.sample_taken:
-		return _step("sample", "拾取矿壳样本", "首批催化剂已产出", "外矿道 (2, 2)：点样本走近，再按 F 或点击拾取。", _action("location", "定位地面样本", "样本用于试制开路材料。", {"point": Rules.SAMPLE}))
+		return _step("sample", "拾取矿壳样本", "首批催化剂已产出", "外矿道 (2, 2)：用 WASD 走近，再按 F 或点击拾取。", _action("location", "定位地面样本", "样本用于试制开路材料。", {"point": Rules.SAMPLE}))
 	return _trial(model)
+
+
+static func integrated_location(model: RefCounted) -> Dictionary:
+	if model.map_id == Frontier.MAP_ID and model.discovery.passages.outer:
+		if model.discovery.passages[Frontier.PASSAGE]:
+			return _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。", {"point": Vector2(Frontier.ORE) + Vector2.ONE})
+		return _action("location", "定位炭矿支路入口", "从北侧靠近；开启需要开拓工具和 4 颗破岩胶囊。", {"point": Vector2(12, 3)})
+	if model.completed_by_recipe.direct_refining > 0 and not model.discovery.sample_taken:
+		return _action("location", "定位矿壳样本", "样本在外矿道入口。走近后按 F 拾取，样本工艺研究会保留实物。", {"point": Rules.SAMPLE})
+	var mineral := "iron_ore" if model.completed_by_recipe.direct_refining == 0 else ""
+	if model.recipe_available("cell_assembly") and not model.entities.any(func(e): return e.get("mineral", "") == "carbon_ore"):
+		mineral = "carbon_ore"
+	if not mineral.is_empty():
+		for cell in model.ore_sites():
+			if model.mineral_at(cell) == mineral:
+				var label: String = Items.NAMES[mineral]
+				return _action("location", "定位" + label, "已标记%s。按 WASD 移动，查看小地图上的方向。" % label,
+					{"point": Vector2(cell) + Vector2.ONE})
+	return {}
 
 
 static func _step(id: String, title: String, progress: String, purpose: String, next: Dictionary) -> Dictionary:
@@ -201,6 +224,9 @@ static func describe(step: Dictionary) -> String:
 
 
 static func overview(model: RefCounted) -> String:
+	if model.supply_id == Rules.Energy.SUPPLY_ID:
+		return _expansion_overview(model) + "\n\n能源循环：先完成第二炉，再用 3 包装配发电机。\n工业电芯：1 板 + 2 炭粉 + 1 催化剂 → 1 电芯，组装机 12 秒 / 40 kW。\n每件供能 7,200 kJ，单机最高 120 kW。基础 240 kW 先供，无缺口不烧料。\n电芯由西侧入口送入，最多存 5 件；已激活余能不能取回。\n停下部分扩建负载，保留采集、板材、炭粉、催化剂和电芯生产，可恢复燃料。"
+	if model.supply_id == Rules.Expansion.SUPPLY_ID: return _expansion_overview(model)
 	var d: Dictionary = model.discovery
 	var basic: bool = d.trial_completed or d.passages.outer or d.passages.inner or model.statistics.totals.produced.get("catalyst", 0) >= 2
 	var rich: bool = model.statistics.totals.consumed.get("rich_crystal", 0) > 0
@@ -216,3 +242,59 @@ static func overview(model: RefCounted) -> String:
 	for step in steps:
 		lines.append(("✓ " if step[0] else "○ ") + step[1])
 	return "\n".join(lines)
+
+
+static func _expansion(model: RefCounted) -> Dictionary:
+	if model.first_expansion_placed:
+		return _step("expansion_complete", "第二台精炼炉已落位", "首次扩建完成", "可继续直接工艺；也可用混料回用做两包，决定下一次扩建或停线。", _action("discovery", "比较两种工艺", "4 铁矿 + 1 炭矿 + 1 晶体可做两包；共用粉碎机需换料，精炼炉的矿渣副口要接通。"))
+	if model.assembly_counts.refinery > 0:
+		return _step("place_second_refinery", "放下第二台精炼炉", "已装配 · 精炼炉库存 %d" % model.kits.refinery, "装配只增加构件库存；实际放下两台炉才完成扩建。", _build("refinery", "第二炉可专做载体，第一炉保留板材；两台均需接入范围电网。"))
+	var packs: int = model.material_balance().held.get("construction_pack", 0)
+	var carried: int = model.bag.get("construction_pack", 0)
+	if carried >= 2:
+		return _step("assemble_refinery", "装配第二台精炼炉", "背包 %d / 2 构件包" % carried, "建造栏选择精炼炉，消耗两包增加一个构件，再选择格位放置。", _build("refinery", "在底部装配栏选「精炼炉」并点「装配一批」，然后放置。"))
+	if packs >= 2:
+		return _step("collect_packs", "取回两包构件", "总持有 %d · 背包 %d / 2" % [packs, carried], "构件装配只使用背包材料。", _stock(model, "construction_pack", "走近取到背包；"))
+	var advice: Dictionary
+	if _entities(model, "collector").is_empty():
+		advice = _build("collector", "铁矿在 (-28, -12)，普通晶体在 (-20, -1)；采集器需接电。")
+	elif _entities(model, "refinery").is_empty():
+		advice = _build("refinery", "先用直接冶炼做 4 金属板，再取空设备切直接烧结做 2 载体。")
+	elif _entities(model, "assembler").is_empty():
+		advice = _build("assembler", "每包需 2 金属板 + 1 多孔载体；各入口都接受这两种物料。")
+	else:
+		var e: Dictionary = _entities(model, "assembler")[0]
+		advice = _power(model, e)
+		if advice.is_empty(): advice = _device(e, "先备 4 板 + 2 载体做两包。直接工艺共需 8 铁矿、6 晶体；准入口配额可控制备料。")
+	return _step("first_packs", "做出两包，制造第二台炉", "构件包持有 %d / 2" % packs, "铁矿 → 板材；晶体 → 载体；板材 + 载体 → 构件包。", advice)
+
+
+static func _expansion_overview(model: RefCounted) -> String:
+	var lines := PackedStringArray(["生产扩建 · " + current(model).title,
+		"直接路线：两包需 8 铁矿 + 6 晶体，单炉先板材后载体。",
+		"混料回用：两包需 4 铁矿 + 1 炭矿 + 1 晶体；占用炭粉并产矿渣，共用粉碎机需切换。",
+		"两包可装配一台设备；封装电源不可制造。回收返构件和物料，不返包。",
+		"下列为满供电单机批次，实际产线受物流、缺料和供电约束："])
+	for recipe_id in Rules.Expansion.RECIPES:
+		var recipe: Dictionary = Rules.Expansion.RECIPES[recipe_id]
+		lines.append("%s · %s\n%s → %s · %.0f 秒 / %.0f kW" % [Rules.CATALOG[recipe.machine].name, recipe.name, Items.describe(recipe.input), Items.describe(recipe.output), recipe.seconds, recipe.kw])
+	lines.append("直接冶炼 / 烧结适合起步和省操作；混料提高板材产量，矿渣烧结回用副产物、节省晶体。")
+	return "\n".join(lines)
+
+
+static func _energy(model: RefCounted) -> Dictionary:
+	if not model.first_expansion_placed: return _expansion(model)
+	if model.assembly_counts.cell_generator == 0:
+		return _step("first_generator", "制造第一台电芯发电机", "背包 %d / 3 构件包" % model.bag.get("construction_pack", 0), "发电机为扩建提供额外功率；原两套封装电源保留。", _build("cell_generator", "在装配栏选电芯发电机，花 3 包制造。工业电芯需 1 板 + 2 炭粉 + 1 催化剂。"))
+	var generators := _entities(model, "cell_generator")
+	if generators.is_empty(): return _step("place_generator", "放下电芯发电机", "已有发电机构件", "接近原电网与能源产线，西侧入口收电芯。", _build("cell_generator", "节点互连 12 格、设备接入 6 格；空发电机也能导通原网。"))
+	var g: Dictionary = generators[0]
+	if model.completed_by_recipe.cell_assembly == 0:
+		return _step("first_cells", "把三种原料组装成电芯", "工业电芯尚未产出", "复用基础电源启动能源线，不需预先有电芯。", _action("discovery", "查看电芯工艺", "给组装机接板材、炭粉与催化剂，选工业电芯组装，再接带至发电机。"))
+	var state: Dictionary = model.power_state()
+	var ledger: Dictionary = model.energy_balance()
+	if ledger.activated > 0 and ledger.remaining_kj == 0 and generators.all(func(e): return e.fuel.is_empty()):
+		return _step("restore_fuel", "燃料耗尽，恢复能源支线", "基础电源仍可供电", "走近停下部分扩建负载，保留电芯原料和组装；新电芯到货后恢复。", _device(g, "不丢在制；设备停机保留进度与被动物流，发电机按缺口自动接续。"))
+	if state.cell_supplied_kw > 0:
+		return _step("energy_working", "电芯正在支持扩建", "电芯供电 %.1f kW" % state.cell_supplied_kw, "比较实际加工与入仓速度，再决定是否继续扩建。", _action("statistics", "查看实际供能与产出", "下一目标可做 4 包：3 包制造第二发电机，1 包制造燃料分流器。"))
+	return _step("energy_standby", "电芯就绪，按需求扩建", "没有实际输出时不耗电芯", "保留基础供电，增加有料工作的加工机后再观察缺口；无需为了烧料空转。", _device(g, "查看燃料、启停与同网负载；有燃料仍待机可能是基础电源已满足需求。"))

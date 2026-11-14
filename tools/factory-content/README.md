@@ -26,6 +26,30 @@
 
 所有 Godot 启动和窗口检查前先告知；不循环抢焦点，关闭后不自动重开，不为静态资源安排四档长测。
 
+## R1-A 镜头与尺度试玩
+
+macOS 双击 `tools/factory-content/camera-study.command`，或仓库根执行 `sh tools/factory-content/camera-study.sh`；已有 Godot 可由 `GODOT_EXE` 指定。先显示准备页，点击开始才挂载双存档根隔离的正式 Boot 与独立样板。无需新增依赖或导出模型；不添加正式世界身份，不运行生产或保存世界。
+
+默认使用萝卜SAMA已选的 C2 透视正向 / 21 格 / 跟随角色。1 / 2 / 3 保留对照，主板 / 密集板、16 / 默认 21 / 28 格、固定 / 跟随、窗口大小与截图在工具栏。滚轮向上拉近 / 降低，向下拉远 / 升高，保持俯角与 FOV；默认 21 格按钮只恢复距离。WASD 为屏幕方向移动，左键选中、F 选两格内设备，B 测量、R 旋转、Esc 取消；测量不建造，口位和六个输出物品只是几何密度标尺。关闭后重新开始，不恢复角色或保存设置。
+
+日志为 `tools/runtime-intake/check-runs/factory-camera-v1/<session>/godot.log`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-camera-v1/<session>/`，逐图 PNG / JSON 为 `assets/art-intake/factory-camera-v1/<session>/`，均忽略提交。每次新会话避免覆盖证据。
+
+定向检查（启动前告知）：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-camera-study.gd --log-file <ignored-batch>/godot.log`，路径用绝对值。检查已选默认值、实际相机高度与缩放边界、双根、几何、投影 / UI 换算、射线选取、碰撞、密集替换及不写工厂存档；必须同时查退出码与错误日志。原生窗口和主人偏好另验；范围与实测见[R1 方案](../../docs/features/factory-camera-and-representative-scene-v1.md)。
+
+## R1-B 核心轮廓候选
+
+macOS 双击 `core-study.command` 或执行 `sh tools/factory-content/core-study.sh`；默认 C2 / 21 / 跟随，支持结构 I / II、邻带接入 / 移开、端口 ID、占地框和四侧观察点。观察点是位置跳转，实际行走用 WASD。当前 `outline-06` 为每面三进一出的 16 口候选，每口示例使用直带，轮廓已获萝卜SAMA认可。样板与 R1-A 入口并存，核心为几何审阅对象。见[R1-B 复测](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-b-outline-06)。
+
+制作命令 `node tools/factory-content/export-core-outline.mjs <new-batch> --publish-prototype` 使用已有 Three.js；先留独立 `assets/art-intake/2026-11-01-core-outline/<batch>/`，再仅复制新 GLB / 来源清单至 `client/assets/prototypes/base_core_outline/`。既有 batch 不覆盖，每批保留可编辑源快照；不下载 / 安装、改旧模型或执行其他导出器。首次须经 Godot 导入，启动前先告知，编辑器配置放仓库忽略的隔离目录。
+
+核心无窗口检查：Godot `--headless --path <repo>/client --script <repo>/tools/factory-content/check-core-outline.gd --log-file <ignored-log> -- <batch>`（绝对路径）；双根位于检查 batch 下。`outline-06` 的 1,360 项覆盖四面锚点、直带朝向、标尺与原遮挡采样组合；旧候选的检查结果分别保留。原图 / 逐图 JSON 为 `assets/art-intake/factory-core-outline-v1/<session>/`，入口日志 / 定向结果为 `tools/runtime-intake/check-runs/factory-core-outline-v1/`，审阅 JSON / 隔离根为 `tools/runtime-intake/review-worlds/factory-core-outline-v1/<session>/`，均忽略提交。采样只证明指定核心网格的指定点，不当成全身 / 全场景可见率或性能。
+
+## R1-C / D 代表材质
+
+macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-study.sh --materials`。在原核心和代表反应器上比较 M0、M1 岩土及 M1 工作面。最小窗口的口位标尺和端口 ID 分开查看。旧核心轮廓入口继续可用。
+
+贴图源运行 `python3 tools/factory-content/export-representative-materials.py <new-batch> --copy-to-study`。需先导入 Godot，启动前告知。定向入口为 `check-material-study.gd -- <new-batch>`，无窗口时给 Godot 加 `--headless`。窗口验证去掉 `--headless`，并在脚本用户参数中追加 `--window`。证据位于 `tools/runtime-intake/check-runs/factory-material-study-v1/` 与 `assets/art-intake/factory-material-study-v1/`。见[样板复测](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-material-review)。
+
 ## 低投入交互样板
 
 `node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。
@@ -38,8 +62,17 @@
 
 ## 分流 / 汇合资产
 
-`node tools/factory-content/export-routing-assets.mjs` 复用已有 Three.js 与自有几何帮助函数，生成 `client/assets/factory/routing/{splitter,merger}.glb`。均严格位于 1×1 足印内，分流为竖直圆顶壳体，汇合为横向滚筒，配不同方向的入口 / 出口箭头；不下载素材或依赖。manifest 记录源 / 产物 SHA-256、包围盒与网格 / 三角形数。正式世界按 schema 4 / 5 规则加载导入场景；玩法与原图由 `check-factory-routing.sh` 验证，导出成功不代表用户体验或美术定稿。
+`node tools/factory-content/export-routing-assets.mjs` 复用已有 Three.js，生成 `client/assets/factory/routing/{splitter,merger}.glb`。单格装甲箱体共用同一底座、护件和接口，顶盖分别以三出和一出标记区分。manifest 记录源 / 产物 SHA-256、包围盒与网格 / 三角形数。玩法与原图由 `check-factory-routing.sh` 验证，导出成功不代表用户体验或美术定稿。
 
 ## 准入口资产
 
-`node tools/factory-content/export-admission-asset.mjs` 沿同一离线 Three.js 流程导出 `client/assets/factory/admission/admission-gate.glb`：1×1 单向窄壳体、后入前出与机械闸口，7 个网格、666 个三角形。manifest 记录源 / 产物 SHA-256 和包围盒；自有 SVG 图标进入建造栏，正式 V5 世界只加载导入资源。未新增依赖或外部资产；玩法、数量和窗口证据由 `check-factory-admission.sh` 另验。
+`node tools/factory-content/export-admission-asset.mjs` 沿同一离线 Three.js 流程导出 `client/assets/factory/admission/admission-gate.glb`。模型共用装甲护件与滚轮接口，保留 1×1 单向窄壳体和闸门标识。manifest 记录源 / 产物 SHA-256 和包围盒；自有 SVG 图标进入建造栏。玩法、数量和窗口证据由 `check-factory-admission.sh` 另验。
+
+## E1 加工与矿源资产
+
+`node tools/factory-content/export-expansion-assets.mjs` 使用同一既有离线 Three.js，导出粉碎机、精炼炉、组装机及铁 / 炭矿源五个自有 GLB 到 `client/assets/factory/expansion/`，并生成八个 `client/assets/icons/factory_*.svg`。manifest 记录脚本 / 共用源文件与每个产物 SHA-256、包围盒和网格数。新设备足印分别 2×2、2×3、3×2，正式 E1 以导入 Node3D 资产呈现；不下载素材或依赖，不替换旧世界资产。端口预览与物流读取同一数据定义；自然工艺及窗口验证由 `check-factory-expansion.sh` 承担，导出不代表玩法验收。
+
+
+## E2 能源资产
+
+`node tools/factory-content/export-energy-assets.mjs` 继续使用仓库已有 Three.js 与自有材质，导出 `client/assets/factory/energy/cell_generator.glb` 和 `client/assets/icons/factory_industrial_cell.svg`。G 为 2×2 固定西输入、青绿底座与金色散热环，7 网格 / 1,305 三角形；包围盒不越足印，地面 Y=0。manifest 记录源码、已有 Three.js 版本文件与产物 SHA-256。正式 E2 只载入导入 GLB，图标与原物料格一致；工具不进入运行时、不安装依赖，状态 / 自然用途与窗口证据由 `check-factory-energy.sh` 另验。

@@ -19,8 +19,8 @@ static func snapshot(model: RefCounted, id: String, title: String, sequence: int
 	return doc
 
 
-static func unpack_state(value: Variant, max_power_links := 91) -> Dictionary:
-	if not fields(value, STATE_FIELDS + ["power_links", "discovery", "statistics", "statistics_ui"]):
+static func unpack_state(value: Variant, max_power_links := 91, extra_fields: Array = [], extra_items: Array = []) -> Dictionary:
+	if not fields(value, STATE_FIELDS + ["power_links", "discovery", "statistics", "statistics_ui"] + extra_fields):
 		return failure("联合工厂状态字段无效。")
 	var s: Dictionary = value.duplicate(true)
 	if not fields(s.discovery, ["surveyed", "sample_taken", "trial_completed", "passages"]) or not fields(s.discovery.passages, ["outer", "inner"]):
@@ -37,11 +37,11 @@ static func unpack_state(value: Variant, max_power_links := 91) -> Dictionary:
 		return failure("统计偏好无效。")
 	var favorites := {}
 	for item in s.statistics_ui.favorites:
-		var known: bool = item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or (item in ["crust_solvent", "rich_crystal"] and d.trial_completed)
+		var known: bool = item in extra_items or item in ["crystal", "catalyst"] or (item == "crust_sample" and d.sample_taken) or (item in ["crust_solvent", "rich_crystal"] and d.trial_completed)
 		if not known or favorites.has(item):
 			return failure("收藏物料尚未掌握或重复。")
 		favorites[item] = true
-	if not Validator.items(s.bag, 200) or NewModel.Items.count(s.bag) > 200:
+	if not Validator.items(s.bag, 200, Config.ITEMS + extra_items) or NewModel.Items.count(s.bag) > 200:
 		return failure("背包物品或容量无效。")
 	return {"ok": true, "state": s}
 

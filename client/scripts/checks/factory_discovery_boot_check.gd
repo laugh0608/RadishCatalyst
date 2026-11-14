@@ -201,10 +201,13 @@ func passage(id: String, prefix: String) -> void:
 	await press(world.discovery_panel.buttons[id])
 	driver.expect(world.model.discovery.passages[id], "explicit passage button debits and opens " + id)
 	await press(world.discovery_panel.buttons.close)
-	world.actor.target = Vector2(8.5 if id == "outer" else 24.5, 0.5)
+	world.view.yaw = 0
+	world.view.sync_camera()
+	world.keys[KEY_D] = true
 	await driver.click(world.hud.buttons.pause)
 	if not await active(2.2):
 		return
+	world.keys.clear()
 	await driver.click(world.hud.buttons.pause)
 	driver.expect(world.actor.x > (8 if id == "outer" else 24), "actual actor collision permits opened crossing")
 	await driver.shot(prefix + "-after-crossing")
@@ -238,7 +241,7 @@ func finish() -> void:
 	if finished:
 		return
 	finished = true
-	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "input": "Boot menu select signal; root synthetic mouse; native buttons focused with synthetic Enter; selected entity assigned; accelerated natural-production fixtures; actor target assigned for real collision walking"})
+	write_json("read-result.json" if read_mode else "write-result.json", {"assertions": driver.assertions, "failures": driver.failures, "input": "Boot menu select signal; root synthetic mouse; native buttons focused with synthetic Enter; selected entity assigned; accelerated natural-production fixtures; camera yaw set and movement keys held for real collision walking"})
 	print("Discovery Boot: %d assertions, %d failures" % [driver.assertions, driver.failures.size()])
 	quit(0 if driver.failures.is_empty() else 1)
 
