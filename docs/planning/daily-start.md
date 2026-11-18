@@ -1,10 +1,10 @@
 # Daily Start
 
-更新时间：2026-11-14
+更新时间：2026-11-18
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W46.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W47.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
 ## 当前交接
 
@@ -23,8 +23,8 @@
 
 1. 先修 v5 检查驱动。在清单边界验证 A / Fd 是有效的精确整数 ID，再转为 `int` 交给原配置命令。任一组配置失败时直接记录并停止短测；保留 `20261114-d2-fault-v5-cycle-01`。
 2. 从 `20261114-d2-fault-v5-prepare-02` 的同一冷父档另建批次，跑 `fault-v5-cycle`。核对 L5 两次开批都晚于 Fd 尾批实际完工与停机，两单均在周期截止前入仓。通过后从首单开工检查点跑 `fault-v5-recheck`，确认 Fd 重启时首单继续、次单即使碰到旧 `allow` 也会等待。
-3. 两项短测都通过后才跑 `fault-preflight-v5`。O5 / L5 各两窗，沿用正常 N / B / T / F、原验收门槛和 kW、kWh / Wh 报告口径。任一门禁失败先留证汇报；两窗通过后，自然长测仍等萝卜SAMA确认。跨进程恢复、正式窗口复核、正式 P0 和亲测副本待后续。
-4. 有新的 D2 / D1 玩家阻断反馈时优先复现和修因；基础连续供燃路径继续支持完成主线。
+3. 两项短测结束后转入下项玩家首程；技术失败留在 D2。短测均通过且玩家观察支持继续优化时，才跑 `fault-preflight-v5`。O5 / L5 各两窗，沿用正常 N / B / T / F、原验收门槛和 kW、kWh / Wh 报告口径。任一门禁失败先留证汇报；两窗通过后，自然长测仍等萝卜SAMA确认。跨进程恢复、正式窗口复核、正式 P0 和亲测副本待后续。
+4. 玩家从 D1 隔离档沿 X2 开路、接回高产矿并持续生产，记录第一次卡住的位置、玩家认出的瓶颈与实际用途。需要观察负载调度时使用 D2 自己的档。玩家看不出开拓收益就先修反馈或节奏，有动机但控制受阻就回到 D2；暂无动机就保留现有机制。丢货、复制或无法继续的缺陷优先处理。
 
 ### 已交付入口与待验
 
