@@ -6,6 +6,7 @@ const Model := preload("res://scripts/factory/model.gd")
 const Items := preload("res://scripts/factory/items.gd")
 const PowerRange := preload("res://scripts/factory/power_range.gd")
 const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
+const InteractionTarget := preload("res://scripts/factory/interaction_target.gd")
 const Integrated := preload("res://data/factory/integrated_rules.gd")
 const DIRECTIONS := ["东 →", "南 ↓", "西 ←", "北 ↑"]
 var buttons := {}
@@ -371,6 +372,17 @@ func sync_sample(view: Node3D, model: RefCounted, ui: Dictionary) -> void:
 	sample_button.tooltip_text = "背包已满，请先腾出空间" if Items.count(model.bag) >= 200 else "拾取并记录调查结果"
 
 
+func sync_passage_prompt(view: Node3D, ui: Dictionary) -> void:
+	var passage: Dictionary = InteractionTarget.PASSAGES.get(ui.get("interaction_kind", ""), {})
+	if not interaction_button.visible or passage.is_empty():
+		return
+	var entrance: Vector2 = passage.point
+	var screen := viewport_to_screen(view.project(Vector3(entrance.x, 1.0, entrance.y))) - world_slot.global_position
+	var margin := Vector2(8, 8)
+	var upper := (world_slot.size - interaction_button.size - margin).max(margin)
+	interaction_button.position = (screen - Vector2(interaction_button.size.x * 0.5, interaction_button.size.y)).clamp(margin, upper)
+
+
 func announce(message: String, error := false) -> void:
 	notice.text = message
 	notice.add_theme_color_override("font_color", Color("efab86" if error else "d4dfc7"))
@@ -478,18 +490,23 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 		buttons.deposit.visible = e.type in ["collector", "reactor", "storage"]
 		buttons.deposit.disabled = Items.count(model.bag) == 0
 	var target: Dictionary = model.by_id(ui.get("focus_device", -1))
-	interaction_button.visible = powered and not ui.get("blocked", false) and not target.is_empty()
+	var passage: Dictionary = InteractionTarget.PASSAGES.get(ui.get("interaction_kind", ""), {})
+	interaction_button.visible = powered and not ui.get("blocked", false) and (not passage.is_empty() or not target.is_empty())
 	if interaction_button.visible:
-		interaction_button.text = ("F  查看 " if ui.focus_ready else "走近后操作 · ") + "%s #%d" % [Model.CATALOG[target.type].name, target.id]
-		if target.type == "admission_gate":
-			interaction_button.text += " · " + Items.NAMES.get(target.filter_item, "待配置")
-			var gate_state: String = admission_markers.status(target)
-			if gate_state in ["closed", "complete"]:
-				interaction_button.text += " · " + ("配额完成" if gate_state == "complete" else "停止接收")
-				if not target.cargo.is_empty(): interaction_button.text += " · 尾货排空中"
+		if not passage.is_empty():
+			interaction_button.text = "F  " + passage.label
+		else:
+			interaction_button.text = ("F  查看 " if ui.focus_ready else "走近后操作 · ") + "%s #%d" % [Model.CATALOG[target.type].name, target.id]
+			if target.type == "admission_gate":
+				interaction_button.text += " · " + Items.NAMES.get(target.filter_item, "待配置")
+				var gate_state: String = admission_markers.status(target)
+				if gate_state in ["closed", "complete"]:
+					interaction_button.text += " · " + ("配额完成" if gate_state == "complete" else "停止接收")
+					if not target.cargo.is_empty(): interaction_button.text += " · 尾货排空中"
+			interaction_button.position = Vector2(20.0 if integrated else (world_slot.size.x - interaction_button.size.x) * 0.5,
+				world_slot.size.y - 64.0)
 		if ui.get("interaction_count", 0) > 1 and ui.interaction_index >= 0:
 			interaction_button.text += "  ·  Tab 切换 %d/%d" % [ui.interaction_index + 1, ui.interaction_count]
-		interaction_button.position.x = 20.0 if integrated else (world_slot.size.x - interaction_button.size.x) * 0.5
 		interaction_button.disabled = not ui.focus_ready
 	var text := "建立产线\n晶体 → 催化剂\n\n采集器覆盖青色矿点。金色出口接带，送入青色入口；反应器每批消耗 2 晶体，加工 10 秒。"
 	if model.delivered > 0:
@@ -508,13 +525,8 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 				text = "电芯供电\n装配并放置发电机，接入电芯后在设备面板启用。无负载也会燃烧。"
 		elif model.core.items.has("metal_plate") or model.researched.size() > 1:
 			text = "从产线到研究\n在核心提交板材和载体。精炼炉可切换到直接烧结，矿壳样本在外矿道入口。"
-		if model.map_id == Integrated.Frontier.MAP_ID and model.discovery.trial_completed:
-			if model.discovery.passages[Integrated.Frontier.PASSAGE]:
-				text = "高产炭矿支路已开启\n已采 %d 件。接回炭粉产线，观察电芯供燃与混料产出。" % model.frontier_extracted
-			elif model.researched.has(Integrated.Frontier.RESEARCH):
-				text = "开拓高产炭矿\n打通外矿道后，携带 4 颗破岩胶囊从支路北入口开路。"
-			else:
-				text = "研究开拓工具\n在核心 II 的研究页查看解壳剂、电芯等成本。"
+		if model.map_id == Integrated.Frontier.MAP_ID and model.discovery.trial_completed and not model.researched.has(Integrated.Frontier.RESEARCH):
+			text = "研究开拓工具\n在核心 II 的研究页查看解壳剂、电芯等成本。"
 		if model.core_upgrades.has(3):
 			if model.core.level == 3:
 				text = "核心 III 已启用\n保留 360 kW 额定功率。可继续既有生产和开拓。"
@@ -523,6 +535,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 			elif model.core.level == 2 and model.researched.has(model.Progression.REUSE):
 				text = "升级核心 III\n在核心的等级页查看前置与材料。"
 		var location := Guidance.integrated_location(model)
+		text = location.get("mission", text)
 		buttons.guide_action.visible = ui.mission and not location.is_empty()
 		if not location.is_empty():
 			buttons.guide_action.text = location.action_label

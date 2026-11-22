@@ -28,10 +28,8 @@ static func current(model: RefCounted) -> Dictionary:
 
 
 static func integrated_location(model: RefCounted) -> Dictionary:
-	if model.map_id == Frontier.MAP_ID and model.discovery.passages.outer:
-		if model.discovery.passages[Frontier.PASSAGE]:
-			return _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。", {"point": Vector2(Frontier.ORE) + Vector2.ONE})
-		return _action("location", "定位炭矿支路入口", "从北侧靠近；开启需要开拓工具和 4 颗破岩胶囊。", {"point": Vector2(12, 3)})
+	if model.map_id == Frontier.MAP_ID and model.researched.has(Frontier.RESEARCH):
+		return _frontier_goal(model)
 	if model.completed_by_recipe.direct_refining > 0 and not model.discovery.sample_taken:
 		return _action("location", "定位矿壳样本", "样本在外矿道入口。走近后按 F 拾取，样本工艺研究会保留实物。", {"point": Rules.SAMPLE})
 	var mineral := "iron_ore" if model.completed_by_recipe.direct_refining == 0 else ""
@@ -44,6 +42,75 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 				return _action("location", "定位" + label, "已标记%s。按 WASD 移动，查看小地图上的方向。" % label,
 					{"point": Vector2(cell) + Vector2.ONE})
 	return {}
+
+
+static func frontier_step(model: RefCounted) -> String:
+	if not model.discovery.passages.outer:
+		return "outer"
+	if not model.discovery.passages[Frontier.PASSAGE]:
+		return "capsules" if model.bag.get(Frontier.CAPSULE, 0) < Frontier.OPEN_COST else "branch"
+	if model.kits.get("collector", 0) == 0 and model.entity_at(Frontier.ORE).get("type") != "collector":
+		return "collector"
+	return "return_ore"
+
+
+static func _frontier_goal(model: RefCounted) -> Dictionary:
+	var step := frontier_step(model)
+	var action: Dictionary
+	var mission: String
+	match step:
+		"outer":
+			mission = "打开外矿道\n背包解壳剂 %d / %d。靠近西侧入口后按 F。" % [
+				model.bag.get("crust_solvent", 0), Rules.PASSAGES.outer.cost]
+			if model.near_passage("outer"):
+				action = _action("discovery", "查看外矿道操作", "在样本与矿道面板用解壳剂打通外矿道。")
+			else:
+				action = _action("location", "定位外矿道", "沿小地图走到外矿道西侧入口。",
+					{"point": Vector2(Rules.PASSAGES.outer.x - 1, 0)})
+		"capsules":
+			var assembler := _capsule_assembler(model)
+			var at_core := assembler.is_empty()
+			var advice := "回工厂，在组装机选「破岩胶囊组装」。缺解壳剂时，用反应器的「载体解壳剂」补料。"
+			if at_core:
+				advice = "回工厂腾空一台组装机，或在核心装配一台，再选「破岩胶囊组装」。"
+			mission = "制作破岩胶囊\n背包胶囊 %d / %d。%s" % [model.bag.get(Frontier.CAPSULE, 0), Frontier.OPEN_COST, advice]
+			action = _action("location", "定位基地核心" if at_core else "定位胶囊组装机", advice,
+				{"point": model.Grid.center(model.core if at_core else assembler)})
+		"branch":
+			mission = "开拓高产炭矿\n背包胶囊 %d / %d。靠近北入口后按 F。" % [model.bag.get(Frontier.CAPSULE, 0), Frontier.OPEN_COST]
+			if model.near_passage(Frontier.PASSAGE):
+				action = _action("discovery", "查看炭矿支路操作", "在样本与矿道面板提交破岩胶囊。")
+			else:
+				action = _action("location", "定位炭矿支路入口", "沿小地图走到炭矿支路北入口。",
+					{"point": Vector2(Frontier.MOUTH.get_center().x, Frontier.MOUTH.position.y - 1)})
+		"collector":
+			var cost: int = model.assembly_costs.collector
+			var stocked: int = model.core.items.get("construction_pack", 0)
+			var collector_name: String = Rules.CATALOG.collector.name
+			var advice := "在核心「装配」页用 %d 个构件包装配「%s」，或回收闲置采集器。" % [cost, collector_name]
+			if stocked < cost:
+				advice = "装配「%s」需 %d 个构件包（核心已有 %d）。先取包存入核心，也可回收闲置采集器。" % [collector_name, cost, stocked]
+			mission = "补充采集器\n" + advice
+			action = _action("location", "定位基地核心", advice, {"point": model.Grid.center(model.core)})
+		_:
+			mission = "高产炭矿支路已开启\n已采 %d 件。接回炭粉产线，观察电芯供燃与混料产出。" % model.frontier_extracted
+			action = _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。",
+				{"point": Vector2(Frontier.ORE) + Vector2.ONE})
+	action.frontier_step = step
+	action.mission = mission
+	return action
+
+
+static func _capsule_assembler(model: RefCounted) -> Dictionary:
+	var idle := {}
+	for entity in model.entities:
+		if entity.type != "assembler":
+			continue
+		if entity.recipe_id == "boring_capsule_assembly":
+			return entity
+		if idle.is_empty() and not entity.processing and entity.input.is_empty() and entity.output.is_empty():
+			idle = entity
+	return idle
 
 
 static func _step(id: String, title: String, progress: String, purpose: String, next: Dictionary) -> Dictionary:

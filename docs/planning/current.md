@@ -13,8 +13,10 @@
 ## 当前顺位
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。[X2 已亲测提交](../devlogs/2026-W47.md#d1-x2-playtest)，接续从制备胶囊、开路到把高产矿接回工厂，观察玩家能否自行定位瓶颈、看懂收益以及何时想调整负载。
-3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。下一玩家窗口先走完 D1，D2 使用自己的隔离档观察测控动机。收益不清楚就先改反馈或节奏，确有调度需求且机制妨碍操作才继续 O5 / L5 预检；缺乏使用动机则暂缓 D2。自然长测仍须按原门槛确认，目标平台待验。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。X2 与外矿道已亲测，胶囊、支路、采集器补充、回流与持续生产均完成[自动复核](../devlogs/2026-W47.md#d1-frontier-guidance)。接续收口 D1 首程，用同一隔离新档从基础生产跑到高产矿回流，再用持续产出完成一项实际扩建目标，核对玩家能看到的来料、瓶颈和产出反馈。形成整段候选后安排里程碑亲测，再评估公开入口条件。D1 新建沿普通带单入口规则，已有档按原规则继续。
+3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。D1 里程碑反馈用于判断是否需要测控。在玩家已有调度动机且现有控制妨碍操作时，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
+
+本阶段日常迭代以匹配改动的自动检查推进，玩家可见改动补正式 Boot 窗口与相应证据。萝卜SAMA在整段候选等里程碑集中亲测，复核首次理解、节奏和继续经营的动机。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

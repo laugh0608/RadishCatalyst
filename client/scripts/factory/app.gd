@@ -166,6 +166,7 @@ func _process(delta: float) -> void:
 		statistics_panel.status.text = "  已暂停" if ui.paused else "  后台生产中" if not focused else "  生产继续运行"
 	view.draw(model, actor, ui)
 	hud.sync_sample(view, model, ui)
+	hud.sync_passage_prompt(view, ui)
 
 
 func _movement(dt: float) -> void:
@@ -229,6 +230,8 @@ func _sync_replacement_direction() -> void:
 func _refresh() -> void:
 	_sync_replacement_direction()
 	_sync_focus()
+	if ui.waypoint.has("frontier_step") and ui.waypoint.frontier_step != Guidance.frontier_step(model):
+		_clear_waypoint()
 	discovery_panel.sync_session(ui.paused, focused)
 	if core_panel.visible:
 		core_panel.refresh(ui.paused)
@@ -249,6 +252,12 @@ func _sync_focus() -> bool:
 	ui.interaction_count = target.get("count", 0)
 	ui.interaction_index = target.get("index", -1)
 	return before != [ui.focus_device, ui.focus_ready, ui.interaction_kind, ui.interaction_index, ui.interaction_count, ui.blocked]
+
+
+func _clear_waypoint() -> void:
+	if ui.waypoint.has("frontier_step") and hud.notice.text == ui.waypoint.next:
+		hud.announce("")
+	ui.waypoint = {}
 
 
 func _stop_pointer() -> void:
@@ -337,7 +346,7 @@ func _action(name: String, value: Variant) -> void:
 					if result.ok: _choose(result.type)
 					hud.announce("已装配 %s ×%d，构件已入库存；选择格位放置。" % [Model.CATALOG[result.type].name, result.quantity] if result.ok else result.reason, not result.ok)
 			"guide_action": _guide_action()
-			"clear_waypoint": ui.waypoint = {}
+			"clear_waypoint": _clear_waypoint()
 			"power_links": ui.show_power_links = not ui.show_power_links
 			"quota_gate": _locate_statistics_device(int(value))
 			"inventory":
@@ -431,6 +440,8 @@ func _interaction_target() -> Dictionary:
 			if id != -1:
 				var nearby := InteractionTarget.candidates(model)
 				var index := nearby.find_custom(func(t): return t.id == id)
+				if index == -1 and InteractionTarget.PASSAGES.has(target.kind):
+					return target
 				return {"kind": "device", "id": id, "ready": model.near_entity(model.by_id(id)), "count": nearby.size(), "index": index}
 			if view.hit_sample(screen):
 				return {"kind": "sample", "id": 0, "ready": model.near_sample(), "count": 0, "index": -1}
@@ -458,6 +469,9 @@ func _interact() -> void:
 		_open_device(target.id)
 	elif target.get("kind", "") == "sample":
 		_pick_sample()
+	elif InteractionTarget.PASSAGES.has(target.get("kind", "")):
+		_action("discovery", null)
+		return
 	_refresh()
 
 

@@ -118,8 +118,17 @@ func _write_and_compare() -> void:
 	else:
 		route._must(model.research(Frontier.RESEARCH))
 	driver.expect(model.researched.has(Frontier.RESEARCH) and not model.research(Frontier.RESEARCH).ok, "X2 submits only once")
+	await _check_outer_guidance(world, route)
 	route.open_outer_and_prepare_capsules(temporary[0], temporary[1])
+	world._refresh()
+	driver.expect(world.ui.waypoint.is_empty() and world.ui.interaction_kind != world.InteractionTarget.OUTER_PASSAGE
+		and world.hud.buttons.guide_action.text == "定位胶囊组装机",
+		"opening the outer passage clears its marker and points to the assembler while capsules are missing")
+	await _click(world.hud.buttons.guide_action)
+	driver.expect(world.ui.waypoint.get("point") == model.Grid.center(temporary[1]), "capsule guidance marks the existing assembler")
 	route.walk_to(Route.GATE)
+	world._refresh()
+	driver.expect(world.ui.interaction_kind != world.InteractionTarget.FRONTIER_PASSAGE, "the field prompt waits for all four capsules")
 	driver.expect(not model.open_passage(Frontier.PASSAGE).ok and model.bag.get(Frontier.CAPSULE, 0) == 3
 		and model.blocked_for_actor(12.5, 7.5) and not model.placement("belt", Vector2i(12, 4)).ok,
 		"three capsules leave inventory, collision and build gate intact")
@@ -128,13 +137,20 @@ func _write_and_compare() -> void:
 	var locked := Codec.decode(before_gate, id)
 	driver.expect(locked.ok and not locked.model.discovery.passages[Frontier.PASSAGE], "closed gate and three capsules decode: " + locked.get("reason", ""))
 	route.craft(temporary[1], "boring_capsule_assembly", 1)
+	world._refresh()
+	driver.expect(world.ui.waypoint.is_empty() and world.hud.buttons.guide_action.text == "定位炭矿支路入口",
+		"the fourth capsule clears the factory marker and unlocks the north entrance locator")
+	await _click(world.hud.buttons.guide_action)
 	driver.expect(not model.open_passage(Frontier.PASSAGE).ok and model.bag.get(Frontier.CAPSULE, 0) == 4, "opening remotely consumes nothing")
 	route.walk_to(Route.GATE)
+	world._refresh()
+	driver.expect(world.hud.interaction_button.visible and world.hud.interaction_button.text.begins_with("F  炭矿支路开路"),
+		"four capsules and a reachable north entrance expose the field interaction")
 	if windowed:
-		world._refresh()
-		await _click(world.hud.buttons.guide_action)
 		await driver.shot("02-closed-frontier")
-		await _click(world.hud.buttons.discovery)
+		await driver.key(KEY_F)
+		driver.expect(world.discovery_panel.visible and model.bag.get(Frontier.CAPSULE, 0) == 4,
+			"F opens the branch confirmation without consuming capsules")
 		await driver.shot("03-four-capsules")
 		await _click(world.discovery_panel.buttons.frontier)
 		world.discovery_panel.close_panel()
@@ -144,6 +160,9 @@ func _write_and_compare() -> void:
 		and not model.bag.has(Frontier.CAPSULE) and not model.open_passage(Frontier.PASSAGE).ok
 		and model.statistics.totals.consumed.get(Frontier.CAPSULE) == 4,
 		"frontier opens without inner passage and charges exactly four capsules")
+	world._refresh()
+	driver.expect(world.ui.waypoint.is_empty() and world.ui.interaction_kind != world.InteractionTarget.FRONTIER_PASSAGE,
+		"opening the branch clears its marker and field prompt")
 	if windowed:
 		world._refresh()
 		await _click(world.hud.buttons.guide_action)
@@ -193,6 +212,38 @@ func _write_and_compare() -> void:
 	_save("result.json", {"ordinary": ordinary, "high_yield": rich, "warmup_seconds": WARMUP_SECONDS,
 		"assertions": driver.assertions, "failures": driver.failures, "window": windowed})
 	print("Frontier comparison: ", JSON.stringify({"ordinary": ordinary, "high_yield": rich}))
+
+
+func _check_outer_guidance(world: Control, route: RefCounted) -> void:
+	world._refresh()
+	var guide: Button = world.hud.buttons.guide_action
+	var entrance := Vector2(Route.Model.DiscoveryRules.PASSAGES.outer.x - 1, 0)
+	driver.expect(guide.visible and guide.text == "定位外矿道" and "4 / 4" in world.hud.mission.text,
+		"X2 shows the outer passage locator and carried solvent")
+	driver.expect(world.ui.interaction_kind != world.InteractionTarget.OUTER_PASSAGE, "no outer passage interaction out of range")
+	await _click(guide)
+	driver.expect(world.ui.waypoint.get("point") == entrance and world.hud.waypoint_panel.visible,
+		"outer passage locator marks the reachable west approach")
+	if windowed:
+		await driver.shot("01a-outer-passage-location")
+	route.walk_to(entrance)
+	world._refresh()
+	driver.expect(guide.visible and guide.text == "查看外矿道操作", "near the passage, guidance offers the operation")
+	var prompt: Button = world.hud.interaction_button
+	driver.expect(prompt.visible and prompt.text.begins_with("F  外矿道开路"), "nearby outer passage has a local interaction prompt")
+	if windowed:
+		await driver.shot("01b-outer-passage-prompt")
+		await driver.key(KEY_F)
+		driver.expect(world.discovery_panel.visible and world.model.bag.get("crust_solvent", 0) == 4
+			and not world.model.discovery.passages.outer, "F opens the panel without spending solvent")
+		world.discovery_panel.close_panel()
+		await driver.settle()
+	await _click(prompt)
+	driver.expect(world.discovery_panel.visible and not world.discovery_panel.buttons.outer.disabled,
+		"clicking the prompt opens the panel with the outer passage button available")
+	if windowed:
+		await driver.shot("01c-outer-passage-operation")
+	world.discovery_panel.close_panel()
 
 
 func _sample(model: RefCounted, ids: Dictionary, high: bool) -> Array[Dictionary]:
