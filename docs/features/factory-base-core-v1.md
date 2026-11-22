@@ -1,6 +1,6 @@
 # Factory Base Core V1
 
-更新时间：2026-11-07
+更新时间：2026-11-22
 
 状态：核心 I–II、16 口物流及库存 / 接口已随基础整合工厂开放正式新建。研究与升级见[科技合同](factory-research-and-progression-v1.md#b2-delivery)，几何和成本见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)，验收见[总合同](factory-demo-integration-v1.md)。
 
@@ -75,7 +75,7 @@
 
 仲裁时应同时覆盖普通带与核心的目标冲突。若核心和普通来源争同一空带，只允许一个请求写入。若同物品只剩一件或只剩一个仓位，拒绝另一口并保留对应货物或库存。输入、输出额度各用步初值，保持同一步进出顺序与遍历顺序无关。
 
-B1 使用获认可的 `outline-06`、R2 核心材质与 C2 镜头。复核世界只在内存中运行，普通菜单不显示此入口，Store 拒绝写入该模型。用 `sh tools/check-factory-base-core.sh play` 进入空物料、已铺 S0 子路线的复核场，`empty-yard` 仅预置核心。研究和 II 升级归 B2，固定燃烧归 C。正式身份、旧档保护及持久化接入沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
+正式基础整合使用继承 `outline-06` 的 R2 核心 I / II 与 C2 镜头。B1 的临时复核世界在内存中运行，Store 拒绝写入该模型。用 `sh tools/check-factory-base-core.sh play` 进入空物料、已铺 S0 子路线的复核场，`empty-yard` 仅预置核心。研究和 II 升级归 B2，固定燃烧归 C。可存读的正式世界沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
 
 ## 验证与失败退出
 
@@ -84,4 +84,4 @@ B1 使用获认可的 `outline-06`、R2 核心材质与 C2 镜头。复核世界
 - 正式 Boot 新档采矿→核心→加工→核心→研究 / 装配，实际行走与设备面板、升级前后碰撞 / 端口不变、保存继续。
 - 端口过密无法辨认、物流必须靠手工反复搬运或升级挤坏产线，说明几何 / 交互候选失败；先改布局与参数，不以更多文字代签。
 
-独立身份与失败恢复见[存档合同](../architecture/factory-integrated-demo-save-v1.md)。B1 的状态、窗口证据及边界见 [W45 周志](../devlogs/2026-W45.md#b1-core-first-plate)。跨进程冷却恢复与正式新档留联合门槛。
+B1 的早期状态与窗口证据见 [W45 周志](../devlogs/2026-W45.md#b1-core-first-plate)。基础整合正式新档及跨进程继续已过[联合验收](../devlogs/2026-W45.md#foundation-acceptance)。R2 接入后，在同一套存档身份下复核了 I → II 升级、四口出料、最小窗口及接入前 schema 9 档的恢复。[R2 正式接入](../devlogs/2026-W47.md#r2-foundation-integration)
