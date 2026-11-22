@@ -124,7 +124,7 @@ R03 / R10 路线中，X2 的电芯展开后合计 6 板、6 载体、6 解壳剂
 | `supply_id` | `factory_integrated_frontier_starter_v1`，起步数量沿基础整合，物料为零 |
 | `definitions_sha256` | D1 专属定义，覆盖含支路的通行掩码、按矿点坐标定义的周期、配方、研究 / 开路成本、端口、供给及能源。新规则以原摘要和单入口策略生成独立摘要 |
 
-独立空档通过 `sh tools/check-factory-frontier.sh play <batch>` 创建和继续。基础整合 schema 9（含 `joint-first-run`）及旧二维 / 工厂按原身份继续。公开入口待 D1 验收。
+独立空档通过 `sh tools/check-factory-frontier.sh play <batch>` 创建和继续。基础整合 schema 9（含 `joint-first-run`）及旧二维 / 工厂按原身份继续。D1 暂只走隔离入口，见[成品档复核](../devlogs/2026-W47.md#d1-completed-world-review)。
 
 权威状态沿 schema 9，扩为八节点、两配方完成计数、胶囊合法库存、`discovery.passages.carbon_frontier` 和高产点累计开采计数。高产计数是 `extracted_by_item.carbon_ore` 的子集，用于来源校验与收益对照，总物料账只加总采集一次。门状态为真须有外矿道和 X2，四件胶囊消费从该状态及定义重建。校验开路前无高产开采、封闭区的建造 / 角色位置非法、四胶囊消费与完成数守恒，R14 的解壳剂纳入原有两门的物料账。完成 R02 仍以真实配方完成数为准。
 

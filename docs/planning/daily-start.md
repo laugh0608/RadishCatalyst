@@ -33,11 +33,17 @@ R2 基础反应器在隔离回归通过后已接入正式基础整合。世界�
 
 持续生产复核使用独立副本，矿渣和晶体自动进炉，保存前后各运行 125 模拟秒，分别完成 5 / 6 批烧结、实收 12 / 10 件载体。两段原发电线均自动补燃，未出现缺供。[持续生产复核](../devlogs/2026-W47.md#d1-sustained-production)
 
-里程碑空档用 `sh tools/check-factory-frontier.sh play 20261122-d1-expansion-review-02` 打开，进入「工厂世界」继续「D1 首程候选 · 开拓与扩建」。候选从核心 I、零物料开始，已通过独立进程继续。集中亲测观察玩家能否独立判断该接哪段线、完成扩建，以及之后想继续解决的经营问题。
+萝卜SAMA检查「D1 开拓与扩建 · 全流程复核」后的反馈为无问题，正式入口暂不开。回看成品使用 `sh tools/check-factory-frontier.sh play 20261122-d1-full-review-01`，进入「工厂世界」选择同名存档。序号 5 的交付快照保留在复核批次。若需从开局观察首次理解和用时，另用 `20261122-d1-expansion-review-02` 的「D1 首程候选 · 开拓与扩建」，从核心 I、零物料开始。[成品档复核](../devlogs/2026-W47.md#d1-completed-world-review)
 
 如需回查萝卜SAMA的序号 44 原档，运行 `sh tools/check-factory-frontier.sh play 20261122-d1-x2-02`，继续「D1 开拓亲测 · X2 待提交」。X2 与外矿道已完成，人在支路北入口。按目标栏定位组装机，制作四枚胶囊后再到入口按 F。缺采集器时可回核心装配或回收闲置采集器。[原档接续验证](../devlogs/2026-W47.md#d1-frontier-guidance)
 
 收益不清楚就先修反馈或节奏，有调度动机但控制受阻就回到 D2 的独立档观察，暂无动机就保留现有机制。丢货、复制或无法继续的缺陷优先处理。
+
+<a id="e-production-diagnostics"></a>
+
+### E 整段收口 · 运营诊断与恢复建议
+
+在这台 Mac 上，用已扩建的 D1 隔离副本复核矿渣或晶体断料、载体出料受阻和发电机断燃。已有固定步断供与反馈检查可作起点。窗口验证沿实际设备与物流操作复现，检查目标栏、设备面板和生产统计是否指到同一原因，恢复后以真实载体入仓和发电补燃验收，另核对独立继续、在途货与物料账。按确认的卡点定点修正，并验证涉及的共享反馈在正式基础整合 schema 9 中成立。[原自救合同](../features/factory-fixed-burn-energy-v1.md) · [阶段退出条件](current.md#retained-d4)
 
 ### D2 长期对照 · 等调度需求证据
 
@@ -48,14 +54,14 @@ schema 16 驱动已修正，首个断燃周期和 Fd 重启两项短测均通过
 ### 已交付入口与待验
 
 1. [基础整合验收](../devlogs/2026-W45.md#foundation-acceptance)通过。正式菜单选择「整合工厂 · 核心研究与固定燃烧」新建，后续从目录继续。已有亲测档仍用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)有核心 I 首程候选与 X2 阶段回查档，入口见上方。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)有成品复核、核心 I 首程候选与 X2 阶段回查档，入口见上方。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 4. [D2 C3 负载组](../features/factory-load-groups-c3.md)已接入，含核心 III、E2、C1 和 C2。用 `sh tools/check-factory-grid-controls.sh play c3-load-groups-20261113` 继续已备好的阻断 / 在制检查点；另用新批次新建选择 C3。C2 / C1 / E2 / III 旧档沿原选项继续。D2 玩家亲测仍待验。
 5. R1 镜头、四面轮廓及材质对照可从各自独立样板回查。入口和原图索引见 [Factory Content](../../tools/factory-content/README.md)。
 
 ## 边界与验证
 
-- D1 公开入口待验收。R1-A 复用旧资产，R1-B 使用自有轮廓；安装依赖、引入外部资产及打包 / 推送 / 发布仍须另行授权。
+- D1 继续走隔离入口，正式入口暂不开。R1-A 复用旧资产，R1-B 使用自有轮廓；安装依赖、引入外部资产及打包 / 推送 / 发布仍须另行授权。
 - 旧二维与工厂不同 schema / 身份分别保留；不为了统一界面整仓迁入旧代码，不默认提供跨规则转换。
 - 新内容布局核算只是纸面证据，不能写成自然主循环、人工可玩性或性能通过。用户亲测和旧 D4 保留项仍在各自的验收记录中跟踪。
 - 文档执行 `./scripts/check-docs.sh`、`./scripts/check-repo.sh` 和 `git diff --check`；样板执行客户端静态检查、定向 Godot 检查及窗口路径，不重复旧 Godot 全套或长测。
