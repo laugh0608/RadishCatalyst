@@ -3,6 +3,7 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
+const Logistics := preload("res://scripts/factory/logistics.gd")
 
 
 ## Read-only advice derived from existing facts. Never persists separate tutorial progress.
@@ -44,7 +45,7 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 	return {}
 
 
-static func frontier_step(model: RefCounted) -> String:
+static func _frontier_step(model: RefCounted) -> String:
 	if not model.discovery.passages.outer:
 		return "outer"
 	if not model.discovery.passages[Frontier.PASSAGE]:
@@ -55,7 +56,7 @@ static func frontier_step(model: RefCounted) -> String:
 
 
 static func _frontier_goal(model: RefCounted) -> Dictionary:
-	var step := frontier_step(model)
+	var step := _frontier_step(model)
 	var action: Dictionary
 	var mission: String
 	match step:
@@ -93,12 +94,137 @@ static func _frontier_goal(model: RefCounted) -> Dictionary:
 			mission = "补充采集器\n" + advice
 			action = _action("location", "定位基地核心", advice, {"point": model.Grid.center(model.core)})
 		_:
-			mission = "高产炭矿支路已开启\n已采 %d 件。接回炭粉线后，用混料板材做构件，矿渣烧结成载体。" % model.frontier_extracted
-			action = _action("location", "定位高产炭矿", "接电铺带，把新矿送回粉碎机，继续供给电芯和混料。",
-				{"point": Vector2(Frontier.ORE) + Vector2.ONE})
+			return _frontier_production(model)
 	action.frontier_step = step
 	action.mission = mission
 	return action
+
+
+static func _frontier_production(model: RefCounted) -> Dictionary:
+	var mine: Dictionary = model.entity_at(Frontier.ORE)
+	var ore_point := Vector2(Frontier.ORE) + Vector2.ONE
+	var mined := "高产点累计采出 %d 件。" % model.frontier_extracted
+	if mine.get("type") != "collector":
+		return _frontier_location("return_ore", "定位高产炭矿", "架设高产采集器",
+			"覆盖矿点，接电后把炭矿送回粉碎机。", ore_point)
+	var crusher := _connected_receiver(model, mine, "carbon_ore", "crusher", "carbon_crushing")
+	if crusher.is_empty():
+		return _frontier_location("return_ore", "定位高产炭矿", "接回高产炭矿",
+			mined + "炭矿还没有通往炭矿粉碎机的线路。检查传送带、汇合器和物品准入口。", ore_point)
+	var mine_power := _production_power_issue(model, mine)
+	if not mine_power.is_empty():
+		return _frontier_location("return_ore", "定位高产炭矿", "启动高产采集器",
+			"回流线已接到粉碎机。采集器：" + mine_power + "。", ore_point)
+	var crusher_power := _production_power_issue(model, crusher)
+	var receiving: bool = crusher.input.has("carbon_ore") or crusher.invested.has("carbon_ore") or crusher.output.has("carbon_powder")
+	var mixed := _preferred_refinery(model, "mixed_refining")
+	if not crusher_power.is_empty() or model.frontier_extracted == 0 or (not receiving and model.completed_by_recipe.mixed_refining == 0):
+		var advice := "回流线已接通。粉碎机等炭矿到达，可沿带查看货物。" if crusher_power.is_empty() else "回流线已接通。粉碎机：" + crusher_power + "。"
+		return _frontier_location("crushing", "定位炭矿粉碎机", "查看炭矿回流", mined + advice, model.Grid.center(crusher))
+	if mixed.is_empty():
+		var furnace := _preferred_refinery(model)
+		if model.recipe_available("mixed_refining") and not furnace.is_empty():
+			return _frontier_location("mixed_setup", "定位精炼炉", "建立混料冶炼",
+				"粉碎机已收到炭矿。选「混料冶炼」，给炉子送铁粉和炭粉，电芯线继续补料。", model.Grid.center(furnace))
+		var advice := "装配并放置精炼炉，再选择「混料冶炼」。" if model.recipe_available("mixed_refining") else "到核心研究「混料冶炼」，再给精炼炉接铁粉和炭粉。"
+		return _frontier_location("mixed_setup", "定位基地核心", "建立混料冶炼", advice, model.Grid.center(model.core))
+	var batches: int = model.completed_by_recipe.mixed_refining
+	var status := _refinery_status(model, mixed)
+	if batches == 0:
+		return _frontier_location("mixed", "定位混料精炼炉", "投产混料冶炼", status, model.Grid.center(mixed))
+	var reuse := _preferred_refinery(model, "slag_sintering")
+	if reuse.is_empty():
+		var expansion := "混料累计 %d 批。%s\n用板材做构件包扩建；矿渣留给「矿渣回用」。" % [batches, status]
+		if model.kits.get("refinery", 0) > 0:
+			return _frontier_location("expansion", "定位混料精炼炉", "扩建矿渣烧结线",
+				"已有精炼炉构件。放置、接电后选择「矿渣烧结」。\n" + expansion, model.Grid.center(mixed))
+		if model.core.items.get("construction_pack", 0) >= model.assembly_costs.refinery:
+			return _frontier_location("expansion", "定位基地核心", "装配扩建用的精炼炉",
+				"在核心用 %d 个构件包装配精炼炉。\n%s" % [model.assembly_costs.refinery, expansion], model.Grid.center(model.core))
+		return _frontier_location("expansion", "定位混料精炼炉", "用混料产出扩建", expansion, model.Grid.center(mixed))
+	var connected := not _connected_receiver(model, reuse, "porous_carrier", Rules.Integrated.CORE).is_empty()
+	var reuse_status := _refinery_status(model, reuse)
+	if not connected:
+		return _frontier_location("reuse", "定位矿渣烧结炉", "把载体送回核心",
+			"把烧结炉主出口接到核心进料口。\n" + reuse_status, model.Grid.center(reuse))
+	var reused: int = model.completed_by_recipe.slag_sintering
+	if reused == 0 or not _production_power_issue(model, reuse).is_empty():
+		return _frontier_location("reuse", "定位矿渣烧结炉", "运行矿渣烧结线",
+			"载体回仓线已接通。\n" + reuse_status, model.Grid.center(reuse))
+	return _frontier_location("reuse_result", "定位基地核心", "查看矿渣回用成果",
+		"矿渣烧结累计 %d 批，载体回仓线已接通。核心现有载体 %d 件。" % [reused, model.core.items.get("porous_carrier", 0)],
+		model.Grid.center(model.core))
+
+
+static func _frontier_location(step: String, label: String, title: String, advice: String, point: Vector2) -> Dictionary:
+	return _action("location", label, advice.get_slice("\n", 0), {"point": point, "frontier_step": step, "mission": title + "\n" + advice})
+
+
+static func _preferred_refinery(model: RefCounted, recipe := "") -> Dictionary:
+	var options := _entities(model, "refinery", recipe)
+	for option in options:
+		if option.enabled and option.power_node_id != 0:
+			return option
+	return options[0] if not options.is_empty() else {}
+
+
+static func _production_power_issue(model: RefCounted, entity: Dictionary) -> String:
+	var status: Dictionary = model.feedback(entity)
+	if not entity.enabled or entity.power_node_id == 0 or (status.kind == "waiting" and status.label == status.power):
+		return status.power
+	return ""
+
+
+static func _refinery_status(model: RefCounted, furnace: Dictionary) -> String:
+	var power := _production_power_issue(model, furnace)
+	if not power.is_empty():
+		return "精炼炉：" + power + "。"
+	if furnace.processing:
+		return "精炼炉正在加工。"
+	if not furnace.output.is_empty():
+		var waits := PackedStringArray()
+		for port in Logistics.ports(model, furnace, "output"):
+			var item: String = model._output_item_at(furnace, port)
+			if not item.is_empty():
+				var status := Logistics.output_status(model, furnace, port, item)
+				if not status.ok:
+					waits.append(Items.NAMES[item] + "：" + status.reason)
+		return "等待出料。" if waits.is_empty() else "出料受阻 · " + "；".join(waits) + "。"
+	var missing := PackedStringArray()
+	for item in model.recipes[furnace.recipe_id].input:
+		if furnace.input.get(item, 0) < model.recipes[furnace.recipe_id].input[item]:
+			missing.append(Items.NAMES[item])
+	return "原料齐全，等待开批。" if missing.is_empty() else "精炼炉缺" + "、".join(missing) + "。"
+
+
+static func _connected_receiver(model: RefCounted, source: Dictionary, item: String, receiver: String, recipe := "") -> Dictionary:
+	var pending: Array[Dictionary] = [source]
+	var visited := {int(source.id): true}
+	var first_match := {}
+	var i := 0
+	while i < pending.size():
+		var entity := pending[i]
+		i += 1
+		for output in Logistics.ports(model, entity, "output"):
+			if entity.type == "refinery" and output.index != 0:
+				continue
+			var connection := Logistics.output_connection(model, output)
+			if not connection.ok:
+				continue
+			var target: Dictionary = connection.target
+			if visited.has(target.id):
+				continue
+			visited[target.id] = true
+			if target.type == receiver and (recipe.is_empty() or target.recipe_id == recipe):
+				if receiver == Rules.Integrated.CORE or (target.enabled and target.power_node_id != 0):
+					return target
+				if first_match.is_empty():
+					first_match = target
+			elif Logistics.transport(target):
+				# A full slot can drain along the route. A closed or mismatched gate cannot accept new cargo.
+				if target.type != "admission_gate" or Logistics.Admission.receive_reason(target.merged({"cargo": ""}, true), item).is_empty():
+					pending.append(target)
+	return first_match
 
 
 static func _capsule_assembler(model: RefCounted) -> Dictionary:

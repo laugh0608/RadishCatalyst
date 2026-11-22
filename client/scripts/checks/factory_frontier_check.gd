@@ -5,6 +5,7 @@ const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Route := preload("res://scripts/checks/factory_frontier_route.gd")
 const Store := preload("res://scripts/factory/save/store.gd")
 const Compare := preload("res://scripts/checks/factory_expansion_compare.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const Codec := Store.Codec
 const Frontier := Codec.V10.Frontier
 const NAME := "开拓工厂联合复核"
@@ -163,6 +164,8 @@ func _write_and_compare() -> void:
 	world._refresh()
 	driver.expect(world.ui.waypoint.is_empty() and world.ui.interaction_kind != world.InteractionTarget.FRONTIER_PASSAGE,
 		"opening the branch clears its marker and field prompt")
+	driver.expect("架设高产采集器" in world.hud.mission.text and world.hud.buttons.guide_action.text == "定位高产炭矿",
+		"the open branch guides the player to place the prepared collector")
 	if windowed:
 		world._refresh()
 		await _click(world.hud.buttons.guide_action)
@@ -173,6 +176,9 @@ func _write_and_compare() -> void:
 		ids[key] = route.devices[key].id
 	driver.expect(route.devices.Kh.power_node_id != 0 and model.collector_cycle(route.devices.Kh) == 5.0
 		and model.collector_cycle(route.devices.K) == 20.0, "both ore sources connected with distinct cycles")
+	world._refresh()
+	driver.expect("启动高产采集器" in world.hud.mission.text and "回流线已接到粉碎机" in world.hud.mission.text,
+		"the actual line is recognized while the high-yield collector is stopped")
 	var common := Codec.snapshot(model, id, NAME, world.store.sequence)
 	var base := Codec.decode(common, id)
 	driver.expect(base.ok, "common checkpoint decodes: " + base.get("reason", ""))
@@ -186,6 +192,13 @@ func _write_and_compare() -> void:
 		driver.expect(rich[i].high_ore > 0 and ordinary[i].high_ore == 0
 			and ordinary[i].mixed <= 24 and rich[i].slag > 0 and rich[i].core_plate > 0 and rich[i].packs > 0,
 			"comparison changes the sole source and proves sustained co-product recovery")
+	var feedback_state := Codec.decode(Codec.snapshot(model, id, NAME, world.store.sequence), id)
+	driver.expect(feedback_state.ok, "guidance fault checks use a copy of the live route")
+	if feedback_state.ok:
+		_check_production_guidance(feedback_state.model, ids)
+	world._refresh()
+	driver.expect("混料累计" in world.hud.mission.text and "用板材做构件包" in world.hud.mission.text
+		and world.ui.waypoint.is_empty(), "live mixed output guides expansion and clears the old mine marker")
 	if windowed:
 		world._refresh()
 		await _click(world.hud.buttons.guide_action)
@@ -254,19 +267,26 @@ func _verify_first_expansion(world: Control, route: RefCounted) -> Dictionary:
 	var furnace: Dictionary = route.build_slag_reuse_line()
 	var carrier_before: int = model.core.items.get("porous_carrier", 0)
 	var reuse_before: int = model.completed_by_recipe.slag_sintering
-	route.stock(furnace, "mineral_slag", 2, true)
-	route.stock(furnace, "crystal", 1, true)
+	route.stock(furnace, "mineral_slag", 4, true)
+	route.stock(furnace, "crystal", 2, true)
+	world._refresh()
+	driver.expect(world.hud.buttons.guide_action.text == "定位矿渣烧结炉" and "载体回仓线已接通" in world.hud.mission.text,
+		"the newly configured furnace is located before its first output")
 	if windowed:
 		world._open_device(furnace.id)
 		world._refresh()
 		await driver.shot("06b-slag-reuse-line")
 		world.discovery_panel.close_panel()
-	route.wait_for(func(): return model.core.items.get("porous_carrier", 0) >= carrier_before + 2,
-		60, "new refinery delivers its first two carriers to the core")
+	route.wait_for(func(): return model.core.items.get("porous_carrier", 0) >= carrier_before + 4,
+		60, "new refinery delivers two successive batches of carriers to the core")
 	var carriers: int = model.core.items.get("porous_carrier", 0) - carrier_before
-	driver.expect(model.kits.refinery == stored_refineries and furnace.power_node_id > 0 and carriers == 2
-		and model.completed_by_recipe.slag_sintering == reuse_before + 1 and model.material_balance().balanced,
-		"the added powered refinery completes slag reuse and delivers both carriers through the belt")
+	driver.expect(model.kits.refinery == stored_refineries and furnace.power_node_id > 0 and carriers == 4
+		and model.completed_by_recipe.slag_sintering == reuse_before + 2 and model.material_balance().balanced,
+		"the added powered refinery runs two batches and delivers all four carriers through the belt without refilling")
+	world._refresh()
+	driver.expect(world.hud.buttons.guide_action.text == "定位基地核心" and "查看矿渣回用成果" in world.hud.mission.text
+		and "核心现有载体 %d 件" % (carrier_before + carriers) in world.hud.mission.text,
+		"after real arrival, guidance points at the core and reflects its carrier stock")
 	var elapsed: float = (model.statistics.ticks - start_tick) * Route.STEP
 	var released: float = model.statistics.totals.fuel_released_kj - fuel_before
 	driver.expect(is_equal_approx(released, elapsed * Route.Model.Energy.GENERATOR_KW)
@@ -277,8 +297,36 @@ func _verify_first_expansion(world: Control, route: RefCounted) -> Dictionary:
 		world.core_panel.tabs.current_tab = 0
 		await driver.shot("06c-reused-carriers-in-core")
 		world.core_panel.close()
-	return expansion.merged({"packs_spent": cost, "refinery_id": furnace.id, "slag_spent_for_production": 2,
+	return expansion.merged({"packs_spent": cost, "refinery_id": furnace.id, "slag_spent_for_production": 4,
 		"carriers_delivered": carriers, "construction_seconds": elapsed, "fuel_released_kj": released})
+
+
+func _check_production_guidance(model: RefCounted, ids: Dictionary) -> void:
+	var furnace: Dictionary = model.by_id(ids.F)
+	# Isolate the diagnostic variables without changing the window world's route or ledger.
+	furnace.processing = false
+	furnace.output = {}
+	furnace.input = {"iron_powder": 3}
+	driver.expect("精炼炉缺炭粉" in Guidance.integrated_location(model).mission, "mixed refining distinguishes missing carbon")
+	furnace.input = {"carbon_powder": 1}
+	driver.expect("精炼炉缺铁粉" in Guidance.integrated_location(model).mission, "mixed refining distinguishes missing iron")
+	var routes = Route.Model.BeltLogistics
+	var output: Dictionary = routes.ports(model, furnace, "output")[0]
+	var outlet: Dictionary = model.entity_at(Vector2i(output.x + output.dx, output.z + output.dz))
+	var route := Route.new(model, {})
+	route.advance_movement = false
+	route.walk_near(outlet)
+	route._must(model.salvage(outlet.id))
+	furnace.output = {"metal_plate": 2}
+	driver.expect("出料受阻 · 金属板：未连接" in Guidance.integrated_location(model).mission, "mixed refining identifies the disconnected plate output")
+	var ore: Dictionary = model.by_id(ids.Kh)
+	output = routes.ports(model, ore, "output")[0]
+	var ore_outlet: Dictionary = model.entity_at(Vector2i(output.x + output.dx, output.z + output.dz))
+	route.walk_near(ore_outlet)
+	route._must(model.salvage(ore_outlet.id))
+	var feedback := Guidance.integrated_location(model)
+	driver.expect(feedback.action_label == "定位高产炭矿" and "还没有通往炭矿粉碎机的线路" in feedback.mission,
+		"historical output cannot advance guidance when the ore line has been cut")
 
 
 func _check_outer_guidance(world: Control, route: RefCounted) -> void:
@@ -319,6 +367,10 @@ func _sample(model: RefCounted, ids: Dictionary, high: bool) -> Array[Dictionary
 	var source: Dictionary = model.by_id(ids.Kh if high else ids.K)
 	route.walk_near(source)
 	route._must(model.set_device_enabled(source.id, true))
+	if high:
+		var guide := Guidance.integrated_location(model)
+		driver.expect(guide.action_label == "定位炭矿粉碎机" and guide.point == model.Grid.center(model.by_id(ids.C))
+			and "等炭矿到达" in guide.mission, "the connected but empty line locates its actual receiving crusher")
 	model.advance(WARMUP_SECONDS, WARMUP_SECONDS * 20)
 	var results: Array[Dictionary] = []
 	for i in 2:
@@ -435,8 +487,10 @@ func _read() -> void:
 	driver.expect(Compare.equivalent(snapshot, expected.before), "same full schema 10 snapshot")
 	driver.expect(model.frontier_extracted > 0 and model.discovery.passages[Frontier.PASSAGE]
 		and _live_frontier(model, expected.ids), "opened branch, cargo, in-process ore and active fuel survive restore")
+	world._refresh()
+	driver.expect(world.hud.buttons.guide_action.text == "定位基地核心" and "查看矿渣回用成果" in world.hud.mission.text,
+		"the restored production state brings back the expansion result and core locator")
 	if windowed:
-		world._refresh()
 		await _click(world.hud.buttons.guide_action)
 		await driver.shot("07-restored-frontier")
 	model.advance(30, 600)

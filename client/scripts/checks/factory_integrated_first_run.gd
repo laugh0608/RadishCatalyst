@@ -6,6 +6,7 @@ const Driver := preload("res://scripts/checks/factory_window_driver.gd")
 const Store := preload("res://scripts/factory/save/store.gd")
 const Codec := Store.Codec
 const NAME := "整合工厂联合首程"
+const LIVE_SECONDS := 35.0
 
 var evidence := ""
 var boot: Node
@@ -151,6 +152,8 @@ func _first_run() -> void:
 	if windowed:
 		await _inspect_minimum_window(world)
 	await driver.shot("05-continuous-production")
+	if "--live" in OS.get_cmdline_user_args() and not await _sample_live_production(world, journey.devices.G.id):
+		return
 	journey.alternatives_and_passages()
 	driver.expect(model.researched.size() == 7 and model.completed_by_recipe.slag_sintering > 0, "same world finishes seven nodes and material reuse")
 	driver.expect(model.discovery.passages.inner and model.completed_by_recipe.rich_catalyst > 0, "rich ore production is earned through the real gates")
@@ -180,6 +183,51 @@ func _first_run() -> void:
 		"manual_transfer_commands": journey.carried, "continuous": continuous, "core_output_traffic": traffic, "saved": current,
 		"timing": "fixed-step simulation and collision-aware walks; not player elapsed time"})
 	print("First run continuous: " + JSON.stringify(continuous))
+
+
+func _sample_live_production(world: Control, generator: int) -> bool:
+	if not windowed or not root.has_focus():
+		driver.expect(false, "live production needs a focused window")
+		return false
+	var model: RefCounted = world.model
+	var focus_lost := [false]
+	var interrupt := func(): focus_lost[0] = true
+	root.focus_exited.connect(interrupt)
+	var before := _result(model, generator)
+	var deficit_before: float = model.statistics.totals.deficit_kj
+	world.sample_enabled = true
+	world._set_paused(false)
+	var start: int = world.production_clock.last_usec
+	var draw_calls := []
+	while world.production_clock.last_usec - start < LIVE_SECONDS * 1000000.0 and not focus_lost[0] and not world.save_failed:
+		await process_frame
+		if not root.has_focus():
+			focus_lost[0] = true
+		if not focus_lost[0]:
+			draw_calls.append(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+	var elapsed: float = (world.production_clock.last_usec - start) / 1000000.0
+	world.sample_enabled = false
+	world._set_paused(true)
+	root.focus_exited.disconnect(interrupt)
+	var after := _result(model, generator)
+	_write("live-production.json", {"focus_lost": focus_lost[0], "seconds": elapsed,
+		"renderer": RenderingServer.get_current_rendering_method(), "adapter": RenderingServer.get_video_adapter_name(),
+		"window_pixels": [root.size.x, root.size.y], "viewport_pixels": [world.hud.subviewport.size.x, world.hud.subviewport.size.y],
+		"zoom": world.view.zoom, "entities": model.entities.size(), "frame_ms": world.frame_samples,
+		"simulation_ms": world.simulation_samples, "draw_calls": draw_calls, "autosaves": world.save_samples,
+		"before": before, "after": after})
+	if focus_lost[0] or world.save_failed:
+		driver.expect(false, "continuous live sample interrupted; partial evidence retained")
+		return false
+	driver.expect(elapsed >= LIVE_SECONDS and not draw_calls.is_empty(), "focused window production sample reaches its duration")
+	driver.expect(after.tick > before.tick and after.cells > before.cells and after.plates > before.plates,
+		"live production advances and makes both cells and plates")
+	var expected_release := roundi((after.tick - before.tick) * Route.STEP * Route.Model.Energy.GENERATOR_KW * 1000000.0)
+	driver.expect(after.released_micro_kj - before.released_micro_kj == expected_release
+		and is_equal_approx(model.statistics.totals.deficit_kj, deficit_before), "continuous fixed burn and sufficient power throughout sample")
+	driver.expect(not world.save_samples.is_empty() and world.save_samples.all(func(sample): return sample.ok),
+		"natural autosaves complete during the sample")
+	return driver.failures.is_empty()
 
 
 func _read() -> void:

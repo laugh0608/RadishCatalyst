@@ -137,11 +137,11 @@ func collect_mixed_plate_packs(count: int) -> Dictionary:
 
 func prepare_slag_reuse() -> void:
 	walk_near(devices.Ts)
-	stock(devices.Ts, "mineral_slag", 4, false)
+	stock(devices.Ts, "mineral_slag", 6, false)
 	walk_near(model.core)
 	stock(model.core, "mineral_slag", 2, true)
 	_must(model.research(P.REUSE))
-	stock(model.core, "crystal", 1, false)
+	stock(model.core, "crystal", 2, false)
 
 
 func build_slag_reuse_line() -> Dictionary:
