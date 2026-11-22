@@ -93,8 +93,8 @@ static func _frontier_goal(model: RefCounted) -> Dictionary:
 			mission = "补充采集器\n" + advice
 			action = _action("location", "定位基地核心", advice, {"point": model.Grid.center(model.core)})
 		_:
-			mission = "高产炭矿支路已开启\n已采 %d 件。接回炭粉产线，观察电芯供燃与混料产出。" % model.frontier_extracted
-			action = _action("location", "定位高产炭矿", "走近接电、建采集器并铺带，把新矿接回原产线。",
+			mission = "高产炭矿支路已开启\n已采 %d 件。接回炭粉线后，用混料板材做构件，矿渣烧结成载体。" % model.frontier_extracted
+			action = _action("location", "定位高产炭矿", "接电铺带，把新矿送回粉碎机，继续供给电芯和混料。",
 				{"point": Vector2(Frontier.ORE) + Vector2.ONE})
 	action.frontier_step = step
 	action.mission = mission

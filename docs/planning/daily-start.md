@@ -17,17 +17,21 @@
 
 ## 当前接续事项
 
-### D1 开拓首程收口
+### E 整段收口 · D1 正式入口预检准备
 
-下一步验证用高产矿支持的混料板材装配下一条产线需要的构件。沿现有配方从同一隔离新档建线、供燃、研究、开路、回流到完成实际扩建，并核对关键操作反馈、物料账和跨进程继续。日常由自动检查推进，整段候选准备好后再安排萝卜SAMA亲测。公开入口按原合同评估。
+建议先审阅正式 Boot 的工厂菜单、Store 授权和身份识别，列出可在临时存档根复现的新建、继续与恢复用例。重点验证 schema 9 基础整合、schema 10 新建的普通带单入口身份及既有 D1 原规则身份各自读回，损坏主档仅由同身份备份恢复。预检结果用于评估 D1 公开入口。[存档合同](../architecture/factory-integrated-demo-save-v1.md#身份与发布边界)
 
-运行 `sh tools/check-factory-frontier.sh play 20261122-d1-x2-02`，进入「工厂世界」，选择「D1 开拓亲测 · X2 待提交」并继续。萝卜SAMA已亲测提交 X2 并打开外矿道。序号 44 自动存档在高产支路北入口，背包有制作四枚胶囊所需的催化剂、载体和炭粉。普通矿与电芯产线已接通。[亲测与自动化审核](../devlogs/2026-W47.md#d1-after-outer-audit)
+### D1 开拓首程候选
 
-已有隔离档可用于阶段回查。按目标栏定位组装机，制作四枚胶囊后再定位支路北入口，靠近按 F。支路开通后，若采集器库存为零，先按提示回核心装配或回收闲置采集器。已用亲测档副本跑通新引导、回流与跨进程继续。[接续验证](../devlogs/2026-W47.md#d1-frontier-guidance)
+正式 Boot 有窗口与无窗口检查已从隔离新档跑通基础生产、供燃、开路、回流和实际扩建。两枚由混料板材制得的构件包用于装配精炼炉，新炉把首批两件多孔载体送回核心。物料账、供燃及独立进程继续均通过。[验证记录](../devlogs/2026-W47.md#d1-first-run-candidate)
+
+萝卜SAMA决定本轮跳过整段亲测。候选保留，如需回查可运行 `sh tools/check-factory-frontier.sh play 20261122-d1-first-run-review-01`，进入「工厂世界」继续「D1 首程候选 · 开拓回报」。玩家首次理解、节奏和继续经营的动机仍待观察。
+
+如需回查萝卜SAMA的序号 44 原档，运行 `sh tools/check-factory-frontier.sh play 20261122-d1-x2-02`，继续「D1 开拓亲测 · X2 待提交」。X2 与外矿道已完成，人在支路北入口。按目标栏定位组装机，制作四枚胶囊后再到入口按 F。缺采集器时可回核心装配或回收闲置采集器。[原档接续验证](../devlogs/2026-W47.md#d1-frontier-guidance)
 
 收益不清楚就先修反馈或节奏，有调度动机但控制受阻就回到 D2 的独立档观察，暂无动机就保留现有机制。丢货、复制或无法继续的缺陷优先处理。
 
-### D2 长期对照 · 等 D1 里程碑反馈
+### D2 长期对照 · 等调度需求证据
 
 schema 16 驱动已修正，首个断燃周期和 Fd 重启两项短测均通过，保留原失败批次及冷父档。[短测记录](../devlogs/2026-W47.md#d2-v5-short-checks)
 
@@ -36,7 +40,7 @@ schema 16 驱动已修正，首个断燃周期和 Fd 重启两项短测均通过
 ### 已交付入口与待验
 
 1. [基础整合验收](../devlogs/2026-W45.md#foundation-acceptance)通过。正式菜单选择「整合工厂 · 核心研究与固定燃烧」新建，后续从目录继续。已有亲测档仍用 `sh tools/check-factory-integrated-c.sh play joint-first-run` 继续。
-2. 用 `sh tools/check-factory-frontier.sh play <batch>` 开始 [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)隔离亲测。从核心 II 的 X2 到胶囊开路，实地把高产矿接回工厂并观察回报。Windows 与目标硬件待验。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)有核心 I 首程候选与 X2 阶段回查档，入口见上方。Windows 与目标硬件待验。
 3. 旧 V8 亲测仍可显式运行 `tools/runtime-intake/review-worlds/factory-energy-v8-playtest/start.sh practice / c / d`，默认会话 `playtest-20261101-a`；先练习再看收益。它验证旧 V8，不能拿来验证新核心 / 固定燃烧。失焦仍生产，离开前暂停，不自动重开用户关闭的窗口。
 4. [D2 C3 负载组](../features/factory-load-groups-c3.md)已接入，含核心 III、E2、C1 和 C2。用 `sh tools/check-factory-grid-controls.sh play c3-load-groups-20261113` 继续已备好的阻断 / 在制检查点；另用新批次新建选择 C3。C2 / C1 / E2 / III 旧档沿原选项继续。D2 玩家亲测仍待验。
 5. R1 镜头、四面轮廓及材质对照可从各自独立样板回查。入口和原图索引见 [Factory Content](../../tools/factory-content/README.md)。

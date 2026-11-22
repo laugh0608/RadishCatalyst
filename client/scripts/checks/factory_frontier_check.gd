@@ -186,17 +186,20 @@ func _write_and_compare() -> void:
 		driver.expect(rich[i].high_ore > 0 and ordinary[i].high_ore == 0
 			and ordinary[i].mixed <= 24 and rich[i].slag > 0 and rich[i].core_plate > 0 and rich[i].packs > 0,
 			"comparison changes the sole source and proves sustained co-product recovery")
-	var persisted := _checkpoint(model, ids)
-	driver.expect(persisted, "checkpoint includes ore in transit, partial collection and crushing, and active fuel")
-	var checkpoint := Codec.snapshot(model, id, NAME, world.store.sequence)
-	_mutations(checkpoint, id)
-	_backup_identity(checkpoint, id)
 	if windowed:
 		world._refresh()
 		await _click(world.hud.buttons.guide_action)
 		await driver.shot("05-powered-frontier-belt")
 		world.view.inspection_target = Vector3(-23.0, 0.25, 8.0)
 		await driver.shot("06-mixed-refining-and-slag")
+	var expansion := await _verify_first_expansion(world, route)
+	if expansion.is_empty():
+		return
+	var persisted := _checkpoint(model, ids)
+	driver.expect(persisted, "checkpoint includes ore in transit, partial collection and crushing, and active fuel")
+	var checkpoint := Codec.snapshot(model, id, NAME, world.store.sequence)
+	_mutations(checkpoint, id)
+	_backup_identity(checkpoint, id)
 	await _click(world.hud.buttons["return"])
 	driver.expect(boot.factory_world == null, "save and return releases the writer")
 	if boot.factory_world != null:
@@ -209,9 +212,73 @@ func _write_and_compare() -> void:
 	var sequence: int = candidate.document.sequence
 	model.advance(30, 600)
 	_save("expected.json", {"before": candidate.document, "after": Codec.snapshot(model, id, NAME, sequence), "ids": ids})
-	_save("result.json", {"ordinary": ordinary, "high_yield": rich, "warmup_seconds": WARMUP_SECONDS,
+	_save("result.json", {"ordinary": ordinary, "high_yield": rich, "warmup_seconds": WARMUP_SECONDS, "expansion": expansion,
 		"assertions": driver.assertions, "failures": driver.failures, "window": windowed})
 	print("Frontier comparison: ", JSON.stringify({"ordinary": ordinary, "high_yield": rich}))
+	print("Frontier expansion: ", JSON.stringify(expansion))
+
+
+func _verify_first_expansion(world: Control, route: RefCounted) -> Dictionary:
+	var model: RefCounted = world.model
+	var start_tick: int = model.statistics.ticks
+	var fuel_before: float = model.statistics.totals.fuel_released_kj
+	var deficit_before: float = model.statistics.totals.deficit_kj
+	var packs_before: int = model.core.items.get("construction_pack", 0)
+	var cost: int = model.assembly_costs.refinery
+	var expansion: Dictionary = route.collect_mixed_plate_packs(cost)
+	driver.expect(not expansion.is_empty() and model.core.items.get("construction_pack", 0) == packs_before + cost,
+		"the terminal receives new packs made with mixed plates and those packs reach the core")
+	if expansion.is_empty():
+		return {}
+	route.prepare_slag_reuse()
+	var stored_refineries: int = model.kits.refinery
+	if windowed:
+		world.view.inspection_target = null
+		world.core_panel.open(model)
+		world.core_panel.tabs.current_tab = world.core_panel.tabs.get_tab_count() - 1
+		var options: OptionButton = world.core_panel.assembly_choice
+		for i in options.item_count:
+			if options.get_item_metadata(i) == "refinery":
+				options.select(i)
+				break
+		world.core_panel.refresh(world.ui.paused)
+		await driver.shot("06a-expansion-assembly")
+		await _click(world.core_panel.assembly_button)
+		world.core_panel.close()
+	else:
+		route._must(model.assemble("refinery"))
+	var paid: bool = model.core.items.get("construction_pack", 0) == packs_before and model.kits.refinery == stored_refineries + 1
+	driver.expect(paid, "refinery assembly spends the newly delivered packs and preserves the existing core stock")
+	if not paid:
+		return {}
+	var furnace: Dictionary = route.build_slag_reuse_line()
+	var carrier_before: int = model.core.items.get("porous_carrier", 0)
+	var reuse_before: int = model.completed_by_recipe.slag_sintering
+	route.stock(furnace, "mineral_slag", 2, true)
+	route.stock(furnace, "crystal", 1, true)
+	if windowed:
+		world._open_device(furnace.id)
+		world._refresh()
+		await driver.shot("06b-slag-reuse-line")
+		world.discovery_panel.close_panel()
+	route.wait_for(func(): return model.core.items.get("porous_carrier", 0) >= carrier_before + 2,
+		60, "new refinery delivers its first two carriers to the core")
+	var carriers: int = model.core.items.get("porous_carrier", 0) - carrier_before
+	driver.expect(model.kits.refinery == stored_refineries and furnace.power_node_id > 0 and carriers == 2
+		and model.completed_by_recipe.slag_sintering == reuse_before + 1 and model.material_balance().balanced,
+		"the added powered refinery completes slag reuse and delivers both carriers through the belt")
+	var elapsed: float = (model.statistics.ticks - start_tick) * Route.STEP
+	var released: float = model.statistics.totals.fuel_released_kj - fuel_before
+	driver.expect(is_equal_approx(released, elapsed * Route.Model.Energy.GENERATOR_KW)
+		and is_equal_approx(model.statistics.totals.deficit_kj, deficit_before), "generation continues throughout construction without a deficit")
+	if windowed:
+		route.walk_near(model.core)
+		world.core_panel.open(model)
+		world.core_panel.tabs.current_tab = 0
+		await driver.shot("06c-reused-carriers-in-core")
+		world.core_panel.close()
+	return expansion.merged({"packs_spent": cost, "refinery_id": furnace.id, "slag_spent_for_production": 2,
+		"carriers_delivered": carriers, "construction_seconds": elapsed, "fuel_released_kj": released})
 
 
 func _check_outer_guidance(world: Control, route: RefCounted) -> void:

@@ -98,3 +98,63 @@ func expand(full_layout: Dictionary, temporary: Array[Dictionary]) -> void:
 		_must(model.configure_output(model.core.id, row[0], row[1], true))
 	assert(model.kits.belt == 256 + layout.belt_batches * 8 - layout.belts)
 	assert(model.material_balance().balanced)
+
+
+func collect_mixed_plate_packs(count: int) -> Dictionary:
+	var assembler: Dictionary = devices.A
+	var terminal: Dictionary = devices.T
+	var plate_route: Dictionary = layout.routes.filter(func(link): return _name(link.source) == "Sp" and _name(link.target) == "A")[0]
+	var inlet: Dictionary = model.entity_at(_cell(plate_route.points.back()))
+	assert(inlet.type == "belt" and assembler.recipe_id == "construction_assembly")
+	for i in 2400:
+		if not assembler.processing and assembler.input.get("metal_plate", 0) == 0 and assembler.output.is_empty():
+			break
+		model.advance(STEP, 1)
+	if assembler.processing or assembler.input.get("metal_plate", 0) != 0 or not assembler.output.is_empty():
+		return {}
+	var terminal_before: int = terminal.items.get("construction_pack", 0)
+	var completed_before: int = model.completed_by_recipe.construction_assembly
+	var plate_batches: Array[int] = []
+	for i in 7200:
+		var before: int = assembler.input.get("metal_plate", 0)
+		var old_batch: int = assembler.active_batch
+		var incoming_batch: int = inlet.batch if inlet.cargo == "metal_plate" else 0
+		var recipe: String = model.batch_recipes.get(str(incoming_batch), "")
+		model.advance(STEP, 1)
+		var spent: int = assembler.invested.get("metal_plate", 0) if assembler.active_batch > 0 and old_batch != assembler.active_batch else 0
+		var received: int = assembler.input.get("metal_plate", 0) - before + spent
+		if received != 0:
+			if received != 1 or recipe != "mixed_refining":
+				return {}
+			plate_batches.append(incoming_batch)
+		if terminal.items.get("construction_pack", 0) - terminal_before == count:
+			if model.completed_by_recipe.construction_assembly - completed_before != count or plate_batches.size() < count * 2:
+				return {}
+			_packs_to_core(count)
+			return {"mixed_plate_batches": plate_batches, "new_packs_received": count}
+	return {}
+
+
+func prepare_slag_reuse() -> void:
+	walk_near(devices.Ts)
+	stock(devices.Ts, "mineral_slag", 4, false)
+	walk_near(model.core)
+	stock(model.core, "mineral_slag", 2, true)
+	_must(model.research(P.REUSE))
+	stock(model.core, "crystal", 1, false)
+
+
+func build_slag_reuse_line() -> Dictionary:
+	var furnace: Dictionary = _must(model.place("refinery", Vector2i(-15, 23), 0, model.actor)).entity
+	# Turn toward the core above the separate slag output at (-13, 25).
+	var path: Array[Vector2i] = [Vector2i(-13, 23), Vector2i(-13, 24), Vector2i(-12, 24)]
+	var belts: Array = _must(model.place_path(path, model.DIRS.find(Vector2i.RIGHT))).entities
+	var source: Dictionary = furnace
+	for target in belts + [model.core]:
+		var output: Dictionary = Model.BeltLogistics.ports(model, source, "output")[0]
+		var connection: Dictionary = Model.BeltLogistics.output_connection(model, output)
+		assert(connection.ok and connection.target.id == target.id, "slag reuse line: " + connection.reason)
+		source = target
+	walk_near(furnace)
+	_must(model.change_recipe(furnace.id, "slag_sintering"))
+	return furnace

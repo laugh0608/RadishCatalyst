@@ -13,8 +13,9 @@
 ## 当前顺位
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。X2 与外矿道已亲测，胶囊、支路、采集器补充、回流与持续生产均完成[自动复核](../devlogs/2026-W47.md#d1-frontier-guidance)。接续收口 D1 首程，用同一隔离新档从基础生产跑到高产矿回流，再用持续产出完成一项实际扩建目标，核对玩家能看到的来料、瓶颈和产出反馈。形成整段候选后安排里程碑亲测，再评估公开入口条件。D1 新建沿普通带单入口规则，已有档按原规则继续。
-3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。D1 里程碑反馈用于判断是否需要测控。在玩家已有调度动机且现有控制妨碍操作时，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。X2 与外矿道已亲测。[首程候选](../devlogs/2026-W47.md#d1-first-run-candidate)已从空档自动跑到高产矿回流、扩建和首批载体入库，并通过独立进程继续。萝卜SAMA决定本轮跳过整段亲测，保留候选和首次理解、节奏、经营动机的待验记录。D1 新建沿普通带单入口规则，已有档按原规则继续。
+3. [E 整段收口](../features/factory-demo-integration-v1.md#实施拆分)下一步建议做 D1 正式入口的技术准备。先核对菜单和存档授权，拟定隔离预检用例，覆盖基础整合和 D1 新建、两种 D1 物流身份继续、备份恢复与旧档保护。D1 公开入口另行评估。
+4. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。待现有玩法显出调度动机和操作阻碍，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
 
 本阶段日常迭代以匹配改动的自动检查推进，玩家可见改动补正式 Boot 窗口与相应证据。萝卜SAMA在整段候选等里程碑集中亲测，复核首次理解、节奏和继续经营的动机。
 
