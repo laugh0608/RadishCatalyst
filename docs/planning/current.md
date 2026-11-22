@@ -13,7 +13,7 @@
 ## 当前顺位
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档，X2 与外矿道已亲测。[本轮首程](../devlogs/2026-W47.md#e-d1-production-guidance)补齐回流、设备诊断与扩建反馈，从空档自动跑到两批载体入库并独立继续。里程碑候选留待集中亲测，重点看首次理解、节奏和继续经营的动机。D1 新建沿普通带单入口规则，已有档按原规则继续。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档，X2 与外矿道已亲测。[首程回归](../devlogs/2026-W47.md#e-d1-production-guidance)从空档跑到两批载体入库。[持续生产复核](../devlogs/2026-W47.md#d1-sustained-production)验证矿渣与晶体自动供料、载体回仓和发电补燃，独立继续后维持生产。里程碑候选已重新用空档准备，待集中亲测首次理解、节奏和继续经营的动机。D1 新建沿普通带单入口规则，已有档按原规则继续。
 3. [E 整段收口](../features/factory-demo-integration-v1.md#实施拆分)已完成 [D1 正式入口隔离预检](../devlogs/2026-W47.md#d1-entry-preflight)及[备份恢复修复](../devlogs/2026-W47.md#d1-recovery-identity-fix)，D1 暂只走隔离入口。[R2 核心](../devlogs/2026-W47.md#r2-foundation-integration)与[基础反应器](../devlogs/2026-W47.md#e-r2-reactor-foundation)已接入正式基础整合，反应器在世界、建造预览和设备面板复用同一场景。现有 Mac 已复核接入前后 schema 9 档的独立继续。[备份轮换优化](../devlogs/2026-W47.md#e-autosave-rotation)已通过周期保存及 D1 恢复复测。
 4. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。待现有玩法显出调度动机和操作阻碍，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
 
