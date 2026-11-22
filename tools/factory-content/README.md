@@ -50,6 +50,10 @@ macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-s
 
 贴图源运行 `python3 tools/factory-content/export-representative-materials.py <new-batch> --copy-to-study`。需先导入 Godot，启动前告知。定向入口为 `check-material-study.gd -- <new-batch>`，无窗口时给 Godot 加 `--headless`。窗口验证去掉 `--headless`，并在脚本用户参数中追加 `--window`。证据位于 `tools/runtime-intake/check-runs/factory-material-study-v1/` 与 `assets/art-intake/factory-material-study-v1/`。见[样板复测](../../docs/features/factory-camera-and-representative-scene-v1.md#r1-material-review)。
 
+## R2 核心首件实机对照
+
+启动前告知，运行 `sh tools/factory-content/r2-core-review.sh <new-batch>`。正式 Boot 在隔离根新建基础整合档，沿 S1-P 生产，实际点击核心升级，在同一货流和镜头上切换现行核心与候选。候选是保留三平面映射的 Godot 场景，使用仓库已有 GLB 和贴图。原图与候选在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志和帧数据在 `tools/runtime-intake/check-runs/factory-r2-core-v1/<batch>/`。[首件复核](../../docs/devlogs/2026-W47.md#r2-core-first-piece)
+
 ## 低投入交互样板
 
 `node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。

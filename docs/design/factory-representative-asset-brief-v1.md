@@ -86,6 +86,8 @@ Godot 的 [Camera3D](https://docs.godotengine.org/en/stable/classes/class_camera
 
 工作面用于厂坪审阅对照是实施约定，两种地表仍可切换。R1-D 的短窗口采样提供开发机对照，GPU 时长、正式货物流和目标平台各自留验。首件进入正式场景前，须在 [B1](../features/factory-base-core-v1.md#b1-first-delivery) 的真实端口与操作路径上复核。
 
+首件隔离对照沿用 `outline-06` 几何，以独立 Godot 场景保存 `material-02` 的核心实例材质。固定同一 S1-P 产线、工作面、库存与相机姿态配对取图，核对四面锚点、四路真实出料、核心 I → II 的正常升级和近身选择。最小窗口及 16 / 28 格用实际工厂视图补证。同画面按现行、候选、候选、现行采集短时帧时和绘制量。出现端口遮挡、接带错位或点击偏移时记录实际位置与档位，再评估接入。
+
 ## 制作与发布材料
 
 先建立独立候选批次，建议在获制作授权后使用 `assets/art-intake/<date>-factory-representative-assets/<batch>/` 放可编辑源 / 烘焙源与候选 GLB / PNG，不覆盖正式路径。若采用自有离线网格制作，导出工具进入 `tools/factory-content/` 的独立新入口；若采用 DCC，先说明软件、已有安装与源文件落盘，不在本轮安装或预选付费工具。

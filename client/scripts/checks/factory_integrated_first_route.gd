@@ -106,6 +106,12 @@ func _mark(name: String) -> void:
 
 
 func bootstrap() -> void:
+	prepare_core_upgrade()
+	_must(model.upgrade_core())
+	finish_bootstrap()
+
+
+func prepare_core_upgrade() -> void:
 	assert(model.entities.size() == 1 and model.bag.is_empty() and model.core.items.is_empty())
 	for i in range(1, 7):
 		build("J%d" % i, "power_junction")
@@ -149,7 +155,9 @@ func bootstrap() -> void:
 		stock(devices.A, "porous_carrier", 2, true)
 		wait_for(func(): return devices.T.items.get("construction_pack", 0) >= (i + 1) * 2, 150, "construction packs enter terminal")
 	_packs_to_core(4)
-	_must(model.upgrade_core())
+
+
+func finish_bootstrap() -> void:
 	_must(model.assemble("refinery"))
 	_mark("tier_ii")
 	wait_for(func(): return model.core.items.get("metal_plate", 0) >= 2 and model.core.items.get("catalyst", 0) >= 1, 100, "E1 research stock")
