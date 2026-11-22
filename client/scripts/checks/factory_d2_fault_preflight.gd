@@ -36,8 +36,8 @@ func _init(folder: String, fault_revision := 2) -> void:
 
 func _load_candidate() -> Dictionary:
 	document = _read("candidate.json")
-	preparation = _read("preparation.json")
-	ids = preparation.ids
+	if not _load_preparation():
+		return {}
 	var model := _decode(document)
 	var saved := _read("prepared-autosave.json")
 	_check_p0(model, saved)
@@ -48,6 +48,22 @@ func _load_candidate() -> Dictionary:
 		if row.upper_bound >= row.capacity:
 			invalid.append("P0 terminal capacity below 24-minute bound: " + row.item)
 	return capacity
+
+
+func _load_preparation() -> bool:
+	preparation = _read("preparation.json")
+	if not preparation.get("ids") is Dictionary:
+		invalid.append("preparation manifest has no device IDs")
+		return false
+	ids = preparation.ids
+	if revision == 5:
+		for role in ["A", "Fd"]:
+			var value: Variant = ids.get(role)
+			if not Codec.V1.integer(value, 1):
+				invalid.append("preparation manifest device %s requires a positive exact integer ID" % role)
+				return false
+			ids[role] = int(value)
+	return true
 
 
 func run_fd_diagnostic(short_run: bool) -> Dictionary:
@@ -98,9 +114,15 @@ func run() -> Dictionary:
 	var capacity := _load_candidate()
 	var arms := {}
 	var paired_edges := []
+	var interlock_configuration_failed := false
 	if invalid.is_empty():
 		for arm in [reference_arm, controlled_arm]:
-			arms[arm] = _run_arm(arm, 2 * Workload.PERIOD if interlock_cycle_test else 2 * WINDOW)
+			var run_result := _run_arm(arm, 2 * Workload.PERIOD if interlock_cycle_test else 2 * WINDOW)
+			arms[arm] = run_result
+			interlock_configuration_failed = run_result.get("interlock_configuration_failed", false)
+			if interlock_configuration_failed:
+				break
+	if not arms.is_empty() and not interlock_configuration_failed:
 		if interlock_cycle_test:
 			paired_edges = _paired_edges(arms, [2])
 			for arm in arms:
@@ -314,6 +336,7 @@ func _run_arm(arm: String, horizon := 2 * WINDOW) -> Dictionary:
 	var opening_edges: Array[Dictionary] = []
 	var comparisons := 0
 	var compare_failed := false
+	var interlock_configuration_failed := false
 	for tick in horizon:
 		if SUPPLY.has(tick):
 			var before := ledger.supply_state()
@@ -324,7 +347,11 @@ func _run_arm(arm: String, horizon := 2 * WINDOW) -> Dictionary:
 			if not Compare.equivalent(before.merged({"active": SUPPLY[tick]}, true), after):
 				invalid.append("%s dispatch command altered retained state at %d" % [arm, tick])
 			events.append({"tick": tick, "before": before, "after": after})
-		work.before_step()
+		_step_supply(shadow, tick)
+		if not work.before_step() or not shadow_work.before_step():
+			interlock_configuration_failed = true
+			invalid.append_array(shadow_work.errors)
+			break
 		ledger.before_step(tick)
 		var delayed_edge := revision == 3 and tick % Workload.PERIOD == Workload.V3_A_OPEN and work.a_open_phase() == Workload.V3_A_OPEN
 		model.advance(model.STEP, 1)
@@ -335,8 +362,6 @@ func _run_arm(arm: String, horizon := 2 * WINDOW) -> Dictionary:
 			_write("first-order-checkpoint.json", _snapshot(model))
 		if delayed_edge or not work.opening_state.is_empty():
 			opening_edges.append(_opening_edge(ledger, work, tick + 1))
-		_step_supply(shadow, tick)
-		shadow_work.before_step()
 		shadow.advance(shadow.STEP, 1)
 		shadow_work.after_step()
 		if not compare_failed and ((tick + 1) % 600 == 0 or ledger.control_transition or SUPPLY.has(tick)
@@ -382,6 +407,7 @@ func _run_arm(arm: String, horizon := 2 * WINDOW) -> Dictionary:
 	if revision == 5:
 		_write(arm + "-interlock-starts.json", work.interlock_starts)
 		result.interlock_starts = work.interlock_starts
+		result.interlock_configuration_failed = interlock_configuration_failed
 	if fd_diagnostic or revision == 5:
 		result.orders = work.orders
 	return result

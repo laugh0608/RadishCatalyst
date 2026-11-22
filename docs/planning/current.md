@@ -1,6 +1,6 @@
 # Current Plan
 
-更新时间：2026-11-18
+更新时间：2026-11-22
 
 ## 当前阶段
 
@@ -13,8 +13,8 @@
 ## 当前顺位
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。定向整改亲测暂未发现新增问题，完整玩家路径待亲测：从开路到把高产矿接回工厂，观察玩家能否自行定位瓶颈、看懂收益以及何时想调整负载。
-3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。[schema 16 联锁首轮短测](../devlogs/2026-W46.md#d2-c3-interlock-preflight)因驱动传入非整数类型的设备 ID 判样本无效。先按[接续事项](daily-start.md#next-day-tasks)修复并补齐两项短测。下一玩家窗口先走完 D1，D2 使用自己的隔离档观察测控动机。收益不清楚就先改反馈或节奏，确有调度需求且机制妨碍操作才继续 O5 / L5 预检；缺乏使用动机则暂缓 D2。自然长测仍须按原门槛确认，目标平台待验。
+2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。普通矿与高产矿的持续供燃和混料对照已通过。新开的 D1 隔离档用普通带单入口规则，已有档按原规则继续。[X2 已亲测提交](../devlogs/2026-W47.md#d1-x2-playtest)，接续从制备胶囊、开路到把高产矿接回工厂，观察玩家能否自行定位瓶颈、看懂收益以及何时想调整负载。
+3. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。下一玩家窗口先走完 D1，D2 使用自己的隔离档观察测控动机。收益不清楚就先改反馈或节奏，确有调度需求且机制妨碍操作才继续 O5 / L5 预检；缺乏使用动机则暂缓 D2。自然长测仍须按原门槛确认，目标平台待验。
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

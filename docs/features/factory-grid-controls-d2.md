@@ -1,8 +1,8 @@
 # D2 测控优化
 
-更新时间：2026-11-14
+更新时间：2026-11-22
 
-核心 III、E2 独立储能、C1 节拍调度、C2 储能反馈与 [C3 负载组](factory-load-groups-c3.md)已分别接入 schema 11–15 隔离档。C3 合同已确认，开发机定向、窗口与跨进程验证通过，证据见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。[长期真实产线对照](factory-d2-production-comparison.md)已完成 v4 成对预检和 Fd 排空错峰诊断。v4 收益未达标，错峰诊断通过。[schema 16 开工联锁](factory-load-groups-c3.md#c3-start-interlock)已接入，首轮短测因驱动配置失败停在样本门禁，见 [W46](../devlogs/2026-W46.md#d2-c3-interlock-preflight)。
+核心 III、E2 独立储能、C1 节拍调度、C2 储能反馈与 [C3 负载组](factory-load-groups-c3.md)已分别接入 schema 11–15 隔离档。C3 合同已确认，开发机定向、窗口与跨进程验证通过，证据见 [W46](../devlogs/2026-W46.md#c3-load-group-delivery)。开发顺位见[整合总合同](factory-demo-integration-v1.md)，基础能源与旧档沿[固定燃烧合同](factory-fixed-burn-energy-v1.md)。[长期真实产线对照](factory-d2-production-comparison.md)已完成 v4 成对预检和 Fd 排空错峰诊断。v4 收益未达标，错峰诊断通过。[schema 16 开工联锁](factory-load-groups-c3.md#c3-start-interlock)已接入，首周期与 Fd 重启短测均通过。[W47 短测记录](../devlogs/2026-W47.md#d2-v5-short-checks)
 
 2026-11-13：萝卜SAMA已确认 [C2 实施合同](#d2-feedback-contract)及存档边界并授权实现。C2 已完成开发机定向、正式 Boot 窗口与跨进程验证；证据和亲测范围见 [W46](../devlogs/2026-W46.md#c2-feedback-delivery)，不据此宣称 D2 长期收益通过。
 

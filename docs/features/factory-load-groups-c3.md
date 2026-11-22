@@ -97,4 +97,4 @@
 
 每次真正开批前，按步初状态同时检查原生产就绪、负载组有效、功率允许和联锁。来源必须已停用、无在制，且最近一次启用后开出的最后一批已正常完工。启用但空闲、停机冻结的在制、取消及启用后从未开批都继续等待。来源再次启用即清除旧完工结果。已在制按原供电继续，每个后续新批重新检查；被挡的新批保持原待机和物流。
 
-组预算继续按原生产就绪计算，计入联锁等待成员可能加入时的需求。20 步采样、0 / 20 kW 回差、E2 放电、G 固定燃烧、C1 和 C2 沿原规则。界面分别显示功率决定和联锁原因，预览为只读。存档身份、字段与恢复见 [schema 16 合同](../architecture/factory-load-interlocks-save-v16.md)。目前完成隔离实现与冷档读回，成对首轮短测停在样本门禁，见 [D2 专题](factory-d2-production-comparison.md#d2-c3-interlock-preflight)。
+组预算继续按原生产就绪计算，计入联锁等待成员可能加入时的需求。20 步采样、0 / 20 kW 回差、E2 放电、G 固定燃烧、C1 和 C2 沿原规则。界面分别显示功率决定和联锁原因，预览为只读。存档身份、字段与恢复见 [schema 16 合同](../architecture/factory-load-interlocks-save-v16.md)。已完成隔离实现、冷档读回及首周期与 Fd 重启短测，见 [D2 专题](factory-d2-production-comparison.md#d2-c3-interlock-preflight)。

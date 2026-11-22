@@ -53,7 +53,7 @@ func a_open_phase() -> int:
 	return V3_A_OPEN if (tick / PERIOD + 1) in delayed_a_cycles else A_OPEN
 
 
-func before_step() -> void:
+func before_step() -> bool:
 	var phase := tick % PERIOD
 	opening_state = {}
 	if use_interlock and phase == 0:
@@ -66,10 +66,11 @@ func before_step() -> void:
 			model.actor.merge(approaches.B, true)
 			var applied: Dictionary = model.configure_load_group(b.id, b.load_group.member_ids, b.load_group.reserve_j, rules)
 			model.actor.merge(actor, true)
-			if not applied.ok:
-				errors.append("configure A start interlock: " + applied.reason)
-			interlock_cycle = fault_cycle
 			commands.append({"tick": tick, "interlocks": rules, "ok": applied.ok})
+			if not applied.ok:
+				errors.append("configure A start interlock at tick %d: %s" % [tick, applied.reason])
+				return false
+			interlock_cycle = fault_cycle
 		fd_tail = {}
 	if tick == 0:
 		for key in ["I", "Q", "Kh", "C", "Ci"]: set_enabled(key, true)
@@ -100,6 +101,7 @@ func before_step() -> void:
 		start_state = {"fd_enabled": fd.enabled, "fd_processing": fd.processing,
 			"fd_outcome": fd.batch_outcome, "fd_tail": fd_tail.duplicate(),
 			"reason": model.start_interlock_reason(assembler.id)}
+	return true
 
 
 func _a_can_open(phase: int) -> bool:

@@ -42,8 +42,8 @@ func derive() -> Dictionary:
 
 func recheck() -> Dictionary:
 	document = _read("candidate.json")
-	preparation = _read("preparation.json")
-	ids = preparation.ids
+	if not _load_preparation():
+		return {"status": "sample_invalid", "reasons": invalid}
 	var checkpoint := _read("first-order-checkpoint.json")
 	var model := _decode(checkpoint)
 	assert(Compare.equivalent(checkpoint, _snapshot(model), "first order checkpoint"))
