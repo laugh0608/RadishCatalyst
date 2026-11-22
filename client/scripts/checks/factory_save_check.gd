@@ -111,8 +111,41 @@ func _run() -> void:
 		write(clean.path("autosave.json"), FileAccess.get_file_as_string(clean.path("autosave.json")) + " ")
 		expect(not clean.save(new_world.model).ok, "external main edit blocks overwrite")
 		clean.release()
+	_check_backup_rotation_source()
 	_check_metadata_after_upgrade()
 	finish()
+
+
+func _check_backup_rotation_source() -> void:
+	var store := Store.new(run_root.path_join("rotation-source"))
+	var created := store.create("轮换来源检查")
+	expect(created.ok, "create backup rotation fixture")
+	if not created.ok:
+		return
+	for i in 3:
+		expect(store.save(created.model).ok, "fill backup slot %d" % (i + 1))
+	var backup_paths: Array[String] = []
+	for slot in range(1, 4):
+		backup_paths.append(store.path("backups/autosave.bak.%d.json" % slot))
+	var before: Array = backup_paths.map(func(p): return FileAccess.get_sha256(p))
+	var primary := store.path("autosave.json")
+	var committed := FileAccess.get_file_as_string(primary)
+	var external_edit := committed + " "
+	var sequence := store.sequence
+	store.fault = func(stage):
+		if stage == "backup":
+			write(primary, external_edit)
+		return false
+	expect(not store.save(created.model).ok, "external edit during backup blocks the save")
+	expect(FileAccess.get_file_as_string(primary) == external_edit and store.sequence == sequence,
+		"external primary bytes and original sequence are retained")
+	expect(backup_paths.map(func(p): return FileAccess.get_sha256(p)) == before,
+		"a changed source cannot rotate any verified backup slot")
+	store.fault = Callable()
+	write(primary, committed)
+	expect(store.save(created.model).ok and FileAccess.get_file_as_string(backup_paths[0]) == committed,
+		"retry with the verified primary publishes an exact copy")
+	expect(store.release().ok, "release rotation fixture lock")
 
 
 func _check_metadata_after_upgrade() -> void:

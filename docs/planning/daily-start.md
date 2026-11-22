@@ -19,7 +19,7 @@
 
 ### E 整段收口 · Mac 正式首程
 
-R2 核心 I / II 已接入正式基础整合，现有 Mac 已复核新档和接入前 schema 9 档的独立继续。联合首程通过状态与正式 Boot 窗口复跑。本机 R2 运行中产线已采样，供燃和加工持续，保留一次约 98 ms 周期保存证据。[正式接入](../devlogs/2026-W47.md#r2-foundation-integration) · [运行中采样](../devlogs/2026-W47.md#e-r2-live-production)
+R2 核心 I / II 已接入正式基础整合，现有 Mac 已复核新档和接入前 schema 9 档的独立继续。联合首程通过状态与正式 Boot 窗口复跑。备份轮换按已验证主档哈希核对副本，同一 R2 产线的单次周期保存由约 98 ms 降至 82 ms，保留剩余停顿的原始数据。[正式接入](../devlogs/2026-W47.md#r2-foundation-integration) · [保存复测](../devlogs/2026-W47.md#e-autosave-rotation)
 
 ### E 整段收口 · D1 备份恢复复测
 

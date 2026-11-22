@@ -316,7 +316,10 @@ func upgrade_admission(candidate: Dictionary) -> Dictionary:
 
 ## Called only after the candidate's model and view have been fully reconstructed.
 func accept(candidate: Dictionary) -> Dictionary:
-	if not _owns_lock() or _hash(candidate.source) != candidate.hash or _hash(path("autosave.json")) != expected_main_hash:
+	var primary := path("autosave.json")
+	var from_main: bool = candidate.source == primary
+	if not _owns_lock() or _hash(primary) != expected_main_hash \
+		or (expected_main_hash if from_main else _hash(candidate.source)) != candidate.hash:
 		return _error("存档来源在重建期间变化，已停止恢复。")
 	if _fail("reconstruction"):
 		return _error("候选重建失败。")
@@ -332,7 +335,7 @@ func accept(candidate: Dictionary) -> Dictionary:
 			return upgraded
 		upgraded["upgraded_admission" if candidate.get("upgrade_admission", false) else "upgraded_routing" if candidate.get("upgrade_routing", false) else "upgraded_automatic"] = true
 		return upgraded
-	if candidate.source != path("autosave.json"):
+	if not from_main:
 		var result := save(candidate.model, candidate)
 		if not result.ok:
 			loaded = false
@@ -508,7 +511,7 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 		return _error("主档发布失败，原主档及恢复副本已保留。")
 	sequence += 1
 	session_identity = identity
-	expected_main_hash = _hash(path("autosave.json"))
+	expected_main_hash = readback.hash
 	var summary := _identity_header(document)
 	summary.merge({"name": world_name, "sequence": sequence, "time": model.time})
 	var warning := ""
@@ -519,12 +522,9 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 
 
 func _backup_main() -> Dictionary:
-	var current := _read(path("autosave.json"), world_id)
-	if not current.ok:
-		return _error("当前主档校验失败，停止轮换备份。")
 	if _fail("backup") or DirAccess.make_dir_recursive_absolute(path("backups")) != OK:
 		return _error("无法准备恢复副本。")
-	# Stage a verified copy before touching backup slots. Main remains intact on failure.
+	# Only rotate a byte-for-byte copy of the primary already validated in this session.
 	var result := _write(path("backups/pending.json"), FileAccess.get_file_as_string(path("autosave.json")))
 	if not result.ok or _hash(path("backups/pending.json")) != expected_main_hash:
 		return _error("恢复副本写入或读回失败。")
