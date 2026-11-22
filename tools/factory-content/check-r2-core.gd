@@ -8,8 +8,9 @@ const Store := preload("res://scripts/factory/save/store.gd")
 const Compare := preload("res://scripts/checks/factory_expansion_compare.gd")
 const Rules := Route.Model.Integrated
 const View := preload("res://scripts/factory/view.gd")
-const TOPIC := "factory-r2-core-v1"
 const MINIMUM := Vector2i(1100, 720)
+const REACTOR_SOURCE := "res://assets/factory/refinement/reactor.glb"
+const REACTOR_CURRENT := "res://assets/factory/reactor.glb"
 
 var boot: Node
 var world: Control
@@ -17,6 +18,8 @@ var model: RefCounted
 var driver := Driver.new()
 var original: PackedScene
 var candidate: PackedScene
+var bare_reactor: PackedScene
+var subject := "core"
 var evidence: String
 var art: String
 var survey := {}
@@ -34,9 +37,11 @@ func run() -> void:
 			batch = arg.trim_prefix("--batch=")
 		elif arg.begins_with("--art="):
 			art = arg.trim_prefix("--art=")
+		elif arg.begins_with("--subject="):
+			subject = arg.trim_prefix("--subject=")
 	var art_root := SliceCheckPaths.repository_root().path_join("assets/art-intake")
-	evidence = SliceCheckPaths.check_run(TOPIC, false).path_join(batch)
-	if not batch.is_valid_filename() or ".." in batch or DisplayServer.get_name() == "headless" \
+	evidence = SliceCheckPaths.check_run("factory-r2-%s-v1" % subject, false).path_join(batch)
+	if subject not in ["core", "reactor"] or not batch.is_valid_filename() or ".." in batch or DisplayServer.get_name() == "headless" \
 			or not art.simplify_path().begins_with(art_root + "/") \
 			or not DirAccess.dir_exists_absolute(evidence) or not DirAccess.dir_exists_absolute(art):
 		push_error("Use the R2 window runner to prepare both isolated batch directories.")
@@ -49,9 +54,12 @@ func run() -> void:
 	Engine.max_fps = 60
 	driver.shot_root = art
 	root.add_child(driver)
-	candidate = _make_candidate()
+	candidate = _make_reactor_candidate() if subject == "reactor" else _make_candidate()
 	if candidate != null and await _open_factory():
-		await _compare()
+		if subject == "reactor":
+			await _compare_reactor()
+		else:
+			await _compare()
 	_end()
 
 
@@ -59,18 +67,10 @@ func _make_candidate() -> PackedScene:
 	original = load(Rules.MODEL_PATH)
 	var instance := original.instantiate() as Node3D
 	Materials.new().apply(instance.find_children("*", "MeshInstance3D", true, false), "core", 2)
-	var packed := PackedScene.new()
-	var packed_result := packed.pack(instance)
-	instance.free()
-	driver.expect(packed_result == OK, "pack R2 mesh and overrides")
-	if packed_result != OK:
-		return null
 	var path := art.path_join("core-r2.tscn")
-	var saved := ResourceSaver.save(packed, path)
-	driver.expect(saved == OK, "write isolated R2 scene")
-	if saved != OK:
+	var reloaded := _save_candidate(instance, path)
+	if reloaded == null:
 		return null
-	var reloaded := ResourceLoader.load(path, "PackedScene", ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
 	var anchor_error := View._check_core_asset(reloaded, 2)
 	driver.expect(anchor_error.is_empty(), "reloaded asset agrees with all 16 official anchors and both tiers: " + anchor_error)
 	if not anchor_error.is_empty():
@@ -83,6 +83,52 @@ func _make_candidate() -> PackedScene:
 		"same five imported surfaces including the inactive tier, four approved overrides")
 	survey.asset = {"baseline": Rules.MODEL_PATH, "candidate": path, "surfaces": surfaces,
 		"sha256": FileAccess.get_sha256(path)}
+	return reloaded
+
+
+func _save_candidate(instance: Node3D, path: String) -> PackedScene:
+	var packed := PackedScene.new()
+	var packed_result := packed.pack(instance)
+	instance.free()
+	driver.expect(packed_result == OK, "pack R2 mesh and overrides")
+	if packed_result != OK:
+		return null
+	var saved := ResourceSaver.save(packed, path)
+	driver.expect(saved == OK, "write isolated R2 scene")
+	if saved != OK:
+		return null
+	var reloaded := ResourceLoader.load(path, "PackedScene", ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
+	driver.expect(reloaded != null, "candidate can be loaded back from its own scene")
+	return reloaded
+
+
+func _make_reactor_candidate() -> PackedScene:
+	original = load(REACTOR_CURRENT)
+	bare_reactor = load(REACTOR_SOURCE)
+	var instance := bare_reactor.instantiate() as Node3D
+	Materials.new().apply(instance.find_children("*", "MeshInstance3D", true, false), "reactor", 2)
+	var path := art.path_join("reactor-r2.tscn")
+	var reloaded := _save_candidate(instance, path)
+	if reloaded == null:
+		return null
+	var probe := reloaded.instantiate() as Node3D
+	root.add_child(probe)
+	var surfaces := _surface_materials(probe)
+	var bounds := AABB()
+	var first := true
+	for part: MeshInstance3D in probe.find_children("*", "MeshInstance3D", true, false):
+		var part_bounds := (probe.global_transform.affine_inverse() * part.global_transform) * part.get_aabb()
+		bounds = part_bounds if first else bounds.merge(part_bounds)
+		first = false
+	probe.free()
+	var overrides := surfaces.filter(func(row): return not row.texture.is_empty())
+	driver.expect(surfaces.size() == 7 and overrides.size() == 4 and overrides.all(func(row): return row.triplanar),
+		"reloaded reactor retains seven imported surfaces and four approved overrides")
+	driver.expect(bounds.position.x >= -1.5 and bounds.end.x <= 1.5 and bounds.position.z >= -1.5 and bounds.end.z <= 1.5
+		and is_zero_approx(bounds.position.y), "reactor stays inside its three-by-three footprint at floor level")
+	survey.asset = {"baseline": REACTOR_CURRENT, "geometry_source": REACTOR_SOURCE, "candidate": path,
+		"source_sha256": FileAccess.get_sha256(REACTOR_SOURCE), "sha256": FileAccess.get_sha256(path), "surfaces": surfaces,
+		"bounds_min": [bounds.position.x, bounds.position.y, bounds.position.z], "bounds_max": [bounds.end.x, bounds.end.y, bounds.end.z]}
 	return reloaded
 
 
@@ -120,7 +166,7 @@ func _open_factory() -> bool:
 		if boot.factory_world != null:
 			boot.factory_world._set_paused(true), CONNECT_ONE_SHOT)
 	menu.world_type.select(index)
-	menu.title_input.text = "R2 核心首件 · 基础整合对照"
+	menu.title_input.text = "R2 基础反应器 · 产线对照" if subject == "reactor" else "R2 核心首件 · 基础整合对照"
 	await driver.click(menu.create_button)
 	world = boot.factory_world
 	driver.expect(world != null and world.initialized, "Boot creates an isolated schema 9 world")
@@ -170,6 +216,140 @@ func _compare() -> void:
 	driver.expect(boot.factory_world == null, "isolated schema 9 world saves and returns normally")
 
 
+func _compare_reactor() -> void:
+	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(evidence.path_join("layout.json")))
+	var route := Route.new(model, layout)
+	route.bootstrap()
+	route.energy_line()
+	route.steady()
+	var reactor: Dictionary = route.devices.R
+	# Use a real spare kit and leave the unchanged reactor route running on the model.
+	route._packs_to_core(model.assembly_costs.reactor)
+	route._must(model.assemble("reactor"))
+	route.walk_near(reactor)
+	_use_asset(candidate)
+	if not _reactor_traffic(reactor):
+		return
+	world.ui.selected = reactor.id
+	await _pair("01-reactor-default", 21)
+	await _pair("02-reactor-close", 16)
+	if not await _inspect_reactor(reactor, true):
+		return
+	root.size = MINIMUM
+	root.move_to_center()
+	await driver.settle(12)
+	driver.expect(root.size == MINIMUM and world.hud.subviewport.size.x == MINIMUM.x, "native minimum window for reactor comparison")
+	await _pair("03-reactor-minimum", 21)
+	_verify_reactor_hints(reactor)
+	if not await _inspect_reactor(reactor, false):
+		return
+	root.size = comparison_size
+	root.move_to_center()
+	await driver.settle(12)
+	await _inspect_reactor_preview()
+	await _measure()
+	var id: String = world.store.world_id
+	var state: Dictionary = Store.Codec.snapshot(model, id, world.store.world_name, 1).state
+	await driver.click(world.hud.buttons["return"])
+	driver.expect(boot.factory_world == null, "the comparison world saves and releases its session")
+	var saved := Store.new(boot.factory_save_root).find_candidate(id)
+	driver.expect(saved.ok and saved.document.save_schema_version == 9 and Compare.equivalent(state, saved.document.state),
+		"the isolated saved state matches the production comparison")
+
+
+func _reactor_traffic(reactor: Dictionary) -> bool:
+	var logistics = model.Logistics
+	var input: Dictionary = logistics.ports(model, reactor, "input")[0]
+	var output: Dictionary = logistics.ports(model, reactor, "output")[0]
+	var feed: Dictionary = logistics.input_connection(model, reactor, input)
+	var discharge: Dictionary = logistics.output_connection(model, output)
+	var core_port: Dictionary = logistics.ports(model, model.core, "input").filter(func(port): return port.id == "IN_W0")[0]
+	var delivery: Dictionary = logistics.input_connection(model, model.core, core_port)
+	var linked: bool = feed.ok and feed.source.type == "belt" and discharge.ok and discharge.target.type == "belt" and delivery.ok
+	driver.expect(linked, "connected input and output belts lead to the real core receiver")
+	if not linked:
+		return false
+	var tracked_batch := 0
+	var events := {}
+	for i in 2400:
+		var offered: bool = feed.source.cargo == "crystal"
+		var in_process: int = reactor.input.get("crystal", 0) + reactor.invested.get("crystal", 0)
+		var active_before: int = reactor.active_batch
+		var cargo_at_core: bool = tracked_batch > 0 and delivery.source.cargo == "catalyst" and delivery.source.batch == tracked_batch
+		model.advance(Route.STEP, 1)
+		var tick: int = model.statistics.ticks
+		if not events.has("crystal_received") and offered and feed.source.cargo.is_empty() \
+			and reactor.input.get("crystal", 0) + reactor.invested.get("crystal", 0) > in_process:
+			events.crystal_received = tick
+		if tracked_batch == 0 and events.get("crystal_received", tick) < tick and reactor.active_batch > 0 and reactor.active_batch != active_before:
+			tracked_batch = reactor.active_batch
+			events.batch_started = tick
+		if not events.has("catalyst_out") and tracked_batch > 0 and discharge.target.cargo == "catalyst" and discharge.target.batch == tracked_batch:
+			events.catalyst_out = tick
+		if cargo_at_core and delivery.source.cargo.is_empty():
+			events.catalyst_received_by_core = tick
+			break
+	var passed: bool = events.size() == 4 and model.material_balance().balanced
+	driver.expect(passed, "actual crystal receipt and a new catalyst batch from the reactor to the core")
+	survey.traffic = {"events": events, "device_id": reactor.id,
+		"input_cell": [input.x + input.dx, input.z + input.dz], "output_cell": [output.x + output.dx, output.z + output.dz],
+		"catalyst_batch": tracked_batch}
+	return passed
+
+
+func _verify_reactor_hints(reactor: Dictionary) -> void:
+	var visible := {}
+	var viewport: SubViewport = world.hud.subviewport
+	for hint in world.view.port_hints.get_children():
+		if hint.get_meta("entity_id") != reactor.id or not hint.is_visible_in_tree():
+			continue
+		var cell: Vector2i = hint.get_meta("cell")
+		var point := Vector3(cell.x + 0.5, 0.4, cell.y + 0.5)
+		if viewport.get_visible_rect().has_point(world.view.project(point)):
+			visible[hint.get_meta("role")] = [cell.x, cell.y]
+	driver.expect(visible.get("input", []) == survey.traffic.input_cell and visible.get("output", []) == survey.traffic.output_cell,
+		"both minimum-window port hints mark the same cells as live logistics")
+	survey.traffic.visible_hints = visible
+
+
+func _inspect_reactor(reactor: Dictionary, use_key: bool) -> bool:
+	var center: Vector2 = model.Grid.center(reactor)
+	var point := Vector3(center.x - 0.25, 2.0, center.y - 0.2)
+	var projected: Vector2 = world.view.project(point)
+	driver.expect(world.view.hit(projected) == reactor.id and model.near_entity(reactor), "visible reactor geometry is pickable nearby")
+	var mouse: Vector2 = world.hud.viewport_to_screen(projected)
+	await driver.motion(mouse)
+	if use_key:
+		await driver.key(KEY_F)
+	else:
+		await driver.mouse(mouse, true)
+		await driver.mouse(mouse, false)
+		await driver.settle()
+	var opened: bool = world.discovery_panel.visible and world.discovery_panel.selected == reactor.id
+	driver.expect(opened, "reactor opens its device panel by " + ("F" if use_key else "mouse at minimum window"))
+	if not opened:
+		return false
+	await driver.shot("reactor-panel-f" if use_key else "reactor-panel-minimum-click")
+	await driver.click(world.discovery_panel.buttons.close)
+	return true
+
+
+func _inspect_reactor_preview() -> void:
+	var cell := Vector2i(-18, 28)
+	await driver.click(world.hud.buttons.reactor)
+	await driver.motion(driver.cell_screen(cell))
+	await driver.settle()
+	driver.expect(world.ui.tool == "reactor" and world.ui.cell == cell and model.placement("reactor", cell, model.actor).ok,
+		"normal build bar shows a valid free reactor placement")
+	var preview: Node3D = world.view.build_model
+	var expected := Vector3(cell.x + 1.5, 0.06, cell.y + 1.5)
+	driver.expect(preview.visible and preview.position.is_equal_approx(expected)
+		and _surface_materials(preview).filter(func(row): return not row.texture.is_empty()).size() == 4,
+		"construction preview uses the candidate materials at the correct footprint")
+	await driver.shot("04-reactor-construction-preview")
+	await driver.key(KEY_ESCAPE)
+
+
 func _set_work_surface() -> void:
 	for child in world.view.get_children():
 		if child.scene_file_path != world.view.assets.yard.resource_path:
@@ -188,7 +368,7 @@ func _redraw() -> void:
 
 
 func _use_asset(asset: PackedScene) -> void:
-	world.view.assets.base_core = asset
+	world.view.assets["reactor" if subject == "reactor" else "base_core"] = asset
 	world.view.invalidate()
 	_redraw()
 
@@ -202,6 +382,9 @@ func _pair(label: String, span: float) -> void:
 	# A wall-clock autosave can advance the file sequence while production is paused.
 	var state: Dictionary = Store.Codec.snapshot(model, world.store.world_id, world.store.world_name, 1).state
 	await driver.shot(label + "-current")
+	if bare_reactor != null:
+		_use_asset(bare_reactor)
+		await driver.shot(label + "-geometry")
 	_use_asset(candidate)
 	await driver.shot(label + "-r2")
 	driver.expect(world.view.camera.global_transform == transform and world.view.yaw == 0.0
@@ -299,7 +482,10 @@ func _measure() -> void:
 	var rid := viewport.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
 	survey.performance = []
-	for asset in [original, candidate, candidate, original]:
+	var order := [original, candidate, candidate, original]
+	if bare_reactor != null:
+		order = [original, bare_reactor, candidate, candidate, bare_reactor, original]
+	for asset in order:
 		_use_asset(asset)
 		world.view.sync_camera()
 		await driver.settle(35)
@@ -318,10 +504,11 @@ func _measure() -> void:
 				"draw_calls": viewport.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_DRAW_CALLS_IN_FRAME),
 				"triangles": viewport.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_PRIMITIVES_IN_FRAME)})
 			before = now
-		survey.performance.append({"asset": "current" if asset == original else "r2",
+		var label := "current" if asset == original else "geometry" if asset == bare_reactor else "r2"
+		survey.performance.append({"asset": label,
 			"viewport": [viewport.size.x, viewport.size.y], "samples": samples})
 	RenderingServer.viewport_set_measure_render_time(rid, false)
-	driver.expect(survey.performance.size() == 4, "four paired frame samples complete")
+	driver.expect(survey.performance.size() == order.size(), "paired frame samples complete")
 
 
 func _end() -> void:

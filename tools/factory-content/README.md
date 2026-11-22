@@ -54,6 +54,10 @@ macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-s
 
 启动前告知，运行 `sh tools/factory-content/r2-core-review.sh <new-batch>`。正式 Boot 在隔离根新建基础整合档，沿 S1-P 生产，实际点击核心升级，在同一货流和镜头上切换原 `outline-06` 与 R2 候选。截图名中的 `current` 指源轮廓。候选是保留三平面映射的 Godot 场景，使用仓库已有 GLB 和贴图。原图与候选在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志和帧数据在 `tools/runtime-intake/check-runs/factory-r2-core-v1/<batch>/`。正式加载由联合首程检查复核。[首件复核](../../docs/devlogs/2026-W47.md#r2-core-first-piece) · [正式接入](../../docs/devlogs/2026-W47.md#r2-foundation-integration)
 
+## R2 基础反应器产线对照
+
+启动前告知，运行 `sh tools/factory-content/r2-reactor-review.sh <new-batch>`。同一正式 Boot 的隔离 S1-P 产线配对截图使用 `current`、`geometry`、`r2` 分别标记现行资产、refinement 原材质和材质候选。检查实际晶体进料与同一催化剂批次出炉、入核心，再检查最小窗口点选和建造预览。候选 `reactor-r2.tscn` 与原图留在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志、货流断言和帧样本位于 `tools/runtime-intake/check-runs/factory-r2-reactor-v1/<batch>/`。[设计与验收](../../docs/design/factory-representative-asset-brief-v1.md#r2-基础反应器隔离复核)
+
 ## 低投入交互样板
 
 `node tools/factory-content/export-refinement-assets.mjs` 用现有本地 Three.js 导出反应器、节点两件自有 GLB 到 `client/assets/factory/refinement/`，其余资产复用。不替换正式资产，不新增依赖。源与产物 hash、三角形和网格数记录在同目录 manifest。
