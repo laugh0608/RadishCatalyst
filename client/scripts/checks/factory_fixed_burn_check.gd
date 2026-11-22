@@ -251,6 +251,8 @@ func _backups(doc: Dictionary) -> void:
 	var file := FileAccess.open(main, FileAccess.WRITE)
 	file.store_string("{")
 	file.close()
+	expect(not store.find_candidate(id).ok, "malformed main without independent identity cannot use any backup")
+	_write(folder.path_join("metadata.json"), Store._identity_header(doc))
 	var candidate := store.prepare(id)
 	if expect(candidate.ok and candidate.source == backup, "malformed main offers the same-identity backup"):
 		var accepted := store.accept(candidate)

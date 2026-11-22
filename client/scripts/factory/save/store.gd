@@ -3,6 +3,7 @@ extends RefCounted
 const Codec := preload("res://scripts/factory/save/codec.gd")
 const DEFAULT_ROOT := "user://saves/factory/worlds"
 const MAX_BYTES := 4 * 1024 * 1024
+const IDENTITY_FIELDS := ["world_kind", "world_id", "save_schema_version", "ruleset_id", "map_id", "supply_id", "definitions_sha256"]
 const EnergyCopy := preload("res://scripts/factory/save/energy_copy.gd")
 const Engineering := preload("res://data/factory/engineering_rules.gd")
 var allow_engineering := false
@@ -65,11 +66,9 @@ func _read(file_path: String, id: String) -> Dictionary:
 			return Codec.failure("测控工厂存档须从隔离入口继续。", true)
 	var result := Codec.decode(json.data, id)
 	if json.data is Dictionary:
-		result.declared_identity = _identity(json.data)
+		result.identity_header = _identity_header(json.data)
 		if Engineering.matches(json.data) and not allow_engineering:
 			return Codec.failure("工程规模验证存档只能从隔离检查入口继续。", true)
-	if json.data is Dictionary and Codec.integer(json.data.get("save_schema_version")):
-		result.declared_schema = int(json.data.save_schema_version)
 	if result.ok:
 		result.source = file_path
 		result.hash = content.sha256_text()
@@ -82,6 +81,29 @@ static func _identity(document: Dictionary) -> Array:
 	if schema in Codec.INTEGRATED_VERSIONS:
 		identity.append(document.get("definitions_sha256"))
 	return identity
+
+
+static func _identity_header(document: Dictionary) -> Dictionary:
+	var header := {}
+	for key in IDENTITY_FIELDS:
+		if document.has(key):
+			header[key] = document[key]
+	return header
+
+
+static func _confirmed_identity(header: Variant, id: String) -> Array:
+	if not header is Dictionary or header.get("world_kind") != "factory_3d" or header.get("world_id") != id:
+		return []
+	if not Codec.integer(header.get("save_schema_version"), 1):
+		return []
+	for key in ["ruleset_id", "map_id", "supply_id"]:
+		if not header.get(key) is String or header[key].is_empty():
+			return []
+	if int(header.save_schema_version) in Codec.INTEGRATED_VERSIONS:
+		var digest: Variant = header.get("definitions_sha256")
+		if not digest is String or digest.length() != 64 or not digest.is_valid_hex_number():
+			return []
+	return _identity(header)
 
 
 func list_worlds() -> Array[Dictionary]:
@@ -127,22 +149,34 @@ func list_worlds() -> Array[Dictionary]:
 func find_candidate(id: String) -> Dictionary:
 	if not Codec.valid_id(id):
 		return _error("世界 ID 无效。")
-	var errors: Array[String] = []
-	var newest_schema := 0
-	var newest_identity: Array = []
-	for name in ["autosave.json", "backups/autosave.bak.1.json", "backups/autosave.bak.2.json", "backups/autosave.bak.3.json"]:
-		var result := _read(root.path_join(id).path_join(name), id)
-		var identity: Array = result.get("declared_identity", [])
-		var declared: int = result.get("declared_schema", 0)
-		if declared > 0 and newest_identity.is_empty():
-			newest_identity = identity
-		if declared >= 5 and not newest_identity.is_empty() and identity != newest_identity:
+	var directory := root.path_join(id)
+	var main := _read(directory.path_join("autosave.json"), id)
+	if main.ok or main.get("unsupported", false):
+		return main
+	var header: Dictionary = main.get("identity_header", {})
+	var identity := _confirmed_identity(header, id)
+	var from_metadata := identity.is_empty()
+	if from_metadata:
+		var metadata: Variant = _read_small_json(directory.path_join("metadata.json"))
+		identity = _confirmed_identity(metadata, id)
+		if identity.is_empty():
+			return _error("无法确认主档的工厂身份，未恢复备份，原文件已保留。 " + main.reason)
+		for key in header:
+			if header[key] != metadata.get(key):
+				return _error("主档的可读身份字段与保存记录不同，未恢复备份，原文件已保留。")
+	var errors: Array[String] = [main.reason]
+	for slot in range(1, 4):
+		var result := _read(directory.path_join("backups/autosave.bak.%d.json" % slot), id)
+		var backup_identity := _identity(result.document) if result.ok else _confirmed_identity(result.get("identity_header", {}), id)
+		if not backup_identity.is_empty() and backup_identity != identity:
+			if int(backup_identity[0]) < 5 and int(backup_identity[0]) < int(identity[0]):
+				errors.append("跳过升级前的旧规则副本，避免回退规则。")
+				continue
 			return Codec.failure("备份与主档的规则、地图或供给身份不同，原文件已保留。", true)
-		newest_schema = maxi(newest_schema, declared)
-		if result.ok and newest_schema >= 3 and result.document.save_schema_version < newest_schema:
-			errors.append("跳过升级前的旧规则副本，避免回退规则。")
-			continue
-		if result.ok or result.get("unsupported", false):
+		if result.ok:
+			result.recovery_identity_from_metadata = from_metadata
+			return result
+		if result.get("unsupported", false):
 			return result
 		errors.append(result.reason)
 	return _error("没有有效存档；原文件已保留。 " + " / ".join(errors))
@@ -168,12 +202,12 @@ func acquire(id: String) -> Dictionary:
 func _owns_lock() -> bool:
 	if token.is_empty():
 		return false
-	var owner = _read_owner(path("session.lock/owner.json"))
+	var owner = _read_small_json(path("session.lock/owner.json"))
 	return owner is Dictionary and owner.get("token") == token and owner.get("pid") == OS.get_process_id()
 
 
-func _read_owner(owner_path: String) -> Variant:
-	var file := FileAccess.open(owner_path, FileAccess.READ)
+func _read_small_json(file_path: String) -> Variant:
+	var file := FileAccess.open(file_path, FileAccess.READ)
 	if file == null or file.get_length() > 4096:
 		return null
 	var json := JSON.new()
@@ -222,7 +256,7 @@ func recover_creation_lock() -> Dictionary:
 func _recover_lock(lock_path: String) -> Dictionary:
 	if DirAccess.make_dir_absolute(lock_path.path_join("recovery.guard")) != OK:
 		return _error("锁恢复正在进行或锁目录不存在。")
-	var owner = _read_owner(lock_path.path_join("owner.json"))
+	var owner = _read_small_json(lock_path.path_join("owner.json"))
 	var result := _error("无法确认锁所有者已退出；原锁已保留。")
 	if owner is Dictionary and Codec.integer(owner.get("pid"), 1) and owner.get("host") == OS.get_unique_id():
 		if _owner_exited(int(owner.pid)):
@@ -238,11 +272,11 @@ func prepare(id: String) -> Dictionary:
 	var lock_result := acquire(id)
 	if not lock_result.ok:
 		return lock_result
+	expected_main_hash = _hash(path("autosave.json"))
 	var candidate := find_candidate(id)
 	if not candidate.ok:
 		release()
 		return candidate
-	expected_main_hash = _hash(path("autosave.json"))
 	world_name = candidate.document.name
 	sequence = int(candidate.document.sequence)
 	session_identity = _identity(candidate.document)
@@ -350,7 +384,7 @@ func _creation_transaction(action: Callable) -> Dictionary:
 		DirAccess.remove_absolute(root.path_join("creation.lock"))
 		return ownership
 	var result: Dictionary = action.call()
-	var current_owner = _read_owner(owner_path)
+	var current_owner = _read_small_json(owner_path)
 	if current_owner is Dictionary and current_owner.get("token") == creation_token:
 		DirAccess.remove_absolute(owner_path)
 		DirAccess.remove_absolute(root.path_join("creation.lock"))
@@ -435,9 +469,11 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 	if _hash(path("autosave.json")) != expected_main_hash:
 		return _error("主档被外部修改，停止覆盖；当前进度仍在内存。")
 	var document := Codec.snapshot(model, world_id, world_name, sequence + 1)
-	if not session_identity.is_empty() and (document.save_schema_version in Codec.INTEGRATED_VERSIONS or session_identity[0] in Codec.INTEGRATED_VERSIONS) and _identity(document) != session_identity:
+	var identity := _identity(document)
+	var identity_changed := not session_identity.is_empty() and identity != session_identity
+	if identity_changed and (document.save_schema_version in Codec.INTEGRATED_VERSIONS or session_identity[0] in Codec.INTEGRATED_VERSIONS):
 		return Codec.failure("整合工厂只能写入同一规则与定义身份。", true)
-	if not session_identity.is_empty() and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID] or session_identity[3] in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]) and _identity(document) != session_identity:
+	if identity_changed and (Engineering.matches(document) or session_identity[3] == Engineering.SUPPLY_ID or document.supply_id in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID] or session_identity[3] in [Codec.V6.Expansion.SUPPLY_ID, Codec.V7.Energy.SUPPLY_ID]):
 		return Codec.failure("不能转换普通、工程与内容世界身份；E1 到 E2、旧 E2 到待机新版均须显式复制。", true)
 	var valid := Codec.decode(document, world_id)
 	if _fail("validation") or not valid.ok:
@@ -453,20 +489,30 @@ func save(model: RefCounted, recovery: Dictionary = {}) -> Dictionary:
 		return _error("临时档读回不一致，未发布主档。")
 	if not recovery.is_empty() and _hash(recovery.source) != recovery.hash:
 		return _error("恢复来源已变化，未发布主档。")
+	var metadata_path := path("metadata.json")
+	if recovery.get("recovery_identity_from_metadata", false) and _confirmed_identity(_read_small_json(metadata_path), world_id) != session_identity:
+		return _error("恢复所依据的工厂身份记录已变化，原文件已保留。")
 	if recovery.is_empty() and FileAccess.file_exists(path("autosave.json")):
 		result = _backup_main()
 		if not result.ok:
 			return result
 	if not _owns_lock() or _hash(path("autosave.json")) != expected_main_hash:
 		return _error("发布前主档或锁身份变化。")
-	if _fail("publish") or DirAccess.rename_absolute(path("autosave.tmp.json"), path("autosave.json")) != OK:
+	if _fail("publish"):
+		return _error("主档发布失败，原主档及恢复副本已保留。")
+	# Remove the old identity before an in-place upgrade. A failed summary write
+	# after publication must never allow recovery under the pre-upgrade rules.
+	if identity_changed and FileAccess.file_exists(metadata_path) and DirAccess.remove_absolute(metadata_path) != OK:
+		return _error("无法撤销旧工厂身份记录，原主档及恢复副本已保留。")
+	if DirAccess.rename_absolute(path("autosave.tmp.json"), path("autosave.json")) != OK:
 		return _error("主档发布失败，原主档及恢复副本已保留。")
 	sequence += 1
-	session_identity = _identity(document)
+	session_identity = identity
 	expected_main_hash = _hash(path("autosave.json"))
-	var summary := {"world_id": world_id, "name": world_name, "sequence": sequence, "time": model.time}
+	var summary := _identity_header(document)
+	summary.merge({"name": world_name, "sequence": sequence, "time": model.time})
 	var warning := ""
-	if _fail("metadata") or not _write(path("metadata.tmp.json"), JSON.stringify(summary)).ok or DirAccess.rename_absolute(path("metadata.tmp.json"), path("metadata.json")) != OK:
+	if _fail("metadata") or not _write(path("metadata.tmp.json"), JSON.stringify(summary)).ok or DirAccess.rename_absolute(path("metadata.tmp.json"), metadata_path) != OK:
 		warning = "进度已保存；列表摘要更新失败，下次从主档重建。"
 	last_warning = warning
 	return {"ok": true, "warning": warning, "sequence": sequence}

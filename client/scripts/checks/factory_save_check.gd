@@ -59,10 +59,18 @@ func _run() -> void:
 	expect(store.save(model).ok, "retry succeeds")
 	var main_path := store.path("autosave.json")
 	var backup_path := store.path("backups/autosave.bak.1.json")
+	var metadata_path := store.path("metadata.json")
+	var identity_record := FileAccess.get_file_as_string(metadata_path)
 	var backup_hash := FileAccess.get_sha256(backup_path)
 	expect(store.release().ok, "normal lock release")
 	write(main_path, "{corrupt")
 	var restore := Store.new(run_root)
+	write(metadata_path, JSON.stringify({"world_id": id, "sequence": store.sequence}))
+	var unknown := restore.prepare(id)
+	expect(not unknown.ok and "无法确认主档" in unknown.get("reason", ""), "legacy summary does not identify a malformed main")
+	expect(FileAccess.get_file_as_string(main_path) == "{corrupt" and FileAccess.get_sha256(backup_path) == backup_hash,
+		"unknown identity preserves main and backup")
+	write(metadata_path, identity_record)
 	var candidate := restore.prepare(id)
 	expect(candidate.ok and candidate.source == backup_path, "select newest valid backup")
 	expect(FileAccess.get_file_as_string(main_path) == "{corrupt", "candidate read does not publish")
@@ -74,6 +82,10 @@ func _run() -> void:
 		expect(not restore.accept(candidate).ok, "recovery publish failure")
 		expect(FileAccess.get_file_as_string(main_path) == "{corrupt" and FileAccess.get_sha256(backup_path) == backup_hash, "recovery failure preserves main/source")
 		restore.fault = Callable()
+		write(metadata_path, "{}")
+		expect(not restore.accept(candidate).ok and not restore.loaded and FileAccess.get_file_as_string(main_path) == "{corrupt",
+			"changed recovery identity record blocks publish")
+		write(metadata_path, identity_record)
 		write(backup_path, FileAccess.get_file_as_string(backup_path) + " ")
 		expect(not restore.accept(candidate).ok, "candidate source hash change rejected")
 		candidate = restore.find_candidate(id)
@@ -99,7 +111,35 @@ func _run() -> void:
 		write(clean.path("autosave.json"), FileAccess.get_file_as_string(clean.path("autosave.json")) + " ")
 		expect(not clean.save(new_world.model).ok, "external main edit blocks overwrite")
 		clean.release()
+	_check_metadata_after_upgrade()
 	finish()
+
+
+func _check_metadata_after_upgrade() -> void:
+	var store := Store.new(run_root.path_join("upgrade"))
+	var created := store.create("升级故障检查", Codec.V2.Config.SUPPLY_ID)
+	expect(created.ok, "create V2 upgrade fixture")
+	if not created.ok:
+		return
+	var id := store.world_id
+	expect(store.save(created.model).ok and store.release().ok, "save V2 with recovery identity and a backup")
+	var candidate := store.prepare(id)
+	expect(candidate.ok, "open V2 before upgrade")
+	if not candidate.ok:
+		return
+	var upgraded := store.upgrade_automatic(candidate)
+	expect(upgraded.ok, "stage V3 upgrade")
+	if not upgraded.ok:
+		store.release()
+		return
+	store.fault = func(stage): return stage == "metadata"
+	var result := store.accept(upgraded)
+	expect(result.ok and result.get("upgraded_automatic", false) and not result.get("warning", "").is_empty(),
+		"V3 publishes despite metadata update fault")
+	expect(store.release().ok and not FileAccess.file_exists(store.path("metadata.json")), "V2 identity did not survive V3 publication")
+	write(store.path("autosave.json"), "{corrupt")
+	expect(not store.find_candidate(id).ok and FileAccess.get_file_as_string(store.path("autosave.json")) == "{corrupt",
+		"malformed upgraded primary cannot recover pre-upgrade backup")
 
 
 func finish() -> void:
