@@ -56,7 +56,7 @@ macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-s
 
 ## R2 基础反应器产线对照
 
-启动前告知，运行 `sh tools/factory-content/r2-reactor-review.sh <new-batch>`。同一正式 Boot 的隔离 S1-P 产线配对截图使用 `current`、`geometry`、`r2` 分别标记现行资产、refinement 原材质和材质候选。检查实际晶体进料与同一催化剂批次出炉、入核心，再检查最小窗口点选和建造预览。候选 `reactor-r2.tscn` 与原图留在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志、货流断言和帧样本位于 `tools/runtime-intake/check-runs/factory-r2-reactor-v1/<batch>/`。[设计与验收](../../docs/design/factory-representative-asset-brief-v1.md#r2-基础反应器隔离复核)
+启动前告知，运行 `sh tools/factory-content/r2-reactor-review.sh <new-batch>`。同一正式 Boot 的隔离 S1-P 产线配对截图使用 `current`、`geometry`、`r2` 分别标记接入前的原件、refinement 原材质和材质候选。检查实际晶体进料与同一催化剂批次出炉、入核心，再检查最小窗口点选和建造预览。候选 `reactor-r2.tscn` 与原图留在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志、货流断言和帧样本位于 `tools/runtime-intake/check-runs/factory-r2-reactor-v1/<batch>/`。[设计与验收](../../docs/design/factory-representative-asset-brief-v1.md#r2-基础反应器隔离复核)
 
 ## 低投入交互样板
 

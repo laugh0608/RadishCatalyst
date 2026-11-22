@@ -1,0 +1,24 @@
+{
+  "asset": "reactor-r2.tscn",
+  "usage": "Foundation schema 9 reactor, including placement and device panel preview",
+  "license": "Project-authored geometry and textures",
+  "review_batch": "20261122-e-r2-reactor-review-02",
+  "review_scene_sha256": "2a2e07cfd873ea821d5eb13736507f2f81d6c6e858645f637d5df0b43fd78088",
+  "sha256": "648aa60c5a96322a755b2fb144cf22e3c05d23598739f07420cac4778870a120",
+  "sources": {
+    "client/assets/factory/refinement/reactor.glb": "a68457fb4497220e38f0db5b02f21250a467fc8b5d7e45820be94783740b63d9",
+    "client/assets/prototypes/factory_material_study/enamel.png": "de376ad65b88b69ce85da1d775822fc25297a0651fcd33a3d0c37e75b41bcc3e",
+    "client/assets/prototypes/factory_material_study/trim.png": "b61db50960ba09bad1950d1c042cc754129b14abb298c6030aeca1a2122f687b"
+  },
+  "footprint": [
+    3,
+    3
+  ],
+  "surfaces": 7,
+  "surface_overrides": [
+    "Mesh",
+    "Mesh2",
+    "Mesh3",
+    "Mesh4"
+  ]
+}

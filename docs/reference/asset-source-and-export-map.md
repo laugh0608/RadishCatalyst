@@ -29,6 +29,7 @@ tools/visual-studies/web-topdown-3d/ 的自有几何 / 材质 / 生产定义
 | refinement 2 GLB | `tools/factory-content/export-refinement-assets.mjs` | 写 `factory/refinement/`，独立 prototype 消费；不是正式根目录两件模型的更新入口 |
 | R1-B core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype]` | 自有轮廓源，先写 `assets/art-intake/2026-11-01-core-outline/<batch>/`，显式发布至 `client/assets/prototypes/base_core_outline/`。获认可的 `outline-06` 供 R1 样板、基础整合 R2 场景及 D1 共用 |
 | R2 foundation core 1 Godot 场景 | `client/assets/factory/base-core/core-r2.tscn` | 继承现有 `outline-06`，以 `material-02` 同源的 `enamel.png` 和 `trim.png` 设置表面覆盖。资产目录清单记录审阅批次、来源与哈希。基础整合在新建和继续时加载此场景 |
+| R2 foundation reactor 1 Godot 场景 | `client/assets/factory/base-reactor/reactor-r2.tscn` | 继承 `refinement/reactor.glb`，复用 `material-02` 的 `enamel.png` 和 `trim.png` 四处表面覆盖。基础整合新建与继续时使用此场景，建造预览及操作面板缩略图复用工厂视图加载的场景。资产目录清单记录原候选及运行资源哈希 |
 | D2 core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> --grid-controls` | 复用四面轮廓和 16 锚点，加 III 模块。导出证据在 `tools/runtime-intake/design-references/factory-grid-controls/`，运行模型写 `client/assets/factory/grid-controls/`，由支持核心 III 的 D2 隔离档加载 |
 | D2 grid buffer 1 GLB | `node tools/factory-content/export-grid-buffer.mjs` | 自有三模块储能模型，2×2 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 E2 加载 |
 | D2 timed dispatch 1 GLB | `node tools/factory-content/export-timed-dispatch.mjs` | 自有时钟盖与滚轮接口模型，1×1 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 C1 加载 |

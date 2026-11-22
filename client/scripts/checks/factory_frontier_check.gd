@@ -96,6 +96,7 @@ func _write_and_compare() -> void:
 		return
 	driver.world = world
 	world._set_paused(true)
+	driver.expect(world.view.assets.reactor.resource_path == world.View.ASSET_ROOT + "reactor.glb", "new D1 keeps the existing reactor scene")
 	var model: RefCounted = world.model
 	var route := Route.new(model, _load("starter.json"))
 	var layout := _load("layout.json")
@@ -480,6 +481,7 @@ func _read() -> void:
 	if world == null or not world.initialized:
 		return
 	driver.world = world
+	driver.expect(world.view.assets.reactor.resource_path == world.View.ASSET_ROOT + "reactor.glb", "continued D1 keeps the existing reactor scene")
 	var model: RefCounted = world.model
 	var startup: float = world.production_clock.active_usec / 1000000.0
 	var snapshot := Codec.snapshot(model, world.store.world_id, NAME, world.store.sequence)

@@ -89,7 +89,7 @@ func _ready() -> void:
 	ports.add_theme_color_override("font_color", Color("b2c5b3"))
 
 
-func refresh(model: RefCounted, e: Dictionary) -> void:
+func refresh(model: RefCounted, e: Dictionary, world_asset: PackedScene = null) -> void:
 	visible = not e.is_empty()
 	if e.is_empty():
 		return
@@ -189,7 +189,7 @@ func refresh(model: RefCounted, e: Dictionary) -> void:
 		power.text = "被动物流 · 无需供电"
 	ports.text = port_text(model, e)
 	if not compact:
-		_sync_slots(model, e)
+		_sync_slots(model, e, world_asset)
 	for label in [production, power, ports]:
 		label.visible = not label.text.is_empty()
 
@@ -213,8 +213,8 @@ func _show_dispatch(model: RefCounted, e: Dictionary) -> void:
 		production.text = production.text.strip_edges()
 
 
-func _sync_slots(model: RefCounted, e: Dictionary) -> void:
-	preview.show_device(e.type, e.get("dir", 0))
+func _sync_slots(model: RefCounted, e: Dictionary, world_asset: PackedScene) -> void:
+	preview.show_device(e.type, e.get("dir", 0), world_asset)
 	for role in slots:
 		grids[role].columns = 3 if e.type == "storage" else 1
 		for item in slots[role]:

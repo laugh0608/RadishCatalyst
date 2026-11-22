@@ -154,6 +154,9 @@ func _first_run() -> void:
 	await driver.shot("05-continuous-production")
 	if "--live" in OS.get_cmdline_user_args() and not await _sample_live_production(world, journey.devices.G.id):
 		return
+	if windowed:
+		journey.walk_near(journey.devices.R)
+		await _check_reactor_panel(world, journey.devices.R, false)
 	journey.alternatives_and_passages()
 	driver.expect(model.researched.size() == 7 and model.completed_by_recipe.slag_sintering > 0, "same world finishes seven nodes and material reuse")
 	driver.expect(model.discovery.passages.inner and model.completed_by_recipe.rich_catalyst > 0, "rich ore production is earned through the real gates")
@@ -274,9 +277,66 @@ func _read() -> void:
 	driver.expect(_matches(after, expected.after),
 		"30-second resumed snapshot matches uninterrupted simulation")
 	driver.expect(model.material_balance().balanced, "continued world conserves materials")
+	if windowed:
+		var reactor_index: int = model.entities.find_custom(func(e): return e.get("recipe_id") == "basic_catalyst")
+		driver.expect(reactor_index >= 0, "continued world contains the original catalyst reactor")
+		if reactor_index >= 0:
+			var reactor: Dictionary = model.entities[reactor_index]
+			var walk := Route.new(model, {})
+			walk.advance_movement = false
+			walk.walk_near(reactor)
+			await _check_reactor_panel(world, reactor, true)
 	_write("restore-result.json", {"first": first, "continued": continued, "startup_active_seconds": startup_seconds,
 		"failures": driver.failures})
 	await _click(world.hud.buttons["return"])
+
+
+func _check_reactor_panel(world: Control, reactor: Dictionary, minimum: bool) -> void:
+	var original_size := root.size
+	if minimum:
+		root.size = Vector2i(1100, 720)
+		root.move_to_center()
+		await driver.settle(12)
+		driver.expect(root.size == Vector2i(1100, 720), "continued reactor panel uses the actual minimum window")
+	await driver.settle()
+	var center: Vector2 = world.model.Grid.center(reactor)
+	var projected: Vector2 = world.view.project(Vector3(center.x - 0.25, 2.0, center.y - 0.2))
+	var mouse: Vector2 = world.hud.viewport_to_screen(projected)
+	driver.expect(world.view.hit(projected) == reactor.id, "world reactor can be picked from its visible geometry")
+	await driver.motion(mouse)
+	if minimum:
+		await driver.mouse(mouse, true)
+		await driver.mouse(mouse, false)
+		await driver.settle()
+	else:
+		await driver.key(KEY_F)
+	var panel: Control = world.discovery_panel
+	var opened: bool = panel.visible and panel.selected == reactor.id
+	driver.expect(opened, "reactor opens its panel through the normal input path")
+	if opened:
+		var visual: Dictionary = world.view.models[reactor.id]
+		var placed: Node3D = visual.root.get_child(0)
+		var thumbnail: Node3D = panel.device_summary.preview.asset
+		var expected: String = world.View.FOUNDATION_REACTOR_PATH
+		driver.expect(placed.scene_file_path == expected and thumbnail.scene_file_path == expected,
+			"the world and panel thumbnail both instantiate the R2 reactor scene")
+		var placed_parts: Array = visual.focus_parts
+		var preview_parts := thumbnail.find_children("*", "MeshInstance3D", true, false)
+		var shared_surfaces := 0
+		var coated := 0
+		for i in mini(placed_parts.size(), preview_parts.size()):
+			var material := placed_parts[i].get_active_material(0) as StandardMaterial3D
+			if placed_parts[i].mesh == preview_parts[i].mesh and material == preview_parts[i].get_active_material(0):
+				shared_surfaces += 1
+				if material != null and material.albedo_texture != null and material.uv1_triplanar:
+					coated += 1
+		driver.expect(shared_surfaces == 7 and coated == 4, "world and panel share %d meshes and %d coated surfaces (expected 7 and 4)" % [shared_surfaces, coated])
+		await driver.shot("07a-restored-r2-reactor-panel" if minimum else "05a-r2-reactor-panel")
+		await driver.click(panel.buttons.close)
+	if minimum:
+		root.size = original_size
+		root.move_to_center()
+		await driver.settle(12)
 
 
 func _check_r2_core(world: Control, stage: String) -> void:

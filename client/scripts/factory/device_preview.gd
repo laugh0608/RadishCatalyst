@@ -8,7 +8,7 @@ var viewport := SubViewport.new()
 var scene := Node3D.new()
 var camera := Camera3D.new()
 var asset: Node3D
-var shown_key := ""
+var shown_key := []
 
 
 func _ready() -> void:
@@ -40,33 +40,19 @@ func _ready() -> void:
 	resized.connect(func(): viewport.render_target_update_mode = SubViewport.UPDATE_ONCE)
 
 
-func show_device(kind: String, direction := 0) -> void:
-	var key := kind + str(direction)
+func show_device(kind: String, direction := 0, world_asset: PackedScene = null) -> void:
+	var key := [kind, direction, world_asset]
 	if key == shown_key:
 		return
 	shown_key = key
 	if is_instance_valid(asset):
 		scene.remove_child(asset)
 		asset.queue_free()
-	var path := "res://assets/factory/" + kind + ".glb"
-	if kind in ["crusher", "refinery", "assembler"]:
-		path = "res://assets/factory/expansion/" + kind + ".glb"
-	elif kind == "cell_generator":
-		path = "res://assets/factory/energy/cell_generator.glb"
-	elif kind == Dispatch.TYPE:
-		path = Dispatch.MODEL_PATH
-	elif kind == Buffer.TYPE:
-		path = Buffer.MODEL_PATH
-	elif kind in ["power_source", "power_junction"]:
-		path = "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
-	elif kind == "admission_gate":
-		path = "res://assets/factory/admission/admission-gate.glb"
-	elif kind in ["splitter", "merger"]:
-		path = "res://assets/factory/routing/" + kind + ".glb"
-	elif kind == "belt":
-		path = "res://assets/factory/belt-2.glb"
-	var packed := load(path) as PackedScene
-	assert(packed != null, "Missing device preview: " + path)
+	var packed := world_asset
+	if packed == null:
+		var path := _default_asset_path(kind)
+		packed = load(path) as PackedScene
+		assert(packed != null, "Missing device preview: " + path)
 	asset = packed.instantiate()
 	scene.add_child(asset)
 	if kind in ["belt", "splitter", "merger", "admission_gate", Dispatch.TYPE]:
@@ -82,3 +68,16 @@ func show_device(kind: String, direction := 0) -> void:
 	camera.look_at(center)
 	camera.size = maxf(bounds.size.length() * 1.12, 1.5)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+
+
+func _default_asset_path(kind: String) -> String:
+	match kind:
+		"crusher", "refinery", "assembler": return "res://assets/factory/expansion/" + kind + ".glb"
+		"cell_generator": return "res://assets/factory/energy/cell_generator.glb"
+		Dispatch.TYPE: return Dispatch.MODEL_PATH
+		Buffer.TYPE: return Buffer.MODEL_PATH
+		"power_source", "power_junction": return "res://assets/factory/power/" + kind.replace("_", "-") + ".glb"
+		"admission_gate": return "res://assets/factory/admission/admission-gate.glb"
+		"splitter", "merger": return "res://assets/factory/routing/" + kind + ".glb"
+		"belt": return "res://assets/factory/belt-2.glb"
+	return "res://assets/factory/" + kind + ".glb"

@@ -493,7 +493,7 @@ func _open_device(id: int) -> void:
 	if e.type == Model.DiscoveryRules.Integrated.CORE:
 		core_panel.open(model)
 	else:
-		discovery_panel.show_device(model, id)
+		discovery_panel.show_device(model, id, view.assets.get(e.type))
 	_capture_active_time()
 
 

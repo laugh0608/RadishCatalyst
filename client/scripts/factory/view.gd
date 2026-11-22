@@ -9,6 +9,7 @@ const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
 const FOUNDATION_CORE_PATH := ASSET_ROOT + "base-core/core-r2.tscn"
+const FOUNDATION_REACTOR_PATH := ASSET_ROOT + "base-reactor/reactor-r2.tscn"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 const ROUTING_ATTACHMENTS := ["splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 var resource_error := ""
@@ -94,7 +95,10 @@ func _ready() -> void:
 		status_materials[kind] = mat
 	for name in ["yard", "ore", "collector", "reactor", "storage", "engineer", "cargo",
 		"belt-2", "belt-4", "belt-6", "belt-8", "belt-10", "belt-12", "belt-14"]:
-		assets[name] = load(ASSET_ROOT + name + ".glb")
+		var asset_path: String = ASSET_ROOT + name + ".glb"
+		if name == "reactor" and integrated_camera and world_model.supply_id == Integrated.SUPPLY_ID:
+			asset_path = FOUNDATION_REACTOR_PATH
+		assets[name] = load(asset_path)
 		if not assets[name] is PackedScene:
 			resource_error = "缺少工厂模型：" + name
 			return

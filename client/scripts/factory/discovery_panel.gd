@@ -12,6 +12,7 @@ const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 var model: RefCounted
 var selected := -1
 var device_only := false
+var device_asset: PackedScene
 var inventory_only := false
 var bag_item := ""
 var device_item := ""
@@ -237,10 +238,11 @@ func item_button(item: String, from_bag: bool) -> Button:
 	return null
 
 
-func show_device(world: RefCounted, id: int) -> bool:
+func show_device(world: RefCounted, id: int, asset: PackedScene = null) -> bool:
 	var e: Dictionary = world.by_id(id)
 	if e.is_empty() or not world.near_entity(e):
 		return false
+	device_asset = asset
 	_open(world, id, true)
 	return true
 
@@ -363,7 +365,7 @@ func refresh() -> void:
 	if admission_controls.visible: admission_controls.refresh(model, e)
 	bag_frame.visible = not device_only or stores_items
 	if device_only:
-		device_summary.refresh(model, e)
+		device_summary.refresh(model, e, device_asset)
 	if stores_items and not device_item.is_empty() and item_button(device_item, false) == null:
 		device_item = ""
 	recipe_row.visible = device_only and e.type in model.process_types
