@@ -138,7 +138,7 @@ func _compare() -> void:
 	var route := Route.new(model, layout)
 	route.prepare_core_upgrade()
 	route.walk_to(Vector2(-8, 20.5))
-	_redraw()
+	_use_asset(original)
 	await driver.shot("01-current-yard-core-I")
 	_set_work_surface()
 	await _pair("02-core-I-default", 21)
@@ -148,7 +148,9 @@ func _compare() -> void:
 	route.energy_line()
 	route.steady()
 	route.walk_to(Vector2(-8, 20.5))
-	survey.traffic = _observe_outputs()
+	survey.traffic = route.observe_core_outputs()
+	driver.expect(survey.traffic.size() == 4 and model.material_balance().balanced,
+		"all four genuine output belts carry their configured item")
 	_redraw()
 	await _pair("04-core-II-default", 21)
 	await _pair("05-core-II-close", 16)
@@ -245,25 +247,6 @@ func _upgrade() -> bool:
 	await driver.shot("03b-after-upgrade-r2")
 	await driver.key(KEY_ESCAPE)
 	return true
-
-
-func _observe_outputs() -> Dictionary:
-	var output_ports := Rules.ports(Vector2i(model.core.x, model.core.z), "output")
-	var seen := {}
-	for i in 2400:
-		for port in output_ports:
-			if seen.has(port.id):
-				continue
-			var config: Dictionary = model.core.outputs[port.id]
-			var first: Dictionary = model.entity_at(Vector2i(port.x + port.dx, port.z + port.dz))
-			if config.enabled and first.get("cargo", "") == config.item:
-				seen[port.id] = {"item": config.item, "bay": [first.x, first.z], "tick": model.statistics.ticks, "batch": first.batch}
-		if seen.size() == output_ports.size():
-			break
-		model.advance(Route.STEP, 1)
-	driver.expect(seen.size() == output_ports.size() and model.material_balance().balanced,
-		"all four genuine output belts carry their configured item")
-	return seen
 
 
 func _verify_ports() -> void:

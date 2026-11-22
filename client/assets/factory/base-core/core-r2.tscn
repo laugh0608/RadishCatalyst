@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/prototypes/base_core_outline/core-outline.glb" id="1_outline"]
+[ext_resource type="Texture2D" path="res://assets/prototypes/factory_material_study/enamel.png" id="2_enamel"]
+[ext_resource type="Texture2D" path="res://assets/prototypes/factory_material_study/trim.png" id="3_trim"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shell"]
+albedo_color = Color(0.8666667, 0.8509804, 0.7529412, 1)
+albedo_texture = ExtResource("2_enamel")
+roughness = 0.66
+uv1_scale = Vector3(0.71, 0.71, 0.71)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 5.0
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.23921569, 0.31764707, 0.34509805, 1)
+albedo_texture = ExtResource("3_trim")
+metallic = 0.2
+roughness = 0.62
+uv1_scale = Vector3(1.16, 1.16, 1.16)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 5.0
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tier"]
+albedo_color = Color(0.3137255, 0.52156866, 0.5176471, 1)
+albedo_texture = ExtResource("2_enamel")
+roughness = 0.64
+uv1_scale = Vector3(0.71, 0.71, 0.71)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 5.0
+texture_filter = 5
+
+[node name="CoreR2" instance=ExtResource("1_outline")]
+
+[node name="Structure_Mesh0" parent="BaseCore/Structure" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_shell")
+
+[node name="LogisticsRing_Mesh0" parent="BaseCore/LogisticsRing" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="I_Mesh0" parent="BaseCore/TierModules/I" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_tier")
+
+[node name="II_Mesh0" parent="BaseCore/TierModules/II" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_tier")

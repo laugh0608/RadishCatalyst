@@ -14,12 +14,12 @@
 
 1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
 2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档。X2 与外矿道已亲测。[首程候选](../devlogs/2026-W47.md#d1-first-run-candidate)已从空档自动跑到高产矿回流、扩建和首批载体入库，并通过独立进程继续。萝卜SAMA决定本轮跳过整段亲测，保留候选和首次理解、节奏、经营动机的待验记录。D1 新建沿普通带单入口规则，已有档按原规则继续。
-3. [E 整段收口](../features/factory-demo-integration-v1.md#实施拆分)已完成 [D1 正式入口隔离预检](../devlogs/2026-W47.md#d1-entry-preflight)及[备份恢复修复](../devlogs/2026-W47.md#d1-recovery-identity-fix)。萝卜SAMA决定 D1 暂只走隔离入口。[R2 核心首件](../devlogs/2026-W47.md#r2-core-first-piece)已完成真实产线对照，覆盖核心升级、四路出料和最小窗口选择。候选留待视觉审阅，正式接入另行决定，目标平台证据待补。
+3. [E 整段收口](../features/factory-demo-integration-v1.md#实施拆分)已完成 [D1 正式入口隔离预检](../devlogs/2026-W47.md#d1-entry-preflight)及[备份恢复修复](../devlogs/2026-W47.md#d1-recovery-identity-fix)。萝卜SAMA决定 D1 暂只走隔离入口。[R2 核心首件](../devlogs/2026-W47.md#r2-foundation-integration)已接入基础整合，正式 Boot 的新建、升级、四路出料与新旧档继续均已在开发机复核，目标平台证据待补。
 4. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。待现有玩法显出调度动机和操作阻碍，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
 
 本阶段日常迭代以匹配改动的自动检查推进，玩家可见改动补正式 Boot 窗口与相应证据。萝卜SAMA在整段候选等里程碑集中亲测，复核首次理解、节奏和继续经营的动机。
 
-11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 复用现有核心轮廓 GLB，不改旧世界的规则与资产。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
+11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 的 R2 场景继承原核心轮廓 GLB。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 
 ## 本阶段设计边界
 

@@ -8,6 +8,7 @@ const Progression := preload("res://data/factory/integrated_progression.gd")
 const Frontier := Integrated.Frontier
 const Slots := preload("res://scripts/factory/item_slot.gd")
 const ASSET_ROOT := "res://assets/factory/"
+const FOUNDATION_CORE_PATH := ASSET_ROOT + "base-core/core-r2.tscn"
 const STATUS := {"running": "77d8c6", "ready": "b2c5b3", "waiting": "e2b365", "blocked": "e58864"}
 const ROUTING_ATTACHMENTS := ["splitter", "merger", "admission_gate", Integrated.Timed.TYPE]
 var resource_error := ""
@@ -71,8 +72,12 @@ func _ready() -> void:
 	integrated_camera = world_model != null and Integrated.matches_supply(world_model.supply_id)
 	if integrated_camera:
 		yaw = 0.0
-		var controls: bool = world_model.core_upgrades.has(3)
-		assets.base_core = load(Integrated.Controls.CORE_MODEL_PATH if controls else Integrated.MODEL_PATH)
+		var core_path := Integrated.MODEL_PATH
+		if world_model.core_upgrades.has(3):
+			core_path = Integrated.Controls.CORE_MODEL_PATH
+		elif world_model.supply_id == Integrated.SUPPLY_ID:
+			core_path = FOUNDATION_CORE_PATH
+		assets.base_core = load(core_path)
 		resource_error = _check_core_asset(assets.base_core, world_model.core_upgrades.size() + 1)
 		if not resource_error.is_empty():
 			return

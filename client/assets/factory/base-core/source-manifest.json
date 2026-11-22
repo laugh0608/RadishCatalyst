@@ -1,0 +1,23 @@
+{
+  "asset": "core-r2.tscn",
+  "usage": "Foundation schema 9 core I and II",
+  "license": "Project-authored geometry and textures",
+  "review_batch": "20261122-r2-core-review-02",
+  "review_scene_sha256": "70e61c8062f2ede0a8021f93848dace39d761892495c1390e43212738b0477d9",
+  "sha256": "ea58467b05bf24c1f50990c0f8385c79895efe6802324942118bca1d05a0c4c8",
+  "sources": {
+    "client/assets/prototypes/base_core_outline/core-outline.glb": "a91e72017ae17a8a9a3fb910cac5b7e44f0dec0cc70b400c4036eb52a0c40bc4",
+    "client/assets/prototypes/factory_material_study/enamel.png": "de376ad65b88b69ce85da1d775822fc25297a0651fcd33a3d0c37e75b41bcc3e",
+    "client/assets/prototypes/factory_material_study/trim.png": "b61db50960ba09bad1950d1c042cc754129b14abb298c6030aeca1a2122f687b"
+  },
+  "footprint": [
+    6,
+    6
+  ],
+  "ports": 16,
+  "belt_surface_height": 0.31,
+  "triangles_by_tier": {
+    "I": 4060,
+    "II": 4384
+  }
+}

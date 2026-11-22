@@ -52,7 +52,7 @@ macOS 双击 `material-study.command` 或执行 `sh tools/factory-content/core-s
 
 ## R2 核心首件实机对照
 
-启动前告知，运行 `sh tools/factory-content/r2-core-review.sh <new-batch>`。正式 Boot 在隔离根新建基础整合档，沿 S1-P 生产，实际点击核心升级，在同一货流和镜头上切换现行核心与候选。候选是保留三平面映射的 Godot 场景，使用仓库已有 GLB 和贴图。原图与候选在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志和帧数据在 `tools/runtime-intake/check-runs/factory-r2-core-v1/<batch>/`。[首件复核](../../docs/devlogs/2026-W47.md#r2-core-first-piece)
+启动前告知，运行 `sh tools/factory-content/r2-core-review.sh <new-batch>`。正式 Boot 在隔离根新建基础整合档，沿 S1-P 生产，实际点击核心升级，在同一货流和镜头上切换原 `outline-06` 与 R2 候选。截图名中的 `current` 指源轮廓。候选是保留三平面映射的 Godot 场景，使用仓库已有 GLB 和贴图。原图与候选在 `assets/art-intake/<date>-factory-representative-assets/<batch>/`，日志和帧数据在 `tools/runtime-intake/check-runs/factory-r2-core-v1/<batch>/`。正式加载由联合首程检查复核。[首件复核](../../docs/devlogs/2026-W47.md#r2-core-first-piece) · [正式接入](../../docs/devlogs/2026-W47.md#r2-foundation-integration)
 
 ## 低投入交互样板
 

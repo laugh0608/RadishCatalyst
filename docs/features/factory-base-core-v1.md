@@ -52,7 +52,7 @@
 
 ## 交互与视觉
 
-新核心模型、中心原点、低位端口锚点、等级模块与贴图需求见[R1 资产设计](../design/factory-representative-asset-brief-v1.md)。正式整合使用 R1-B 的四面端口轮廓承载真实库存、物流和供电。核心 III 在相同足印和端口上增加等级模块。见 [D2 核心 III 交付](factory-grid-controls-d2.md#d2-core-iii-delivery)。
+新核心模型、中心原点、低位端口锚点、等级模块与贴图需求见 [R2 首件规范](../design/factory-representative-asset-brief-v1.md#r2-first-asset-baseline)。基础整合的核心 I / II 使用继承 R1-B 四面端口轮廓的 R2 场景，承载真实库存、物流和供电。核心 III 在相同足印和端口上增加等级模块。见 [D2 核心 III 交付](factory-grid-controls-d2.md#d2-core-iii-delivery)。
 
 核心使用导入模型，六格足印候选保持通行 / 点击与多口可读性。应用后的输出物品常驻标注，与物品准入口图标语义一致；未提交配置不改变供料。核心显示基础功率、库存上限、当前等级和下一步解锁；不把当前存量画成总仓容量条。
 
@@ -75,7 +75,7 @@
 
 仲裁时应同时覆盖普通带与核心的目标冲突。若核心和普通来源争同一空带，只允许一个请求写入。若同物品只剩一件或只剩一个仓位，拒绝另一口并保留对应货物或库存。输入、输出额度各用步初值，保持同一步进出顺序与遍历顺序无关。
 
-B1 使用获认可的 `outline-06` 和 C2；M1 材质仍为样板。复核世界只在内存中运行，普通菜单不显示此入口，Store 拒绝写入该模型。用 `sh tools/check-factory-base-core.sh play` 进入空物料、已铺 S0 子路线的复核场；`empty-yard` 仅预置核心。研究和 II 升级归 B2，固定燃烧归 C。正式身份、旧档保护及持久化接入沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
+B1 使用获认可的 `outline-06`、R2 核心材质与 C2 镜头。复核世界只在内存中运行，普通菜单不显示此入口，Store 拒绝写入该模型。用 `sh tools/check-factory-base-core.sh play` 进入空物料、已铺 S0 子路线的复核场，`empty-yard` 仅预置核心。研究和 II 升级归 B2，固定燃烧归 C。正式身份、旧档保护及持久化接入沿[整合存档合同](../architecture/factory-integrated-demo-save-v1.md)。
 
 ## 验证与失败退出
 

@@ -27,7 +27,8 @@ tools/visual-studies/web-topdown-3d/ 的自有几何 / 材质 / 生产定义
 | expansion 5 GLB + 8 SVG | `tools/factory-content/export-expansion-assets.mjs` | 写 `factory/expansion/` 与 `icons/`，包括加工机与铁 / 炭矿源 |
 | energy 1 GLB + 1 SVG | `tools/factory-content/export-energy-assets.mjs` | 写 `factory/energy/` 与工业电芯图标；更换外观不自动改变燃烧规则 |
 | refinement 2 GLB | `tools/factory-content/export-refinement-assets.mjs` | 写 `factory/refinement/`，独立 prototype 消费；不是正式根目录两件模型的更新入口 |
-| R1-B core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype]` | 自有轮廓源；先写 `assets/art-intake/2026-11-01-core-outline/<batch>/`，显式发布只写 `client/assets/prototypes/base_core_outline/`，仅 R1-B 样板读取；`outline-06` 四面端口与四角装饰已获轮廓认可；用途限独立样板 |
+| R1-B core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> [--publish-prototype]` | 自有轮廓源，先写 `assets/art-intake/2026-11-01-core-outline/<batch>/`，显式发布至 `client/assets/prototypes/base_core_outline/`。获认可的 `outline-06` 供 R1 样板、基础整合 R2 场景及 D1 共用 |
+| R2 foundation core 1 Godot 场景 | `client/assets/factory/base-core/core-r2.tscn` | 继承现有 `outline-06`，以 `material-02` 同源的 `enamel.png` 和 `trim.png` 设置表面覆盖。资产目录清单记录审阅批次、来源与哈希。基础整合在新建和继续时加载此场景 |
 | D2 core outline 1 GLB | `tools/factory-content/export-core-outline.mjs <new-batch> --grid-controls` | 复用四面轮廓和 16 锚点，加 III 模块。导出证据在 `tools/runtime-intake/design-references/factory-grid-controls/`，运行模型写 `client/assets/factory/grid-controls/`，由支持核心 III 的 D2 隔离档加载 |
 | D2 grid buffer 1 GLB | `node tools/factory-content/export-grid-buffer.mjs` | 自有三模块储能模型，2×2 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 E2 加载 |
 | D2 timed dispatch 1 GLB | `node tools/factory-content/export-timed-dispatch.mjs` | 自有时钟盖与滚轮接口模型，1×1 足印与独立来源清单写入 `client/assets/factory/grid-controls/`，随 C1 加载 |
@@ -38,6 +39,8 @@ tools/visual-studies/web-topdown-3d/ 的自有几何 / 材质 / 生产定义
 R0 盘点时 27 个客户端 GLB 元数据均未包含图像、纹理或法线贴图条目；后续新增的 R1-B 轮廓也无贴图。当前候选含 16 命名端口与 I / II 变体，共 5 网格 / 4 材质、每级 4 可见表面；可编辑源、GLB、命令 / 依赖与哈希随来源清单保存，Godot 导入配置独立提交。R1-C 贴图单独绑定，保留原 GLB 与 UV。
 
 R1-C 独立样板材质由 `python3 tools/factory-content/export-representative-materials.py <batch> --copy-to-study` 生成。每批先保存在 `assets/art-intake/2026-11-07-factory-representative-assets/<batch>/`，样板副本位于 `client/assets/prototypes/factory_material_study/`。当前 `material-02` 有四张 sRGB 颜色贴图和一张 +Y 法线图，均为 256²，启用 mipmaps。来源和文件哈希随清单保存。
+
+其中 `enamel.png` 和 `trim.png` 同时是基础整合的运行资源。重新导出前可在新候选批次核对这些贴图及导入配置，正式更新与模型接入一起验证。
 
 ## 共用与工程资源
 

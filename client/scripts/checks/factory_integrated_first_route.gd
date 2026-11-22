@@ -204,6 +204,23 @@ func _packs_to_core(count: int) -> void:
 	stock(model.core, "construction_pack", count, true)
 
 
+func observe_core_outputs() -> Dictionary:
+	var ports := Model.Integrated.ports(Vector2i(model.core.x, model.core.z), "output")
+	var seen := {}
+	for i in 2400:
+		for port in ports:
+			if seen.has(port.id):
+				continue
+			var config: Dictionary = model.core.outputs[port.id]
+			var belt: Dictionary = model.entity_at(Vector2i(port.x + port.dx, port.z + port.dz))
+			if config.enabled and belt.get("type") == "belt" and belt.cargo == config.item:
+				seen[port.id] = {"item": config.item, "bay": [belt.x, belt.z], "tick": model.statistics.ticks, "batch": belt.batch}
+		if seen.size() == ports.size():
+			break
+		model.advance(STEP, 1)
+	return seen
+
+
 func steady() -> Dictionary:
 	var gen: Dictionary = devices.G
 	walk_near(gen)

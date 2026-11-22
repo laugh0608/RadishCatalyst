@@ -95,6 +95,7 @@ func _first_run() -> void:
 	world._set_paused(true)
 	var model: RefCounted = world.model
 	driver.expect(model.core.level == 1 and model.core.items.is_empty() and model.bag.is_empty() and model.entities.size() == 1, "empty first run with one core")
+	_check_r2_core(world, "normal creation")
 	await driver.shot("01-empty-world")
 	if windowed:
 		var spawn := Vector2(model.actor.x, model.actor.z)
@@ -109,10 +110,18 @@ func _first_run() -> void:
 	if not layout is Dictionary:
 		return
 	var journey := Route.new(model, layout)
-	journey.bootstrap()
+	if windowed:
+		journey.prepare_core_upgrade()
+		journey.walk_to(Vector2(-8, 20.5))
+		if not await _upgrade_at_core(world):
+			return
+		journey.finish_bootstrap()
+	else:
+		journey.bootstrap()
+	await driver.settle()
+	_check_r2_core(world, "tier II upgrade")
 	await driver.shot("02-tier-ii-from-stock")
 	journey.energy_line()
-	await driver.shot("03-four-outputs-live")
 	if windowed:
 		if not root.has_focus():
 			driver.expect(false, "window retains focus for generator input")
@@ -134,6 +143,13 @@ func _first_run() -> void:
 			driver.expect(world.ui.paused, "pause the window clock before the fixed-step sample")
 			world.discovery_panel.close_panel()
 	var continuous := journey.steady()
+	journey.walk_to(Vector2(-8, 20.5))
+	var traffic := journey.observe_core_outputs()
+	driver.expect(traffic.size() == 4 and model.material_balance().balanced,
+		"all four core outputs carry their configured item on real belts")
+	await driver.shot("03-four-outputs-live")
+	if windowed:
+		await _inspect_minimum_window(world)
 	await driver.shot("05-continuous-production")
 	journey.alternatives_and_passages()
 	driver.expect(model.researched.size() == 7 and model.completed_by_recipe.slag_sintering > 0, "same world finishes seven nodes and material reuse")
@@ -161,7 +177,7 @@ func _first_run() -> void:
 	_write("expected.json", {"id": id, "generator": generator, "before": candidate.document,
 		"after": Codec.snapshot(model, id, NAME, sequence)})
 	_write("first-run.json", {"layout": "S1-P", "milestones": journey.milestones, "walked_grid_units": journey.distance,
-		"manual_transfer_commands": journey.carried, "continuous": continuous, "saved": current,
+		"manual_transfer_commands": journey.carried, "continuous": continuous, "core_output_traffic": traffic, "saved": current,
 		"timing": "fixed-step simulation and collision-aware walks; not player elapsed time"})
 	print("First run continuous: " + JSON.stringify(continuous))
 
@@ -191,6 +207,7 @@ func _read() -> void:
 		return
 	driver.world = world
 	var model: RefCounted = world.model
+	_check_r2_core(world, "independent continue")
 	var sequence: int = world.store.sequence
 	# The menu callback samples the few active microseconds before it pauses Boot.
 	var startup_seconds: float = world.production_clock.active_usec / 1000000.0
@@ -212,6 +229,61 @@ func _read() -> void:
 	_write("restore-result.json", {"first": first, "continued": continued, "startup_active_seconds": startup_seconds,
 		"failures": driver.failures})
 	await _click(world.hud.buttons["return"])
+
+
+func _check_r2_core(world: Control, stage: String) -> void:
+	var graphic: Node3D = world.view.models[world.model.core.id].root
+	var tiers := graphic.find_child("TierModules", true, false)
+	var level: int = world.model.core.level
+	driver.expect(world.view.assets.base_core.resource_path == world.View.FOUNDATION_CORE_PATH
+		and tiers.get_node("I").visible == (level == 1) and tiers.get_node("II").visible == (level == 2),
+		stage + " loads the formal R2 scene and active tier")
+	var coated := 0
+	for part: MeshInstance3D in graphic.find_children("*", "MeshInstance3D", true, false):
+		var material := part.get_active_material(0) as StandardMaterial3D
+		if material != null and material.albedo_texture != null and material.uv1_triplanar:
+			coated += 1
+	driver.expect(coated == 4, stage + " retains the four approved surface overrides")
+
+
+func _upgrade_at_core(world: Control) -> bool:
+	await driver.settle()
+	await driver.motion(driver.cell_screen(Vector2i(-8, 24), 2.5))
+	await driver.key(KEY_F)
+	var panel: Control = world.core_panel
+	driver.expect(panel.visible and world.ui.selected == world.model.core.id, "nearby F opens the formal R2 core")
+	if not panel.visible:
+		return false
+	panel.tabs.current_tab = 3
+	await driver.settle()
+	var packs: int = world.model.core.items.get("construction_pack", 0)
+	await driver.click(panel.upgrade_button)
+	var upgraded: bool = world.model.core.level == 2
+	driver.expect(upgraded and world.model.core.items.get("construction_pack", 0) == packs - 2,
+		"upgrade button consumes two produced packs")
+	await driver.click(panel.close_button)
+	await driver.key(KEY_ESCAPE)
+	return upgraded
+
+
+func _inspect_minimum_window(world: Control) -> void:
+	var original_size := root.size
+	root.size = Vector2i(1100, 720)
+	root.move_to_center()
+	await driver.settle(12)
+	driver.expect(root.size == Vector2i(1100, 720), "native window reaches its minimum size")
+	await driver.shot("03a-r2-minimum-window")
+	await driver.world_click(Vector2i(-8, 24), 2.5)
+	var panel: Control = world.core_panel
+	driver.expect(panel.visible and world.ui.selected == world.model.core.id, "mouse selection opens the R2 core at minimum size")
+	if panel.visible:
+		panel.tabs.current_tab = 1
+		await driver.shot("03b-r2-minimum-interfaces")
+		await driver.click(panel.close_button)
+		await driver.key(KEY_ESCAPE)
+	root.size = original_size
+	root.move_to_center()
+	await driver.settle(12)
 
 
 func _result(model: RefCounted, generator: int) -> Dictionary:
