@@ -23,6 +23,7 @@
 
 - [Riftbreaker Camera And Visual Study](riftbreaker-camera-and-visual-study.md)
 - [Endfield Production Planning Study](endfield-production-planning-study.md)
+- [DSP Online Production Study](dsponline-production-study.md)
 - [Factory Game Production Study](factory-game-production-study.md)
 - [Chemical Automation Game Outline](chemical-automation-game-outline.md)
 - [Cultivation Game Outline](cultivation-game-outline.md)

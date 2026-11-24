@@ -1,10 +1,10 @@
 # Daily Start
 
-更新时间：2026-11-22
+更新时间：2026-11-24
 
 ## 启动读取
 
-先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[本周周志](../devlogs/2026-W47.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
+先检查 `dev` 工作区并遵循 `AGENTS.md`，再读 [Current Plan](current.md)、[整合基线](demo-consolidation-proposal.md)、[整合总合同](../features/factory-demo-integration-v1.md)和[最新周志](../devlogs/2026-W48.md)。按任务展开核心、科技树、能源与存档子合同；坐标 / 参数使用[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
 ## 当前交接
 
@@ -22,7 +22,7 @@
 ### 下一批 · 产线诊断与恢复
 
 1. 在这台 Mac 上，从同一份已扩建的 D1 成品检查点派生新隔离副本。通过实际设备和物流操作复现矿渣或晶体断料、载体出料受阻及发电机燃料耗尽。已有固定步的断供与反馈检查可作起点。
-2. 在正式 Boot 窗口核对目标栏、设备面板和生产统计，观察能否定位设备、辨认原因并执行恢复操作。优先复核已有烧结批次、回仓线仍接通时，目标栏是否会继续显示成果而漏掉新出现的缺料。只修实际复现的问题，涉及共用反馈时补正式基础整合 schema 9 回归。
+2. 按 [D1 成品线复测](../features/factory-research-and-progression-v1.md#d1-production-diagnostics)先断晶体，保留烧结历史、供电和回仓线。在正式 Boot 核对目标栏、设备面板和生产统计，观察玩家能否看出停因、定位烧结炉并恢复供料。只修实际复现的问题。
 3. 以载体重新入仓、发电机自动补燃、在途货与物料账平衡、保存后独立继续为验收证据。D1 正式入口暂不开，D2 预检等既有产线出现实际调度需求与操作阻碍后推进。[原自救合同](../features/factory-fixed-burn-energy-v1.md) · [阶段退出条件](current.md#retained-d4)
 
 ### E 整段收口 · Mac 正式首程
