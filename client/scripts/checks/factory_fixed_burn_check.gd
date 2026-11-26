@@ -124,7 +124,13 @@ func _save() -> void:
 
 
 func _mutations(snapshot: Dictionary, id: String) -> void:
-	for variant in ["definitions", "future", "core", "research", "cooldown", "fuel", "spill", "topology", "stock"]:
+	var original := snapshot.duplicate(true)
+	var loaded := Codec.decode(snapshot, id)
+	if expect(loaded.ok, "decode original checkpoint"):
+		loaded.model.discovery.passages.outer = not loaded.model.discovery.passages.outer
+		loaded.model.statistics.buckets[0].produced.crystal = -1
+		expect(snapshot == original, "decoded discovery and statistics are independent of the source document")
+	for variant in ["definitions", "future", "core", "research", "cooldown", "fuel", "spill", "bucket_missing", "bucket_extra", "bucket_clock", "bucket_activation", "current_energy", "total_extra", "topology", "stock"]:
 		var d := snapshot.duplicate(true)
 		match variant:
 			"definitions": d.definitions_sha256 = "wrong"
@@ -136,6 +142,14 @@ func _mutations(snapshot: Dictionary, id: String) -> void:
 				for e in d.state.entities:
 					if e.type == "cell_generator": e.burn_remaining_ticks = 0.5
 			"spill": d.state.statistics.totals.spill_kj += 1
+			"bucket_missing":
+				d.state.statistics.buckets[0].erase("standby_kj")
+				d.state.statistics.buckets[0].unknown_kj = 0
+			"bucket_extra": d.state.statistics.buckets[0].charge_j = 0
+			"bucket_clock": d.state.statistics.buckets[0].start_tick += 1
+			"bucket_activation": d.state.statistics.buckets[0].cells_activated = 0.5
+			"current_energy": d.state.statistics.current.fuel_released_kj = "0"
+			"total_extra": d.state.statistics.totals.ticks = 0
 			"topology": d.state.power_links.pop_back()
 			"stock": d.state.core.items.metal_plate = 99999
 		var result := Codec.decode(d, id)

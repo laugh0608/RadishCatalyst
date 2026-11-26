@@ -32,12 +32,7 @@ static func number(value: Variant, low: float, high: float) -> bool:
 
 
 static func fields(value: Variant, names: Array) -> bool:
-	if not value is Dictionary or value.size() != names.size():
-		return false
-	for key in names:
-		if not value.has(key):
-			return false
-	return true
+	return value is Dictionary and value.size() == names.size() and value.has_all(names)
 
 
 static func snapshot(model: RefCounted, id: String, title: String, sequence: int) -> Dictionary:

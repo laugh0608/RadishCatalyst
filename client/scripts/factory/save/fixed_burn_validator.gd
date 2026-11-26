@@ -1,7 +1,6 @@
 extends "res://scripts/factory/save/codec_v1.gd"
 
 const Stats := preload("res://scripts/factory/save/statistics_validator.gd")
-const BaseStats := preload("res://scripts/factory/statistics.gd")
 const BurnStats := preload("res://scripts/factory/fixed_burn_statistics.gd")
 const Integrated := preload("res://data/factory/integrated_rules.gd")
 const Energy := preload("res://data/factory/energy_rules.gd")
@@ -11,26 +10,11 @@ const EXTRA := BurnStats.EXTRA + ["cells_activated"]
 
 
 static func statistics(value: Variant, model: RefCounted, generator_count: int, request_kw: float, standby_kw: float) -> Dictionary:
-	if not fields(value, ["ticks", "totals", "buckets", "current"]) or not integer(value.ticks, 0, 20000000000000) or not value.buckets is Array or value.buckets.size() > 600:
-		return failure("固定燃烧统计结构无效。")
-	var base: Dictionary = value.duplicate(true)
 	var storage: bool = model.grid.storage_enabled
 	var storage_keys: Array = StorageStats.STORAGE_KEYS if storage else []
-	var originals: Array = [value.totals] + value.buckets + [value.current]
-	var copies: Array = [base.totals] + base.buckets + [base.current]
-	for i in originals.size():
-		var names := BaseStats.ENERGY + BaseStats.MATERIAL + EXTRA + storage_keys + ([] if i == 0 else ["start_tick", "ticks"])
-		if not fields(originals[i], names): return failure("固定燃烧统计字段无效。")
-		for key in BurnStats.EXTRA:
-			if not number(originals[i][key], 0, 1e15): return failure("固定燃烧电量无效。")
-		if not integer(originals[i].cells_activated): return failure("激活电芯次数无效。")
-		for key in storage_keys:
-			if not integer(originals[i][key]): return failure("储能统计必须为非负整数焦耳。")
-		for key in EXTRA + storage_keys:
-			copies[i].erase(key)
 	var generator_kw := generator_count * Energy.GENERATOR_KW
 	var built_buffers: int = model.assembly_counts.get(Buffer.TYPE, 0)
-	var common := Stats.validate_timeline(base, model.time, Integrated.BASE_KW + generator_kw + built_buffers * Buffer.DISCHARGE_KW, request_kw, model.item_ids)
+	var common := Stats.validate_timeline(value, model.time, Integrated.BASE_KW + generator_kw + built_buffers * Buffer.DISCHARGE_KW, request_kw, model.item_ids, EXTRA + storage_keys)
 	if not common.ok:
 		return common
 	var progression_cells := 0
@@ -47,8 +31,14 @@ static func statistics(value: Variant, model: RefCounted, generator_count: int, 
 	var sums := {}
 	for key in EXTRA:
 		sums[key] = 0
-	for i in originals.size():
-		var r: Dictionary = originals[i]
+	var records: Array = [value.totals] + value.buckets + [value.current]
+	for i in records.size():
+		var r: Dictionary = records[i]
+		for key in BurnStats.EXTRA:
+			if not number(r[key], 0, 1e15): return failure("固定燃烧电量无效。")
+		if not integer(r.cells_activated): return failure("激活电芯次数无效。")
+		for key in storage_keys:
+			if not integer(r[key]): return failure("储能统计必须为非负整数焦耳。")
 		var duration: float = model.time if i == 0 else r.ticks * model.STEP
 		if not _record(r, duration, generator_kw, standby_kw):
 			return failure("固定燃烧分项、弃能或待机电量不守恒。")
@@ -79,7 +69,7 @@ static func statistics(value: Variant, model: RefCounted, generator_count: int, 
 			recent += r[pair[0]] - r[pair[1]]
 		if not _at_most(recent, value.totals[pair[0]] - value.totals[pair[1]]):
 			return failure("近期运行用电或燃料获用量超过累计量。")
-	return _storage_ledger(originals, model, built_buffers, int(value.ticks)) if storage else {"ok": true}
+	return _storage_ledger(records, model, built_buffers, int(value.ticks)) if storage else {"ok": true}
 
 
 static func _at_most(amount: float, limit: float) -> bool:

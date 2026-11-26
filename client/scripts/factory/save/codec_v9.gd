@@ -75,7 +75,9 @@ static func decode_state(value: Dictionary, expected_id: String, model: RefCount
 		return failure("采集、配方或唯一次试制计数无效。")
 	if not fields(s.discovery, ["surveyed", "sample_taken", "passages"]):
 		return failure("发现字段无效。")
-	var common: Dictionary = s.duplicate(true)
+	# Adapt discovery to the common rules without copying the statistics history and entities.
+	var common: Dictionary = s.duplicate()
+	common.discovery = s.discovery.duplicate(true)
 	common.erase("simulation_tick")
 	common.erase("remainder_s")
 	var frontier_open := false
@@ -93,10 +95,10 @@ static func decode_state(value: Dictionary, expected_id: String, model: RefCount
 	common.time = int(s.simulation_tick) * model.STEP
 	common.remainder = s.remainder_s
 	common.discovery.trial_completed = s.completed_by_recipe.solvent_trial == 1
-	var unpacked := V2.unpack_state(common, Tech.MAX_OWNED * (Tech.MAX_OWNED - 1) / 2, EXTRA, model.item_ids.filter(func(item): return item not in V2.Config.ITEMS))
-	if not unpacked.ok:
-		return unpacked
-	model.discovery = unpacked.state.discovery
+	var checked := V2.validate_state(common, Tech.MAX_OWNED * (Tech.MAX_OWNED - 1) / 2, EXTRA, model.item_ids.filter(func(item): return item not in V2.Config.ITEMS))
+	if not checked.ok:
+		return checked
+	model.discovery = common.discovery
 	var progression := _load_progression(model, s.core, s.research)
 	if not progression.ok:
 		return progression

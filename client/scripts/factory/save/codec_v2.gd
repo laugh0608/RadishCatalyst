@@ -20,9 +20,15 @@ static func snapshot(model: RefCounted, id: String, title: String, sequence: int
 
 
 static func unpack_state(value: Variant, max_power_links := 91, extra_fields: Array = [], extra_items: Array = []) -> Dictionary:
-	if not fields(value, STATE_FIELDS + ["power_links", "discovery", "statistics", "statistics_ui"] + extra_fields):
+	var result := validate_state(value, max_power_links, extra_fields, extra_items)
+	if result.ok:
+		result.state = value.duplicate(true)
+	return result
+
+
+static func validate_state(s: Variant, max_power_links: int, extra_fields: Array, extra_items: Array) -> Dictionary:
+	if not fields(s, STATE_FIELDS + ["power_links", "discovery", "statistics", "statistics_ui"] + extra_fields):
 		return failure("联合工厂状态字段无效。")
-	var s: Dictionary = value.duplicate(true)
 	if not fields(s.discovery, ["surveyed", "sample_taken", "trial_completed", "passages"]) or not fields(s.discovery.passages, ["outer", "inner"]):
 		return failure("发现状态字段无效。")
 	var d: Dictionary = s.discovery
@@ -43,7 +49,7 @@ static func unpack_state(value: Variant, max_power_links := 91, extra_fields: Ar
 		favorites[item] = true
 	if not Validator.items(s.bag, 200, Config.ITEMS + extra_items) or NewModel.Items.count(s.bag) > 200:
 		return failure("背包物品或容量无效。")
-	return {"ok": true, "state": s}
+	return {"ok": true}
 
 
 static func normalize_items(items: Dictionary) -> Dictionary:
