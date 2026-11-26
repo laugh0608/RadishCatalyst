@@ -1,6 +1,6 @@
 # Factory Research And Progression V1
 
-更新时间：2026-11-07
+更新时间：2026-11-26
 
 状态：七节点、核心 II 与核心装配已随基础整合工厂开放正式新建。D1 开拓回报已获萝卜SAMA确认，在独立 schema 10 隔离档验证。总体顺位见[整合总合同](factory-demo-integration-v1.md)，基础参数与无循环核算见[布局与预算](../reference/factory-integrated-demo-layout-and-budget.md)。
 
@@ -116,9 +116,9 @@ R03 / R10 路线中，X2 的电芯展开后合计 6 板、6 载体、6 解壳剂
 
 ### 成品线诊断复测
 
-状态为待窗口复测。从同一 D1 成品检查点派生隔离副本，优先在已有烧结批次、供电正常、载体回仓线仍接通时切断晶体供料，待炉内和在途晶体用完后观察目标栏。代码审阅发现，当前成果分支可绕过已经算出的缺料反馈。若窗口复现，复用现有炉状态和定位，让玩家看到当前缺晶体、找到矿渣烧结炉并到现场恢复供料，累计批次仍可作为成果回查。[DSPO 交互参照](../reference/dsponline-production-study.md#diagnostics)
+烧结已投产且载体回仓线接通时，目标栏仍检查当前这台炉的供电、加工、出料及配方缺料。遇到缺料或出料受阻，先显示停因并定位烧结炉，同时保留累计批次和核心载体数。正常加工、等候前件运走时可定位核心查看成果。回仓不通时，从炉的主出口检查沿线传送带与物品准入口。[DSPO 交互参照](../reference/dsponline-production-study.md#diagnostics)
 
-同批比较矿渣断供、载体回压及发电机燃料耗尽。检查出料受阻时能否找到相关设备或端口。断燃时先在发电机面板确认燃料状态，再从实际供电判断下游是否出现缺口。恢复后核对载体实际入仓、发电机自动补燃、在途与物料账平衡，并从独立 Boot 继续。若共用反馈需要修正，补基础整合 schema 9 回归。[固定燃烧与自救](factory-fixed-burn-energy-v1.md#负载与恢复) · [现行接续](../planning/daily-start.md#e-production-diagnostics)
+Mac 隔离复测覆盖晶体与矿渣断供、载体回压、发电机燃料耗尽。断燃时在发电机面板看余时与燃料，在电力统计看实际缺口。恢复要核对载体实收入仓、自动补燃、在途与物料守恒，以及独立 Boot 续产。玩家首次独立诊断留待现场复核。[本批证据](../devlogs/2026-W48.md#d1-production-diagnostics) · [亲测入口](../planning/daily-start.md#e-production-diagnostics)
 
 <a id="d1-frontier-identity"></a>
 

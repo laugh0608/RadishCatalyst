@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-11-24
+更新时间：2026-11-26
 
 ## 启动读取
 
@@ -19,11 +19,11 @@
 
 <a id="e-production-diagnostics"></a>
 
-### 下一批 · 产线诊断与恢复
+### D1 产线诊断 · 待玩家独立复核
 
-1. 在这台 Mac 上，从同一份已扩建的 D1 成品检查点派生新隔离副本。通过实际设备和物流操作复现矿渣或晶体断料、载体出料受阻及发电机燃料耗尽。已有固定步的断供与反馈检查可作起点。
-2. 按 [D1 成品线复测](../features/factory-research-and-progression-v1.md#d1-production-diagnostics)先断晶体，保留烧结历史、供电和回仓线。在正式 Boot 核对目标栏、设备面板和生产统计，观察玩家能否看出停因、定位烧结炉并恢复供料。只修实际复现的问题。
-3. 以载体重新入仓、发电机自动补燃、在途货与物料账平衡、保存后独立继续为验收证据。D1 正式入口暂不开，D2 预检等既有产线出现实际调度需求与操作阻碍后推进。[原自救合同](../features/factory-fixed-burn-energy-v1.md) · [阶段退出条件](current.md#retained-d4)
+Mac 正式 Boot 已复现并修正烧结炉缺料时仍指向核心的问题。晶体、矿渣、载体出口和电芯供料四种中断均已恢复生产、核对物料并在独立进程续产。[本周窗口证据](../devlogs/2026-W48.md#d1-production-diagnostics)
+
+下次体验复核使用 `sh tools/check-factory-frontier.sh play 20261126-d1-diagnostics-review-01`，进入「工厂世界」继续「D1 产线诊断 · 现场复核」。从核心旁开始，观察玩家是否能自行说出停因、找到设备、恢复持续供料，并用核心实收确认改善。记录卡住的具体操作与用时。D1 保留隔离入口；出现实际调度动机与操作阻碍后再接 D2 预检。[D1 专题](../features/factory-research-and-progression-v1.md#d1-production-diagnostics)
 
 ### E 整段收口 · Mac 正式首程
 
