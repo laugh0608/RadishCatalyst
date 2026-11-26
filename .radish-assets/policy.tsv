@@ -1,0 +1,6 @@
+# Tab-separated entries. See the family asset policy v1 documentation.
+version	1.0.0
+baseline	50ca986cccb46f5d3d80fcdfcb526bd56575fe4a
+deny	client/.godot/*
+deny	assets/art-intake/*
+allow	client/assets/fonts/NotoSansSC-wght.ttf	17772300	a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da	Godot 客户端字体	client/assets/fonts/README.md

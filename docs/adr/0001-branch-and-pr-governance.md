@@ -124,3 +124,9 @@ RadishCatalyst 是刚初始化的新仓库，当前重点不是堆功能，而�
 - 直接在 `dev` 连续开发时，需要维护者按改动风险主动执行并如实记录本地验证。
 - 每次默认分支 PR 合并后增加一次快进回流与推送步骤，完成前不能继续向 `dev` 提交。
 - 当前只有仓库卫生门禁，未来 Godot 工程建立后需要补充正式构建和测试基线。
+
+## 二进制资产门禁
+
+本仓采用 [Radish 系列资产规则 v1](https://github.com/RadishIntelligence/.github/tree/main/asset-policy/v1)。单个二进制超过 5 MiB 时须登记例外，新增二进制合计超过 10 MiB 时提示复核。本仓的输出路径和例外以 [policy.tsv](../../.radish-assets/policy.tsv) 为准。
+
+新克隆在仓库根目录运行 `git config --local core.hooksPath .githooks` 启用本地钩子。PR 检查会核对新增提交中的资产。可用 `bash .radish-assets/check.sh --staged` 检查暂存区。
