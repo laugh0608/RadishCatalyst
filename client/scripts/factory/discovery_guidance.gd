@@ -52,6 +52,125 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 	return {}
 
 
+## Optional schema 9 route selected from the sample panel. Counts describe live inventories.
+static func foundation_mine_goal(model: RefCounted) -> Dictionary:
+	if model.supply_id != Rules.Integrated.SUPPLY_ID:
+		return {}
+	if not model.discovery.sample_taken:
+		return _production_location("mine_sample", "定位矿壳样本", "拾取试制样本", "走近外矿道地面的样本，按 F 拾取。", Rules.SAMPLE)
+	if not model.researched.has(model.Progression.SAMPLE):
+		return _production_location("mine_research", "定位基地核心", "研究样本工艺",
+			"带样本到核心研究「样本工艺」，再去反应器试制。", model.Grid.center(model.core))
+	if not model.discovery.trial_completed:
+		return _mine_batch(model, "solvent_trial", "矿壳试制 · 1 样本和 2 催化剂制成 1 件解壳剂")
+	for id in ["outer", "inner"]:
+		if not model.discovery.passages[id]:
+			return _mine_passage(model, id)
+	return _mine_rich_return(model)
+
+
+static func _mine_passage(model: RefCounted, id: String) -> Dictionary:
+	var rule: Dictionary = Rules.PASSAGES[id]
+	var gate := "外矿道" if id == "outer" else "内矿道"
+	var carried: int = model.bag.get("crust_solvent", 0)
+	if carried >= rule.cost:
+		var advice := "背包有 %d 件解壳剂。走近西侧入口按 F，在「样本与矿道」使用 %d 件。" % [carried, rule.cost]
+		return _production_location("mine_" + id, "定位" + gate + "西入口", "打通" + gate, advice, Vector2(rule.x - 1, 0))
+	var title := "%s · 背包 %d / %d 件解壳剂，还缺 %d 件" % [gate, carried, rule.cost, rule.cost - carried]
+	var stock := _mine_stock(model, "crust_solvent")
+	if not stock.is_empty():
+		return _mine_pickup(model, stock, "crust_solvent", title)
+	return _mine_batch(model, "crust_solvent", title)
+
+
+static func _mine_stock(model: RefCounted, item: String, include_core := true) -> Dictionary:
+	if include_core and model.core.items.has(item):
+		return model.core
+	for e in model.entities:
+		if e.type != Rules.Integrated.CORE and (e.get("items", {}).has(item) or e.get("output", {}).has(item) or e.get("buffer", {}).has(item)):
+			return e
+	return {}
+
+
+static func _mine_pickup(model: RefCounted, e: Dictionary, item: String, title: String) -> Dictionary:
+	var name: String = Rules.CATALOG[e.type].name
+	var count: int = e.get("items", {}).get(item, 0) + e.get("output", {}).get(item, 0) + e.get("buffer", {}).get(item, 0)
+	return _production_location("mine_take_" + item, "定位" + name, title,
+		"%s有 %d 件%s可取。走近设备取到背包。" % [name, count, Items.NAMES[item]], model.Grid.center(e))
+
+
+static func _mine_batch(model: RefCounted, recipe: String, title: String) -> Dictionary:
+	var reactor := _reactor(model, recipe, false, true)
+	var point: Vector2 = model.Grid.center(model.core) if reactor.is_empty() else model.Grid.center(reactor)
+	var name: String = model.recipes[recipe].name
+	var configured: bool = reactor.get("recipe_id", "") == recipe
+	if configured and reactor.processing:
+		var status := _production_power_issue(model, reactor)
+		return _production_location("mine_processing", "定位反应器", title,
+			"本批「%s」已投入。%s" % [name, "等待加工完成，再取出产物。" if status.is_empty() else status], point)
+	for item in model.recipes[recipe].input:
+		var needed: int = model.recipes[recipe].input[item] - reactor.get("input", {}).get(item, 0) - model.bag.get(item, 0)
+		if needed <= 0:
+			continue
+		var stock := _mine_stock(model, item)
+		if not stock.is_empty():
+			return _mine_pickup(model, stock, item, title + " · 本批还需取 %d 件%s" % [needed, Items.NAMES[item]])
+		if item == "rich_crystal":
+			return _mine_rich_site(model, title)
+		if item == "catalyst":
+			var basic := _preferred_machine(model, "reactor", "basic_catalyst")
+			return _production_location("mine_need_catalyst", "定位基地核心" if basic.is_empty() else "定位基础催化剂反应器", title,
+				"本批还需 %d 件催化剂。用 2 件普通晶体制 1 件催化剂，或在收货仓取料。" % needed,
+				model.Grid.center(model.core if basic.is_empty() else basic))
+	if reactor.is_empty():
+		var advice := "放置反应器构件并接电，选择「%s」。" % name
+		if model.kits.reactor == 0:
+			var cost: int = model.assembly_costs.reactor
+			if model.core.items.get("construction_pack", 0) + model.bag.get("construction_pack", 0) < cost:
+				var packs := _mine_stock(model, "construction_pack", false)
+				if not packs.is_empty():
+					return _mine_pickup(model, packs, "construction_pack", title + " · 核心装配反应器需 %d 包" % cost)
+			advice = "可在核心用 %d 个构件包装配反应器，或腾空已有反应器后选择「%s」。" % [cost, name]
+		return _production_location("mine_setup", "定位基地核心", title, advice, point)
+	var instruction := "选「%s」，从背包放入%s。" % [name, Items.describe(model.recipes[recipe].input)]
+	if configured:
+		var power := _production_power_issue(model, reactor)
+		instruction = "从背包补齐本批用料（%s）。" % Items.describe(model.recipes[recipe].input)
+		if Items.contains(reactor.input, model.recipes[recipe].input):
+			instruction = "本批用料已齐。保持供电，完成后取出产物。"
+		if not power.is_empty(): instruction += power + "。"
+	return _production_location("mine_recipe_" + recipe, "定位反应器", title, instruction, point)
+
+
+static func _mine_rich_site(model: RefCounted, title: String) -> Dictionary:
+	for e in model.entities:
+		if e.get("mineral", "") == "rich_crystal":
+			var power := _production_power_issue(model, e)
+			return _production_location("mine_extract", "定位富集晶体采集器", title,
+				"采出后取 1 件富集晶体。" + power, model.Grid.center(e))
+	for cell in model.ore_sites():
+		if model.mineral_at(cell) == "rich_crystal":
+			return _production_location("mine_extract", "定位富集晶体矿点", title,
+				"在矿点放置采集器，用配电节点接回基地电网。采出后取 1 件富集晶体。", Vector2(cell) + Vector2.ONE)
+	return {}
+
+
+static func _mine_rich_return(model: RefCounted) -> Dictionary:
+	var title := "富集晶体回流 · 1 件富集晶体制成 3 件催化剂"
+	var batches: int = model.completed_by_recipe.rich_catalyst
+	if batches == 0:
+		return _mine_batch(model, "rich_catalyst", title)
+	for e in model.entities:
+		if e.get("recipe_id", "") == "rich_catalyst" and e.output.has("catalyst"):
+			return _mine_pickup(model, e, "catalyst", "富集产物待回仓")
+	var advice := "富集工艺累计 %d 批，核心现有催化剂 %d 件。" % [batches, model.core.items.get("catalyst", 0)]
+	if model.bag.has("catalyst"):
+		advice += "背包有 %d 件催化剂，可在核心库存页存入。" % model.bag.catalyst
+	else:
+		advice += "可在核心库存页核对收货，沿反应器出口查看去向。"
+	return _production_location("mine_return", "定位基地核心", "核对催化剂回仓", advice, model.Grid.center(model.core))
+
+
 static func _foundation_expansion(model: RefCounted) -> Dictionary:
 	var core: Vector2 = model.Grid.center(model.core)
 	if not model.recipe_available("mixed_refining"):
@@ -461,13 +580,15 @@ static func _first_line(model: RefCounted) -> Dictionary:
 
 
 ## Prefer an existing configured recipe, otherwise an empty idle reactor.
-static func _reactor(model: RefCounted, recipe: String, east := false) -> Dictionary:
+static func _reactor(model: RefCounted, recipe: String, east := false, preserve_feed := false) -> Dictionary:
 	var reactors := _entities(model, "reactor")
 	for e in reactors:
 		if e.recipe_id == recipe:
 			return e
 	for e in reactors:
 		if (not east or e.x >= 8) and not e.processing and e.input.is_empty() and e.output.is_empty():
+			if preserve_feed and Logistics.input_connection(model, e, Logistics.ports(model, e, "input")[0]).ok:
+				continue
 			return e
 	return {}
 

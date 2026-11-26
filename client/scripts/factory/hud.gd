@@ -534,7 +534,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 					text = "电网储能\n研究电网缓冲后装配储能。靠近配电节点落位，观察充放电。" if not model.device_unlocked(Integrated.Storage.TYPE) else "电网储能\n用低负载时的发电余电充电，在供电不足时补缺。"
 			elif model.core.level == 2 and model.researched.has(model.Progression.REUSE):
 				text = "升级核心 III\n在核心的等级页查看前置与材料。"
-		var location := Guidance.integrated_location(model)
+		var location: Dictionary = ui.waypoint if ui.waypoint.get("mine", false) else Guidance.integrated_location(model)
 		text = location.get("mission", text)
 		buttons.guide_action.visible = ui.mission and not location.is_empty()
 		if not location.is_empty():

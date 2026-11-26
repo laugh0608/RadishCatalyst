@@ -427,19 +427,22 @@ func near_passage(id: String) -> bool:
 	return point.x < rule.x and point.distance_to(target) <= 2 and Grid.line_open(point, target, discovery.passages, map_id)
 
 
+func passage_blocker(id: String) -> String:
+	if not DiscoveryRules.PASSAGES.has(id): return "矿道不存在"
+	if discovery.passages[id]: return "矿道已经打通"
+	if id == "inner" and not discovery.passages.outer: return "请先打通外矿道"
+	if not discovery.trial_completed: return "请先完成矿壳试制"
+	var cost: int = DiscoveryRules.PASSAGES[id].cost
+	var carried: int = bag.get("crust_solvent", 0)
+	if carried < cost: return "背包有 %d / %d 件解壳剂，还缺 %d 件" % [carried, cost, cost - carried]
+	if not near_passage(id): return "请靠近矿道西侧入口两格内使用"
+	return ""
+
+
 func open_passage(id: String) -> Dictionary:
-	if not DiscoveryRules.PASSAGES.has(id):
-		return failure("矿道不存在")
-	if discovery.passages[id]:
-		return failure("矿道已经打通")
-	if id == "inner" and not discovery.passages.outer:
-		return failure("请先打通外矿道")
-	var rule: Dictionary = DiscoveryRules.PASSAGES[id]
-	if not near_passage(id):
-		return failure("请靠近矿道西侧入口两格内使用")
-	if not discovery.trial_completed or bag.get("crust_solvent", 0) < rule.cost:
-		return failure("背包需要 %d 份解壳剂" % rule.cost)
-	return _commit_passage(id, "crust_solvent", rule.cost)
+	var reason := passage_blocker(id)
+	if not reason.is_empty(): return failure(reason)
+	return _commit_passage(id, "crust_solvent", DiscoveryRules.PASSAGES[id].cost)
 
 
 func _commit_passage(id: String, item: String, cost: int) -> Dictionary:

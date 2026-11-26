@@ -102,6 +102,7 @@ func _ready() -> void:
 	discovery_panel.theme = hud.theme
 	add_child(discovery_panel)
 	discovery_panel.visibility_changed.connect(_capture_active_time)
+	discovery_panel.mine_location_requested.connect(_locate_mine_goal)
 	discovery_panel.device_action.connect(_device_action)
 	discovery_panel.closed.connect(_refresh)
 	statistics_panel.theme = hud.theme
@@ -230,7 +231,12 @@ func _sync_replacement_direction() -> void:
 func _refresh() -> void:
 	_sync_replacement_direction()
 	_sync_focus()
-	if ui.waypoint.has("goal_step"):
+	if ui.waypoint.get("mine", false):
+		var goal := Guidance.foundation_mine_goal(model)
+		if hud.notice.text == ui.waypoint.next and goal.next != ui.waypoint.next:
+			hud.announce(goal.next)
+		ui.waypoint = goal.merged({"mine": true})
+	elif ui.waypoint.has("goal_step"):
 		var guide := Guidance.integrated_location(model)
 		if ui.waypoint.goal_step != guide.get("goal_step") or ui.waypoint.point != guide.get("point"):
 			_clear_waypoint()
@@ -851,11 +857,26 @@ func _locate_statistics_device(id: int) -> void:
 	hud.announce("已定位设备 #%d；人物未移动，行走后恢复跟随。" % id)
 
 
+func _locate_mine_goal() -> void:
+	var goal := Guidance.foundation_mine_goal(model)
+	if goal.is_empty(): return
+	if discovery_panel.visible:
+		discovery_panel.close_panel()
+	_apply_guide_action(goal.merged({"mine": true}))
+	_refresh()
+
+
 func _guide_action() -> void:
 	if not model.has_method("power_state"):
 		return
 	# Re-evaluate at activation: production or removal may have changed the next step.
-	var step := Guidance.current(model)
+	if ui.waypoint.get("mine", false):
+		_locate_mine_goal()
+	else:
+		_apply_guide_action(Guidance.current(model))
+
+
+func _apply_guide_action(step: Dictionary) -> void:
 	if step.is_empty():
 		return
 	match step.action:

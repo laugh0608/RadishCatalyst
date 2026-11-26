@@ -294,11 +294,23 @@ func alternatives_and_passages() -> void:
 			"returned products must lead to the pack assembler, its terminal or core assembly")
 	craft(trial, "solvent_trial", 1)
 	assert(model.discovery.trial_completed and not model.bag.has("crust_sample"))
-	craft(trial, "crust_solvent", 11)
+	craft(trial, "crust_solvent", 2)
+	var foundation: bool = model.supply_id == Model.Integrated.SUPPLY_ID
+	if foundation:
+		var shortage := Guidance.foundation_mine_goal(model)
+		assert("还缺 1 件" in shortage.mission and shortage.point == model.Grid.center(trial))
+		assert("还缺 1 件" in model.open_passage("outer").reason and model.bag.crust_solvent == 3)
+	craft(trial, "crust_solvent", 9)
+	if foundation:
+		assert(Guidance.foundation_mine_goal(model).point == Vector2(3, 0))
 	walk_to(Vector2(3, 0))
 	_must(model.open_passage("outer"))
+	if foundation:
+		assert(model.bag.crust_solvent == 8 and Guidance.foundation_mine_goal(model).point == Vector2(19, 0))
 	walk_to(Vector2(19, 0))
 	_must(model.open_passage("inner"))
+	if foundation:
+		assert(not model.bag.has("crust_solvent") and Guidance.foundation_mine_goal(model).goal_step == "mine_extract")
 	for cell in [Vector2i(-14, 0), Vector2i(-4, 0), Vector2i(5, 0), Vector2i(10, 1)]:
 		_must(model.place("power_junction", cell))
 	var rich: Dictionary = _must(model.place("collector", Vector2i(10, -1))).entity
@@ -306,6 +318,8 @@ func alternatives_and_passages() -> void:
 	wait_for(func(): return rich.buffer.get("rich_crystal", 0) >= 1, 30, "opened rich ore has power")
 	stock(rich, "rich_crystal", 1, false)
 	craft(trial, "rich_catalyst", 1)
+	if foundation:
+		assert(Guidance.foundation_mine_goal(model).point == model.Grid.center(model.core))
 	walk_near(model.core)
 	stock(model.core, "catalyst", 3, true)
 	for row in routed:

@@ -1,6 +1,7 @@
 extends Control
 
 signal device_action(name: String, id: int)
+signal mine_location_requested
 signal closed
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Dispatch := Rules.Integrated.Timed
@@ -138,11 +139,12 @@ func _ready() -> void:
 	discovery_content.add_child(discovery_row)
 	button(discovery_row, "survey", "调查样本", func(): apply(model.survey_sample()))
 	button(discovery_row, "sample", "拾取样本", func(): apply(model.survey_sample(true)))
-	button(discovery_row, "outer", "外矿道：用 4 份", func(): apply(model.open_passage("outer")))
-	button(discovery_row, "inner", "内矿道：用 8 份", func(): apply(model.open_passage("inner")))
+	button(discovery_row, "outer", "外矿道 · 用 %d 件" % Rules.PASSAGES.outer.cost, func(): apply(model.open_passage("outer")))
+	button(discovery_row, "inner", "内矿道 · 用 %d 件" % Rules.PASSAGES.inner.cost, func(): apply(model.open_passage("inner")))
 	button(discovery_content, "frontier", "开拓高产炭矿 · 用 4 颗破岩胶囊", func(): apply(model.open_passage(Frontier.PASSAGE)))
 	discovery_content.add_child(guide_overview)
 	guide_overview.add_theme_font_size_override("font_size", 18)
+	button(discovery_content, "mine_location", "", func(): mine_location_requested.emit())
 	content.add_child(device_content)
 	device_content.add_theme_constant_override("separation", 16)
 	device_content.add_child(load_controls)
@@ -335,8 +337,15 @@ func refresh() -> void:
 	summary.text = "外矿道：%s　内矿道：%s" % ["已打通" if d.passages.outer else "未打通", "已打通" if d.passages.inner else "未打通"]
 	summary.text += "\n完成矿壳试制后，携带解壳剂在矿道西侧使用。" if integrated else "\n试制掌握量产方法；携带解壳剂在矿道西侧使用。"
 	buttons.sample.disabled = d.sample_taken or not model.near_sample() or Items.count(model.bag) >= 200
-	buttons.outer.disabled = d.passages.outer or not model.near_passage("outer") or model.bag.get("crust_solvent", 0) < 4 or not d.trial_completed
-	buttons.inner.disabled = d.passages.inner or not d.passages.outer or not model.near_passage("inner") or model.bag.get("crust_solvent", 0) < 8 or not d.trial_completed
+	for id in ["outer", "inner"]:
+		var reason: String = model.passage_blocker(id)
+		buttons[id].disabled = not reason.is_empty()
+		buttons[id].tooltip_text = reason
+	buttons.mine_location.visible = discovery_content.visible and model.supply_id == Rules.Integrated.SUPPLY_ID
+	if buttons.mine_location.visible:
+		var goal := Guidance.foundation_mine_goal(model)
+		guide_overview.text = goal.mission
+		buttons.mine_location.text = goal.action_label
 	var frontier: bool = model.map_id == Frontier.MAP_ID
 	buttons.frontier.visible = frontier
 	if frontier:

@@ -17,11 +17,17 @@
 
 ## 当前接续事项
 
+<a id="e-foundation-rich-supply"></a>
+
+### 下一项建议 · 接通富集晶体的持续回流产线
+
+从 schema 9 序号 34 副本接通富集采集器、反应器与核心。正式窗口自然运行，按富集批次核对连续两批共 6 件催化剂自动回仓及原线补燃。在制或在途保存，独立读档核对续产与物料账。[接续档](../devlogs/2026-W48.md#foundation-mine-return)
+
 <a id="e-foundation-mine-return"></a>
 
-### 下一项建议 · 从分炉产线接到矿壳试制与富集晶体回流
+### 矿壳试制、开路与富集晶体回流 · 本轮已收口
 
-从 schema 9 序号 22 的隔离副本进入「样本与矿道」。背包有 1 样本，核心有 69 催化剂，两道矿门均关闭。已有脚本覆盖配方与开门规则，正式窗口重点复核试制、携药到门和富集原料回厂时的提示与定位。验收看两道门分别实扣 4、8 件解壳剂，1 件富集晶体制得的 3 件催化剂实际回仓，独立读档可继续生产。[接续档与依据](../devlogs/2026-W48.md#foundation-split-production)
+两门实扣 4、8 件解壳剂，首批 3 件富集产物由背包送回核心。读档通行与补燃已复核，玩家独立体验暂缓。[现场引导](../features/factory-demo-integration-v1.md#foundation-mine-return) · [存读记录](../devlogs/2026-W48.md#foundation-mine-return)
 
 <a id="e-foundation-split-production"></a>
 

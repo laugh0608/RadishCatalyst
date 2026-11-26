@@ -3,10 +3,12 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Frontier := Rules.Integrated.Frontier
 const OUTER_PASSAGE := "outer_passage"
+const INNER_PASSAGE := "inner_passage"
 const FRONTIER_PASSAGE := "frontier_passage"
 const FRONTIER_PASSAGE_POINT := Vector2(Frontier.MOUTH.position.x + 0.5 * Frontier.MOUTH.size.x, Frontier.MOUTH.position.y)
 const PASSAGES := {
 	OUTER_PASSAGE: {"id": -2, "point": Vector2(Rules.PASSAGES.outer.x, 0), "label": "外矿道开路"},
+	INNER_PASSAGE: {"id": -4, "point": Vector2(Rules.PASSAGES.inner.x, 0), "label": "内矿道开路"},
 	FRONTIER_PASSAGE: {"id": -3, "point": FRONTIER_PASSAGE_POINT, "label": "炭矿支路开路"},
 }
 
@@ -39,6 +41,12 @@ static func candidates(model: RefCounted) -> Array[Dictionary]:
 
 
 static func _nearby_passage(model: RefCounted) -> String:
+	if model.supply_id == Rules.Integrated.SUPPLY_ID and model.discovery.trial_completed:
+		if not model.discovery.passages.outer:
+			return OUTER_PASSAGE if model.near_passage("outer") else ""
+		if not model.discovery.passages.inner and model.near_passage("inner"):
+			return INNER_PASSAGE
+		return ""
 	if model.map_id != Frontier.MAP_ID or not model.researched.has(Frontier.RESEARCH):
 		return ""
 	if not model.discovery.passages.outer:
