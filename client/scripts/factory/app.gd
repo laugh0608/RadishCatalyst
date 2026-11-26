@@ -230,9 +230,9 @@ func _sync_replacement_direction() -> void:
 func _refresh() -> void:
 	_sync_replacement_direction()
 	_sync_focus()
-	if ui.waypoint.has("frontier_step"):
+	if ui.waypoint.has("goal_step"):
 		var guide := Guidance.integrated_location(model)
-		if ui.waypoint.frontier_step != guide.get("frontier_step") or ui.waypoint.point != guide.get("point"):
+		if ui.waypoint.goal_step != guide.get("goal_step") or ui.waypoint.point != guide.get("point"):
 			_clear_waypoint()
 	discovery_panel.sync_session(ui.paused, focused)
 	if core_panel.visible:
@@ -257,7 +257,7 @@ func _sync_focus() -> bool:
 
 
 func _clear_waypoint() -> void:
-	if ui.waypoint.has("frontier_step") and hud.notice.text == ui.waypoint.next:
+	if ui.waypoint.has("goal_step") and hud.notice.text == ui.waypoint.next:
 		hud.announce("")
 	ui.waypoint = {}
 

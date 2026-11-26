@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Model := preload("res://scripts/factory/integrated_model.gd")
+const Guidance := preload("res://scripts/factory/discovery_guidance.gd")
 const P := Model.Progression
 const CELL := Model.Energy.CELL
 const STEP := Model.STEP
@@ -278,12 +279,19 @@ func alternatives_and_passages() -> void:
 	walk_near(model.core)
 	stock(model.core, "mineral_slag", 2, true)
 	_must(model.research(P.REUSE))
+	if model.supply_id == Model.Integrated.SUPPLY_ID:
+		var pending := Guidance.current(model)
+		assert(pending.get("goal_step") == "slag_sintering", "unlocking reuse must still guide its first batch")
 	craft(mixed, "mixed_refining", 2)
 	craft(mixed, "slag_sintering", 1)
 	walk_near(model.core)
 	stock(model.core, "metal_plate", 8, true)
 	stock(model.core, "porous_carrier", 2, true)
 	_mark("co_product_reuse")
+	if model.supply_id == Model.Integrated.SUPPLY_ID:
+		var expansion := Guidance.current(model)
+		assert(expansion.get("goal_step") in ["make_packs", "collect_packs", "collect_stored_packs", "assemble_refinery"],
+			"returned products must lead to the pack assembler, its terminal or core assembly")
 	craft(trial, "solvent_trial", 1)
 	assert(model.discovery.trial_completed and not model.bag.has("crust_sample"))
 	craft(trial, "crust_solvent", 11)
@@ -305,6 +313,9 @@ func alternatives_and_passages() -> void:
 	var previous: int = model.completed_by_recipe.cell_assembly
 	wait_for(func(): return model.completed_by_recipe.cell_assembly > previous and devices.G.burn_remaining_ticks > 0, 120, "fuel production resumes after optional branch")
 	_mark("rich_ore_return")
+	if model.supply_id == Model.Integrated.SUPPLY_ID:
+		assert(Guidance.current(model).get("action") == "location",
+			"opening both passages still allows an unfinished foundation expansion")
 
 
 func walk_near(e: Dictionary) -> void:

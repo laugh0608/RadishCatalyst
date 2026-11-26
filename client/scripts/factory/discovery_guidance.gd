@@ -33,6 +33,13 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 		return _frontier_goal(model)
 	if model.completed_by_recipe.direct_refining > 0 and not model.discovery.sample_taken:
 		return _action("location", "定位矿壳样本", "样本在外矿道入口。走近后按 F 拾取，样本工艺研究会保留实物。", {"point": Rules.SAMPLE})
+	if model.supply_id == Rules.Integrated.SUPPLY_ID and model.core.level == 2 and model.statistics.totals.cells_activated > 0:
+		var expansion := _foundation_expansion(model)
+		if model.discovery.passages.inner:
+			if expansion.get("goal_step") == "split_lines":
+				return {}
+			expansion.mission = "富集矿道已开放\n" + expansion.mission
+		return expansion
 	var mineral := "iron_ore" if model.completed_by_recipe.direct_refining == 0 else ""
 	if model.recipe_available("cell_assembly") and not model.entities.any(func(e): return e.get("mineral", "") == "carbon_ore"):
 		mineral = "carbon_ore"
@@ -42,6 +49,113 @@ static func integrated_location(model: RefCounted) -> Dictionary:
 				var label: String = Items.NAMES[mineral]
 				return _action("location", "定位" + label, "已标记%s。按 WASD 移动，查看小地图上的方向。" % label,
 					{"point": Vector2(cell) + Vector2.ONE})
+	return {}
+
+
+static func _foundation_expansion(model: RefCounted) -> Dictionary:
+	var core: Vector2 = model.Grid.center(model.core)
+	if not model.recipe_available("mixed_refining"):
+		return _production_location("research_mixed", "定位基地核心", "研究混料冶炼",
+			"在核心研究「混料冶炼」，让精炼炉联产板材和矿渣。", core)
+	if model.completed_by_recipe.mixed_refining == 0:
+		return _foundation_furnace(model, "mixed_refining")
+	if not model.recipe_available("slag_sintering"):
+		var cost: Dictionary = model.research_nodes[model.Progression.REUSE].cost
+		var slag: int = model.core.items.get("mineral_slag", 0)
+		var mixed := _preferred_machine(model, "refinery", "mixed_refining")
+		if slag + model.bag.get("mineral_slag", 0) < cost.mineral_slag and not mixed.is_empty():
+			return _production_location("collect_slag", "定位混料精炼炉", "收集副口矿渣",
+				"将副口矿渣送回核心，或就地取出再存入。回用研究需要 %d 件矿渣。" % cost.mineral_slag, model.Grid.center(mixed))
+		return _production_location("research_reuse", "定位基地核心", "研究矿渣回用",
+			"核心现有矿渣 %d 件。存入所需的 %d 件矿渣和 %d 件晶体，在研究页提交。" % [slag, cost.mineral_slag, cost.crystal], core)
+	if model.completed_by_recipe.slag_sintering == 0:
+		return _foundation_furnace(model, "slag_sintering")
+	return _foundation_packs(model)
+
+
+static func _foundation_furnace(model: RefCounted, recipe: String) -> Dictionary:
+	var name: String = model.recipes[recipe].name
+	var furnace := _preferred_machine(model, "refinery", recipe)
+	var label := "定位混料精炼炉" if recipe == "mixed_refining" else "定位矿渣烧结炉"
+	var advice := "主口板材送回核心，副口矿渣留作回用。" if recipe == "mixed_refining" else "主口的多孔载体送回核心，用来组装构件包。"
+	if furnace.is_empty():
+		label = "定位精炼炉"
+		furnace = _preferred_machine(model, "refinery")
+		if furnace.is_empty():
+			return _production_location(recipe, "定位基地核心", "建立" + name, "放置精炼炉并接电，再选择「%s」。%s" % [name, advice], model.Grid.center(model.core))
+		advice = "腾空精炼炉后选「%s」，或另设一台。%s" % [name, advice]
+	else:
+		advice = _refinery_status(model, furnace).text + advice
+	return _production_location(recipe, label, "投产" + name, advice, model.Grid.center(furnace))
+
+
+static func _foundation_packs(model: RefCounted) -> Dictionary:
+	var core: Vector2 = model.Grid.center(model.core)
+	var stock: Dictionary = model.core.items
+	var cost: int = model.assembly_costs.refinery
+	var packs: int = stock.get("construction_pack", 0)
+	if model.kits.refinery > 0:
+		var ready := _build("refinery", "把精炼炉放在供料线旁并接电，再选择需要的工艺。")
+		ready.mission = "精炼炉构件可放置\n建造库存 %d 台。可将混料冶炼和矿渣烧结分开运行。" % model.kits.refinery
+		return ready
+	if packs >= cost:
+		var advice := "核心现有 %d 个构件包。在「装配」页用 %d 包装配一台精炼炉。" % [packs, cost]
+		if model.owned_count() >= model.Progression.MAX_OWNED:
+			advice = "构件总拥有量已达上限。可调整现有炉的配方，或从样本与矿道面板继续探索。"
+		return _production_location("assemble_refinery", "定位基地核心", "查看扩建用构件", advice, core)
+	if model.bag.get("construction_pack", 0) + packs >= cost:
+		return _production_location("deposit_packs", "定位基地核心", "把构件包存入核心",
+			"靠近核心存入构件包，再到「装配」页选择精炼炉。", core)
+	var press := _preferred_machine(model, "assembler", "construction_assembly")
+	var inventory := "核心现有板材 %d、载体 %d。" % [stock.get("metal_plate", 0), stock.get("porous_carrier", 0)]
+	if press.is_empty():
+		press = _preferred_machine(model, "assembler")
+		var point: Vector2 = core if press.is_empty() else model.Grid.center(press)
+		return _production_location("setup_packs", "定位基地核心" if press.is_empty() else "定位组装机", "准备构件包组装",
+			inventory + "另设组装机或腾空现有设备，选择「构件包组装」。", point)
+	var target: Vector2 = model.Grid.center(press)
+	if press.output.get("construction_pack", 0) > 0:
+		return _production_location("collect_packs", "定位构件包组装机", "把新构件包送回核心",
+			"从组装机取包，或沿出料带到收货仓取包。核心装配一台精炼炉需要 %d 包。" % cost, target)
+	var terminal := _connected_receiver(model, press, "construction_pack", "storage")
+	if not terminal.is_empty() and terminal.items.get("construction_pack", 0) + packs + model.bag.get("construction_pack", 0) >= cost:
+		return _production_location("collect_stored_packs", "定位构件包收货仓", "把构件包送回核心",
+			"收货仓现有 %d 包。将核心库存补到 %d 包即可装配精炼炉。" % [terminal.items.construction_pack, cost], model.Grid.center(terminal))
+	if not press.processing and not press.input.has("porous_carrier") and not stock.has("porous_carrier") and not model.bag.has("porous_carrier"):
+		var split := _foundation_split_furnaces(model)
+		if not split.is_empty():
+			return split
+		var furnace := _preferred_machine(model, "refinery", "slag_sintering")
+		if not furnace.is_empty():
+			return _production_location("return_carriers", "定位矿渣烧结炉", "将载体送回核心或组装机",
+				"烧结累计 %d 批，核心现有载体 0 件。检查主口出料去向，或就地取货。" % model.completed_by_recipe.slag_sintering, model.Grid.center(furnace))
+	var power := _production_power_issue(model, press)
+	var recipe: Dictionary = model.recipes.construction_assembly.input
+	var instruction := "每包用 %d 板材和 %d 载体。取料或接带供料，将构件包送回核心。" % [recipe.metal_plate, recipe.porous_carrier]
+	if not power.is_empty():
+		instruction = "组装机：" + power + "。"
+	elif press.processing:
+		instruction = "组装机正在做包。取包或从收货仓取回，存入核心装配。"
+	return _production_location("make_packs", "定位构件包组装机", "用板材和载体扩建", inventory + instruction, target)
+
+
+static func _foundation_split_furnaces(model: RefCounted) -> Dictionary:
+	var mixed := _preferred_machine(model, "refinery", "mixed_refining")
+	var reuse := _preferred_machine(model, "refinery", "slag_sintering")
+	if not mixed.is_empty() and not reuse.is_empty():
+		return _production_location("split_lines", "定位矿渣烧结炉", "混料与回用已分炉",
+			"给两台炉持续供料；可在生产统计查看实际产出，或从样本与矿道面板继续开路。", model.Grid.center(reuse))
+	# Offer a free-standing empty furnace without diverting an existing production line.
+	for furnace in _entities(model, "refinery", "direct_refining"):
+		if not furnace.enabled or furnace.processing or not furnace.input.is_empty() or not furnace.output.is_empty():
+			continue
+		if Logistics.ports(model, furnace, "input").any(func(p): return Logistics.input_connection(model, furnace, p).ok):
+			continue
+		if Logistics.ports(model, furnace, "output").any(func(p): return Logistics.output_connection(model, p).ok):
+			continue
+		var name: String = model.recipes.mixed_refining.name if mixed.is_empty() else model.recipes.slag_sintering.name
+		return _production_location("configure_furnace", "定位空闲精炼炉", "配置扩建用的精炼炉",
+			"这台炉尚未接线。选「%s」，接电并送入原料。" % name, model.Grid.center(furnace))
 	return {}
 
 
@@ -95,7 +209,7 @@ static func _frontier_goal(model: RefCounted) -> Dictionary:
 			action = _action("location", "定位基地核心", advice, {"point": model.Grid.center(model.core)})
 		_:
 			return _frontier_production(model)
-	action.frontier_step = step
+	action.goal_step = step
 	action.mission = mission
 	return action
 
@@ -105,46 +219,46 @@ static func _frontier_production(model: RefCounted) -> Dictionary:
 	var ore_point := Vector2(Frontier.ORE) + Vector2.ONE
 	var mined := "高产点累计采出 %d 件。" % model.frontier_extracted
 	if mine.get("type") != "collector":
-		return _frontier_location("return_ore", "定位高产炭矿", "架设高产采集器",
+		return _production_location("return_ore", "定位高产炭矿", "架设高产采集器",
 			"覆盖矿点，接电后把炭矿送回粉碎机。", ore_point)
 	var crusher := _connected_receiver(model, mine, "carbon_ore", "crusher", "carbon_crushing")
 	if crusher.is_empty():
-		return _frontier_location("return_ore", "定位高产炭矿", "接回高产炭矿",
+		return _production_location("return_ore", "定位高产炭矿", "接回高产炭矿",
 			mined + "炭矿还没有通往炭矿粉碎机的线路。检查传送带、汇合器和物品准入口。", ore_point)
 	var mine_power := _production_power_issue(model, mine)
 	if not mine_power.is_empty():
-		return _frontier_location("return_ore", "定位高产炭矿", "启动高产采集器",
+		return _production_location("return_ore", "定位高产炭矿", "启动高产采集器",
 			"回流线已接到粉碎机。采集器：" + mine_power + "。", ore_point)
 	var crusher_power := _production_power_issue(model, crusher)
 	var receiving: bool = crusher.input.has("carbon_ore") or crusher.invested.has("carbon_ore") or crusher.output.has("carbon_powder")
-	var mixed := _preferred_refinery(model, "mixed_refining")
+	var mixed := _preferred_machine(model, "refinery", "mixed_refining")
 	if not crusher_power.is_empty() or model.frontier_extracted == 0 or (not receiving and model.completed_by_recipe.mixed_refining == 0):
 		var advice := "回流线已接通。粉碎机等炭矿到达，可沿带查看货物。" if crusher_power.is_empty() else "回流线已接通。粉碎机：" + crusher_power + "。"
-		return _frontier_location("crushing", "定位炭矿粉碎机", "查看炭矿回流", mined + advice, model.Grid.center(crusher))
+		return _production_location("crushing", "定位炭矿粉碎机", "查看炭矿回流", mined + advice, model.Grid.center(crusher))
 	if mixed.is_empty():
-		var furnace := _preferred_refinery(model)
+		var furnace := _preferred_machine(model, "refinery")
 		if model.recipe_available("mixed_refining") and not furnace.is_empty():
-			return _frontier_location("mixed_setup", "定位精炼炉", "建立混料冶炼",
+			return _production_location("mixed_setup", "定位精炼炉", "建立混料冶炼",
 				"粉碎机已收到炭矿。选「混料冶炼」，给炉子送铁粉和炭粉，电芯线继续补料。", model.Grid.center(furnace))
 		var advice := "装配并放置精炼炉，再选择「混料冶炼」。" if model.recipe_available("mixed_refining") else "到核心研究「混料冶炼」，再给精炼炉接铁粉和炭粉。"
-		return _frontier_location("mixed_setup", "定位基地核心", "建立混料冶炼", advice, model.Grid.center(model.core))
+		return _production_location("mixed_setup", "定位基地核心", "建立混料冶炼", advice, model.Grid.center(model.core))
 	var batches: int = model.completed_by_recipe.mixed_refining
 	if batches == 0:
-		return _frontier_location("mixed", "定位混料精炼炉", "投产混料冶炼", _refinery_status(model, mixed).text, model.Grid.center(mixed))
-	var reuse := _preferred_refinery(model, "slag_sintering")
+		return _production_location("mixed", "定位混料精炼炉", "投产混料冶炼", _refinery_status(model, mixed).text, model.Grid.center(mixed))
+	var reuse := _preferred_machine(model, "refinery", "slag_sintering")
 	if reuse.is_empty():
 		var expansion := "混料累计 %d 批。%s\n用板材做构件包扩建；矿渣留给「矿渣回用」。" % [batches, _refinery_status(model, mixed).text]
 		if model.kits.get("refinery", 0) > 0:
-			return _frontier_location("expansion", "定位混料精炼炉", "扩建矿渣烧结线",
+			return _production_location("expansion", "定位混料精炼炉", "扩建矿渣烧结线",
 				"已有精炼炉构件。放置、接电后选择「矿渣烧结」。\n" + expansion, model.Grid.center(mixed))
 		if model.core.items.get("construction_pack", 0) >= model.assembly_costs.refinery:
-			return _frontier_location("expansion", "定位基地核心", "装配扩建用的精炼炉",
+			return _production_location("expansion", "定位基地核心", "装配扩建用的精炼炉",
 				"在核心用 %d 个构件包装配精炼炉。\n%s" % [model.assembly_costs.refinery, expansion], model.Grid.center(model.core))
-		return _frontier_location("expansion", "定位混料精炼炉", "用混料产出扩建", expansion, model.Grid.center(mixed))
+		return _production_location("expansion", "定位混料精炼炉", "用混料产出扩建", expansion, model.Grid.center(mixed))
 	var connected := not _connected_receiver(model, reuse, "porous_carrier", Rules.Integrated.CORE).is_empty()
 	var reuse_status := _refinery_status(model, reuse)
 	if not connected:
-		return _frontier_location("reuse", "定位矿渣烧结炉", "把载体送回核心",
+		return _production_location("reuse", "定位矿渣烧结炉", "把载体送回核心",
 			reuse_status.text + "\n沿主出口检查回仓线和物品准入口。", model.Grid.center(reuse))
 	var reused: int = model.completed_by_recipe.slag_sintering
 	var stock: int = model.core.items.get("porous_carrier", 0)
@@ -152,18 +266,18 @@ static func _frontier_production(model: RefCounted) -> Dictionary:
 		var detail: String = reuse_status.text + "\n载体回仓线已接通。"
 		if reused > 0:
 			detail += "累计烧结 %d 批，核心现有载体 %d 件。" % [reused, stock]
-		return _frontier_location("reuse", "定位矿渣烧结炉", "运行矿渣烧结线", detail, model.Grid.center(reuse))
-	return _frontier_location("reuse_result", "定位基地核心", "查看矿渣回用成果",
+		return _production_location("reuse", "定位矿渣烧结炉", "运行矿渣烧结线", detail, model.Grid.center(reuse))
+	return _production_location("reuse_result", "定位基地核心", "查看矿渣回用成果",
 		"矿渣烧结累计 %d 批，载体回仓线已接通。核心现有载体 %d 件。" % [reused, stock],
 		model.Grid.center(model.core))
 
 
-static func _frontier_location(step: String, label: String, title: String, advice: String, point: Vector2) -> Dictionary:
-	return _action("location", label, advice.get_slice("\n", 0), {"point": point, "frontier_step": step, "mission": title + "\n" + advice})
+static func _production_location(step: String, label: String, title: String, advice: String, point: Vector2) -> Dictionary:
+	return _action("location", label, advice.get_slice("\n", 0), {"point": point, "goal_step": step, "mission": title + "\n" + advice})
 
 
-static func _preferred_refinery(model: RefCounted, recipe := "") -> Dictionary:
-	var options := _entities(model, "refinery", recipe)
+static func _preferred_machine(model: RefCounted, type: String, recipe := "") -> Dictionary:
+	var options := _entities(model, type, recipe)
 	for option in options:
 		if option.enabled and option.power_node_id != 0:
 			return option
@@ -228,7 +342,7 @@ static func _connected_receiver(model: RefCounted, source: Dictionary, item: Str
 				continue
 			visited[target.id] = true
 			if target.type == receiver and (recipe.is_empty() or target.recipe_id == recipe):
-				if receiver == Rules.Integrated.CORE or (target.enabled and target.power_node_id != 0):
+				if receiver in [Rules.Integrated.CORE, "storage"] or (target.enabled and target.power_node_id != 0):
 					return target
 				if first_match.is_empty():
 					first_match = target
