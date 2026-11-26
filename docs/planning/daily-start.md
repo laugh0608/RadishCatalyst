@@ -17,13 +17,19 @@
 
 ## 当前接续事项
 
+<a id="e-autosave-latency"></a>
+
+### 下一项开发建议 · 降低基础整合的周期保存停顿
+
+在现有 Mac 上用同一份 schema 9 隔离快照复测运行中的工厂。上轮正式窗口单次周期保存耗时 82.09 ms，同档独立测量中，序列化、写入和读回合计中位数 31.51 ms，快照与验证合计 25.35 ms。先把这两段拆开计时，再针对可重复的最大开销修改。验收比较同负载下的多次保存耗时和对应帧间隔，并核对完整快照、独立继续及备份恢复。[基线与原始样本](../devlogs/2026-W47.md#e-autosave-rotation)
+
 <a id="e-production-diagnostics"></a>
 
-### D1 产线诊断 · 待玩家独立复核
+### D1 产线诊断 · 本轮跳过玩家独立复核
 
 Mac 正式 Boot 已复现并修正烧结炉缺料时仍指向核心的问题。晶体、矿渣、载体出口和电芯供料四种中断均已恢复生产、核对物料并在独立进程续产。[本周窗口证据](../devlogs/2026-W48.md#d1-production-diagnostics)
 
-下次体验复核使用 `sh tools/check-factory-frontier.sh play 20261126-d1-diagnostics-review-01`，进入「工厂世界」继续「D1 产线诊断 · 现场复核」。从核心旁开始，观察玩家是否能自行说出停因、找到设备、恢复持续供料，并用核心实收确认改善。记录卡住的具体操作与用时。D1 保留隔离入口；出现实际调度动机与操作阻碍后再接 D2 预检。[D1 专题](../features/factory-research-and-progression-v1.md#d1-production-diagnostics)
+萝卜SAMA决定本轮跳过独立诊断，首次理解与用时保留为未验证。后续如需复核，使用 `sh tools/check-factory-frontier.sh play 20261126-d1-diagnostics-review-01`，进入「工厂世界」继续「D1 产线诊断 · 现场复核」。从核心旁开始，观察玩家是否能自行说出停因、找到设备、恢复持续供料，并用核心实收确认改善。记录卡住的具体操作与用时。D1 保留隔离入口；出现实际调度动机与操作阻碍后再接 D2 预检。[D1 专题](../features/factory-research-and-progression-v1.md#d1-production-diagnostics)
 
 ### E 整段收口 · Mac 正式首程
 
