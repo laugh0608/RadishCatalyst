@@ -278,16 +278,29 @@ func _verify_first_expansion(world: Control, route: RefCounted) -> Dictionary:
 		world._refresh()
 		await driver.shot("06b-slag-reuse-line")
 		world.discovery_panel.close_panel()
+	var outlet: Dictionary = model.BeltLogistics.ports(model, furnace, "output")[0]
+	var belt: Dictionary = model.BeltLogistics.output_connection(model, outlet).target
+	route.wait_for(func(): return belt.cargo == "porous_carrier" and furnace.output.has("porous_carrier"),
+		60, "the first carrier is moving while the second waits in the furnace")
+	world._refresh()
+	driver.expect(world.hud.buttons.guide_action.text == "定位基地核心" and "查看矿渣回用成果" in world.hud.mission.text,
+		"normal belt handoff still shows the result after the first batch")
 	route.wait_for(func(): return model.core.items.get("porous_carrier", 0) >= carrier_before + 4,
 		60, "new refinery delivers two successive batches of carriers to the core")
 	var carriers: int = model.core.items.get("porous_carrier", 0) - carrier_before
 	driver.expect(model.kits.refinery == stored_refineries and furnace.power_node_id > 0 and carriers == 4
 		and model.completed_by_recipe.slag_sintering == reuse_before + 2 and model.material_balance().balanced,
 		"the added powered refinery runs two batches and delivers all four carriers through the belt without refilling")
+	route.walk_near(route.devices.Ts)
+	route.stock(route.devices.Ts, "mineral_slag", 2, false)
+	route.walk_near(furnace)
+	route.stock(furnace, "mineral_slag", 2, true)
 	world._refresh()
-	driver.expect(world.hud.buttons.guide_action.text == "定位基地核心" and "查看矿渣回用成果" in world.hud.mission.text
+	driver.expect(world.hud.buttons.guide_action.text == "定位矿渣烧结炉" and "精炼炉缺晶体" in world.hud.mission.text
 		and "核心现有载体 %d 件" % (carrier_before + carriers) in world.hud.mission.text,
-		"after real arrival, guidance points at the core and reflects its carrier stock")
+		"current crystal shortage takes priority while retaining the actual core stock")
+	await _click(world.hud.buttons.guide_action)
+	driver.expect(world.ui.waypoint.get("point") == model.Grid.center(furnace), "shortage locator marks the actual furnace")
 	var elapsed: float = (model.statistics.ticks - start_tick) * Route.STEP
 	var released: float = model.statistics.totals.fuel_released_kj - fuel_before
 	driver.expect(is_equal_approx(released, elapsed * Route.Model.Energy.GENERATOR_KW)
@@ -490,8 +503,8 @@ func _read() -> void:
 	driver.expect(model.frontier_extracted > 0 and model.discovery.passages[Frontier.PASSAGE]
 		and _live_frontier(model, expected.ids), "opened branch, cargo, in-process ore and active fuel survive restore")
 	world._refresh()
-	driver.expect(world.hud.buttons.guide_action.text == "定位基地核心" and "查看矿渣回用成果" in world.hud.mission.text,
-		"the restored production state brings back the expansion result and core locator")
+	driver.expect(world.hud.buttons.guide_action.text == "定位矿渣烧结炉" and "精炼炉缺晶体" in world.hud.mission.text,
+		"the restored production state brings back the current furnace shortage")
 	if windowed:
 		await _click(world.hud.buttons.guide_action)
 		await driver.shot("07-restored-frontier")

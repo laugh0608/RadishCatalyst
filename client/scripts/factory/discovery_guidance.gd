@@ -129,12 +129,11 @@ static func _frontier_production(model: RefCounted) -> Dictionary:
 		var advice := "装配并放置精炼炉，再选择「混料冶炼」。" if model.recipe_available("mixed_refining") else "到核心研究「混料冶炼」，再给精炼炉接铁粉和炭粉。"
 		return _frontier_location("mixed_setup", "定位基地核心", "建立混料冶炼", advice, model.Grid.center(model.core))
 	var batches: int = model.completed_by_recipe.mixed_refining
-	var status := _refinery_status(model, mixed)
 	if batches == 0:
-		return _frontier_location("mixed", "定位混料精炼炉", "投产混料冶炼", status, model.Grid.center(mixed))
+		return _frontier_location("mixed", "定位混料精炼炉", "投产混料冶炼", _refinery_status(model, mixed).text, model.Grid.center(mixed))
 	var reuse := _preferred_refinery(model, "slag_sintering")
 	if reuse.is_empty():
-		var expansion := "混料累计 %d 批。%s\n用板材做构件包扩建；矿渣留给「矿渣回用」。" % [batches, status]
+		var expansion := "混料累计 %d 批。%s\n用板材做构件包扩建；矿渣留给「矿渣回用」。" % [batches, _refinery_status(model, mixed).text]
 		if model.kits.get("refinery", 0) > 0:
 			return _frontier_location("expansion", "定位混料精炼炉", "扩建矿渣烧结线",
 				"已有精炼炉构件。放置、接电后选择「矿渣烧结」。\n" + expansion, model.Grid.center(mixed))
@@ -146,13 +145,16 @@ static func _frontier_production(model: RefCounted) -> Dictionary:
 	var reuse_status := _refinery_status(model, reuse)
 	if not connected:
 		return _frontier_location("reuse", "定位矿渣烧结炉", "把载体送回核心",
-			"把烧结炉主出口接到核心进料口。\n" + reuse_status, model.Grid.center(reuse))
+			reuse_status.text + "\n沿主出口检查回仓线和物品准入口。", model.Grid.center(reuse))
 	var reused: int = model.completed_by_recipe.slag_sintering
-	if reused == 0 or not _production_power_issue(model, reuse).is_empty():
-		return _frontier_location("reuse", "定位矿渣烧结炉", "运行矿渣烧结线",
-			"载体回仓线已接通。\n" + reuse_status, model.Grid.center(reuse))
+	var stock: int = model.core.items.get("porous_carrier", 0)
+	if reused == 0 or reuse_status.needs_attention:
+		var detail: String = reuse_status.text + "\n载体回仓线已接通。"
+		if reused > 0:
+			detail += "累计烧结 %d 批，核心现有载体 %d 件。" % [reused, stock]
+		return _frontier_location("reuse", "定位矿渣烧结炉", "运行矿渣烧结线", detail, model.Grid.center(reuse))
 	return _frontier_location("reuse_result", "定位基地核心", "查看矿渣回用成果",
-		"矿渣烧结累计 %d 批，载体回仓线已接通。核心现有载体 %d 件。" % [reused, model.core.items.get("porous_carrier", 0)],
+		"矿渣烧结累计 %d 批，载体回仓线已接通。核心现有载体 %d 件。" % [reused, stock],
 		model.Grid.center(model.core))
 
 
@@ -175,26 +177,36 @@ static func _production_power_issue(model: RefCounted, entity: Dictionary) -> St
 	return ""
 
 
-static func _refinery_status(model: RefCounted, furnace: Dictionary) -> String:
+static func _refinery_status(model: RefCounted, furnace: Dictionary) -> Dictionary:
 	var power := _production_power_issue(model, furnace)
 	if not power.is_empty():
-		return "精炼炉：" + power + "。"
+		return {"text": "精炼炉：" + power + "。", "needs_attention": true}
 	if furnace.processing:
-		return "精炼炉正在加工。"
+		return {"text": "精炼炉正在加工。", "needs_attention": false}
 	if not furnace.output.is_empty():
 		var waits := PackedStringArray()
 		for port in Logistics.ports(model, furnace, "output"):
 			var item: String = model._output_item_at(furnace, port)
-			if not item.is_empty():
-				var status := Logistics.output_status(model, furnace, port, item)
-				if not status.ok:
-					waits.append(Items.NAMES[item] + "：" + status.reason)
-		return "等待出料。" if waits.is_empty() else "出料受阻 · " + "；".join(waits) + "。"
+			if item.is_empty():
+				continue
+			var status := Logistics.output_status(model, furnace, port, item)
+			if status.ok:
+				continue
+			var next: Dictionary = Logistics.output_connection(model, port).get("target", {})
+			# An occupied belt can still be carrying the preceding unit out of the way.
+			if next.get("type") in ["belt", "merger", "splitter"] and not next.cargo.is_empty() and Logistics.feedback(model, next).kind != "blocked":
+				continue
+			waits.append(Items.NAMES[item] + "：" + status.reason)
+		if waits.is_empty():
+			return {"text": "等待出料。", "needs_attention": false}
+		return {"text": "出料受阻 · " + "；".join(waits) + "。", "needs_attention": true}
 	var missing := PackedStringArray()
 	for item in model.recipes[furnace.recipe_id].input:
 		if furnace.input.get(item, 0) < model.recipes[furnace.recipe_id].input[item]:
 			missing.append(Items.NAMES[item])
-	return "原料齐全，等待开批。" if missing.is_empty() else "精炼炉缺" + "、".join(missing) + "。"
+	if missing.is_empty():
+		return {"text": "原料齐全，等待开批。", "needs_attention": false}
+	return {"text": "精炼炉缺" + "、".join(missing) + "。", "needs_attention": true}
 
 
 static func _connected_receiver(model: RefCounted, source: Dictionary, item: String, receiver: String, recipe := "") -> Dictionary:
