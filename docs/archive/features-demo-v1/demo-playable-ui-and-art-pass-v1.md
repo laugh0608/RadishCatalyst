@@ -95,9 +95,9 @@
 
 ### 首屏参考图
 
-![基地首屏近景参考](../../assets/concept-art/2026-06-25-demo-first-screen-close-reference.png)
+![基地首屏近景参考](https://raw.githubusercontent.com/laugh0608/RadishCatalyst/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-close-reference.png)
 
-![基地首屏高视角参考](../../assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png)
+![基地首屏高视角参考](https://raw.githubusercontent.com/laugh0608/RadishCatalyst/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png)
 
 - 近景图作为第九包后的设备读法参考：保留左上当前目标、右下小地图、左下角色状态 / 快捷栏和右上少量资源，默认不展开大任务表、建造菜单、开发面板或全屏地图。
 - 高视角图作为下一轮取景参考：适当抬高机位、扩大基地周边缓冲，让晶簇和污染区离核心平台更远，避免首屏读成局部设备特写。

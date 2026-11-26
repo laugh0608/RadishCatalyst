@@ -36,8 +36,21 @@
 | 三维精细化实验 | `factory/refinement/`，2 GLB | `scripts/prototypes/factory_refinement/view.gd` 明确引用；不替换根目录同名正式反应器 / 配电节点 |
 | 独立 Godot 产线对照 | `tools/visual-studies/topdown-3d/production/assets/`，14 GLB | 独立工程固定对照；与正式基础资产相同字节是已知复制，不合并为运行时跨目录依赖 |
 | Web 样式实验 | `tools/visual-studies/web-style/assets/`，3 PNG | 本地 server / renderer 路由读取；不引入正式运行时 |
-| 概念 / 历史锚点 | `assets/concept-art` 8 PNG、`assets/reference/` 根 3 PNG | 旧气质、像素与立绘参考；原 README 的“全项目像素锚点”不适用于当前 3D |
+| 概念 / 历史锚点 | [已归档概念图](#历史概念图归档) 8 PNG、`assets/reference/` 根 3 PNG | 旧气质、像素与立绘参考；原 README 的“全项目像素锚点”不适用于当前 3D |
 | 二维视觉目标 / 失败证据 | `assets/reference/visual-direction/`，5 PNG | 旧切片目标与防复发证据；`target-world-v01` 另为启动背景制作源，须保留关联 |
+
+## 历史概念图归档
+
+2026-11-26 将 8 张历史概念图移出当前源码签出。原图可从下列固定提交查看，沿用原来的视觉参考用途。
+
+- [明亮前哨站](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-04-25-visual-direction-bright-outpost.png)
+- [暗工业风](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-04-25-visual-direction-dark-industrial.png)
+- [玩法 HUD](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-04-25-visual-direction-gameplay-hud.png)
+- [RPG 探索](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-04-25-visual-direction-rpg-exploration.png)
+- [化工基地 HUD](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-05-26-chemical-base-hud-reference.png)
+- [轨道电梯生产 HUD](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-05-26-orbital-elevator-production-hud-reference.png)
+- [Demo 首屏近景](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-close-reference.png)
+- [Demo 首屏宽幅](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png)
 
 ## 引用边界与不能误判的关系
 

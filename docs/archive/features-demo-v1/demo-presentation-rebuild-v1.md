@@ -20,7 +20,7 @@
 
 - 主管线：AI 生成，提示词与风格规范见 [AI Art Prompt Library](../reference/ai-art-prompts.md)。
 - 补位与兜底：CC0 免费素材包，见 [Free Asset Pack Candidates](../reference/free-asset-pack-candidates.md)；角色行走动画优先由素材包承担。
-- 设备风格锚点定稿存 `assets/reference/style-anchor.png`；宽幅场景的构图、透视、尺度与密度同时以 `assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 为参照。
+- 设备风格锚点定稿存 `assets/reference/style-anchor.png`；宽幅场景的构图、透视、尺度与密度同时以 [首屏宽幅参考原图](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png) 为参照。
 
 ## 范围与分包（串行推进）
 
@@ -59,7 +59,7 @@
 
 ### R1 地形+光影地基包
 
-2026-07-09 架构级路线决策。`R0` 补的是首分钟流程读法（保留复用），但实机对比 `assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png` 暴露真正打转根因：参考图是一张一次性画出的整幅场景，地形、光影、投影、色调同源；当前实机是把各自独立生成的 sprite 摆在近黑空背景上，缺的是场景地基而不是资产数量。
+2026-07-09 架构级路线决策。`R0` 补的是首分钟流程读法（保留复用），但实机对比 [首屏宽幅参考原图](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png) 暴露真正打转根因：参考图是一张一次性画出的整幅场景，地形、光影、投影、色调同源；当前实机是把各自独立生成的 sprite 摆在近黑空背景上，缺的是场景地基而不是资产数量。
 
 铁律：**地基不成立就不摆任何物件。** 按下面顺序做，每步出截图对比锚点：
 
@@ -150,7 +150,7 @@
 
 ## 验收与证据
 
-- 每个包收口做一次实机截图，对比 `assets/reference/style-anchor.png` 与 `assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png`，按"场景成立四要件"给出具体差距清单；同一实现方式最多重试一次，仍失败升级为素材 / 介质决策。
+- 每个包收口做一次实机截图，对比 `assets/reference/style-anchor.png` 与 [首屏宽幅参考原图](https://github.com/laugh0608/RadishCatalyst/blob/2fe1320b710daf070a383eed4e00c972933b7bb2/assets/concept-art/2026-06-25-demo-first-screen-wide-reference.png)，按"场景成立四要件"给出具体差距清单；同一实现方式最多重试一次，仍失败升级为素材 / 介质决策。
 - `R0` 当前以新档第一分钟截图序列为主证据；未通过前不恢复 `P2` 录像。
 - P2 起每周录制 60 秒实机录像作为唯一主进度证据。
 - 自动检查只兜底资源加载、场景引用和主线可完成。

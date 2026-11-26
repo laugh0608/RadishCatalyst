@@ -79,7 +79,7 @@ R1-C 独立样板材质由 `python3 tools/factory-content/export-representative-
 | 呈现重建 PNG / tiles | [W27](../devlogs/2026-W27.md)记载 7 月批次经裁切 / 去底 / tile 处理；`tools/prepare_art_asset.py` 是通用处理器 | 通用工具不是逐文件配方；源与处理参数不全的保留待补。部分角色 / 地板被 Web / 像素样板跨用 |
 | industrial / transparent / raised 像素实验 | `normalize_industrial_volume_study.py` / `normalize_pipe_visual_study.py` / `normalize_raised_pipe_modules.py`；三个各自 `manifest.json` 保存源图与产物哈希 | 当前全部匹配；只服务样板，不是新 3D 材质或设备来源 |
 | 独立 Godot / Web 对照 | 14 GLB 源如首节；Web 样式 3 PNG 由 `server.mjs` 动态路由、`renderer.mjs` 读取 | 对照副本保留；3 PNG 未确证独立生产脚本，现有图为样板输入，不能自动宣称可重建 |
-| 概念 / 三锚点 / 5 视觉目标 | `assets/` 自身是已跟踪参考；README 与相关专题记录其适用范围，失败图不作为生成母图 | 像素锚点仅限保留二维，旧写实 / RPG / UI 目标不得默认为新 3D 定稿 |
+| 概念 / 三锚点 / 5 视觉目标 | [概念图原件](asset-inventory-and-transition-v1.md#历史概念图归档)已归档；其余图仍由 `assets/reference/` 保存，适用范围见 README 与相关专题 | 像素锚点仅限保留二维，旧写实 / RPG / UI 目标不得默认为新 3D 定稿 |
 | 本地缓存 / 第三方 | `assets/art-intake/` 有生成源、制作脚本和运行证据；`assets/third-party/` 当前无素材包目录 | 不搬迁 / 清理；没有本地原包不证明历史来源合规或不合规，后续实际采用前核对来源与许可 |
 
 ## 下次替换前需要补的实施材料
