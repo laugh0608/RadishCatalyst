@@ -143,6 +143,13 @@ static func _foundation_split_furnaces(model: RefCounted) -> Dictionary:
 	var mixed := _preferred_machine(model, "refinery", "mixed_refining")
 	var reuse := _preferred_machine(model, "refinery", "slag_sintering")
 	if not mixed.is_empty() and not reuse.is_empty():
+		for furnace in [mixed, reuse]:
+			var is_mixed: bool = furnace == mixed
+			var name := "混料精炼炉" if is_mixed else "矿渣烧结炉"
+			var advice := _split_line_issue(model, furnace)
+			if not advice.is_empty():
+				return _production_location("connect_" + furnace.recipe_id, "定位" + name, "接通" + name,
+					advice, model.Grid.center(furnace))
 		return _production_location("split_lines", "定位矿渣烧结炉", "混料与回用已分炉",
 			"给两台炉持续供料；可在生产统计查看实际产出，或从样本与矿道面板继续开路。", model.Grid.center(reuse))
 	# Offer a free-standing empty furnace without diverting an existing production line.
@@ -157,6 +164,28 @@ static func _foundation_split_furnaces(model: RefCounted) -> Dictionary:
 		return _production_location("configure_furnace", "定位空闲精炼炉", "配置扩建用的精炼炉",
 			"这台炉尚未接线。选「%s」，接电并送入原料。" % name, model.Grid.center(furnace))
 	return {}
+
+
+static func _split_line_issue(model: RefCounted, furnace: Dictionary) -> String:
+	var power := _production_power_issue(model, furnace)
+	if not power.is_empty():
+		return power + "。检查设备启停与电网连接。"
+	var mixed: bool = furnace.recipe_id == "mixed_refining"
+	var inputs := Logistics.ports(model, furnace, "input")
+	if not inputs.any(func(p): return Logistics.input_connection(model, furnace, p).ok):
+		return "进料口尚未接通。接入铁粉和炭粉，主口出板材，副口出矿渣。" if mixed else "进料口尚未接通。接入混料炉的矿渣和晶体。"
+	for port in Logistics.ports(model, furnace, "output"):
+		if port.index == 1 and not mixed:
+			continue
+		var connection := Logistics.output_connection(model, port)
+		if not connection.ok:
+			var outlet := "副口矿渣" if port.index == 1 else ("主口板材" if mixed else "主口载体")
+			return outlet + "：" + connection.reason + "。检查出料带与下游入口。"
+	if not furnace.output.is_empty():
+		var status := _refinery_status(model, furnace)
+		if status.needs_attention:
+			return status.text
+	return ""
 
 
 static func _frontier_step(model: RefCounted) -> String:

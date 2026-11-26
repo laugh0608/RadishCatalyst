@@ -318,6 +318,25 @@ func alternatives_and_passages() -> void:
 			"opening both passages still allows an unfinished foundation expansion")
 
 
+## Exercise the split-line locator on the detached model after publishing the first-run save.
+func check_split_furnace_ports() -> void:
+	advance_movement = false
+	_packs_to_core(model.assembly_costs.refinery)
+	_must(model.assemble("refinery"))
+	var mixed: Dictionary = _must(model.place("refinery", Vector2i(-21, 28))).entity
+	walk_near(mixed)
+	_must(model.change_recipe(mixed.id, "mixed_refining"))
+	var goal := Guidance._foundation_split_furnaces(model)
+	assert(goal.point == model.Grid.center(mixed) and "进料口" in goal.mission)
+	_must(model.place("belt", Vector2i(-22, 28), 0))
+	_must(model.place("belt", Vector2i(-19, 28), 0))
+	goal = Guidance._foundation_split_furnaces(model)
+	assert(goal.point == model.Grid.center(mixed) and "副口矿渣" in goal.mission)
+	_must(model.place("belt", Vector2i(-19, 30), 0))
+	goal = Guidance._foundation_split_furnaces(model)
+	assert(goal.point == model.Grid.center(model.entity_at(Vector2i(-17, 28))) and "进料口" in goal.mission)
+
+
 func walk_near(e: Dictionary) -> void:
 	if model.near_entity(e):
 		return

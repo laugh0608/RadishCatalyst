@@ -17,11 +17,23 @@
 
 ## 当前接续事项
 
+<a id="e-foundation-mine-return"></a>
+
+### 下一项建议 · 从分炉产线接到矿壳试制与富集晶体回流
+
+从 schema 9 序号 22 的隔离副本进入「样本与矿道」。背包有 1 样本，核心有 69 催化剂，两道矿门均关闭。已有脚本覆盖配方与开门规则，正式窗口重点复核试制、携药到门和富集原料回厂时的提示与定位。验收看两道门分别实扣 4、8 件解壳剂，1 件富集晶体制得的 3 件催化剂实际回仓，独立读档可继续生产。[接续档与依据](../devlogs/2026-W48.md#foundation-split-production)
+
+<a id="e-foundation-split-production"></a>
+
+### 核心 II 分炉后的持续生产 · 本轮已收口
+
+schema 9 同档分炉后持续回仓和自动补燃已通过 Mac 正式窗口及独立读档复核，玩家独立体验暂缓。[接线约定](../features/factory-demo-integration-v1.md#核心-ii-分炉后的持续生产) · [逐档实收](../devlogs/2026-W48.md#foundation-split-production)
+
 <a id="e-foundation-reuse-guidance"></a>
 
-### 核心 II 发电后的扩建引导 · 已接入基础整合
+### 核心 II 发电后的扩建引导 · 本轮已收口
 
-正式 schema 9 已按现场切换目标。回用尚未投产时定位烧结炉，回仓后显示核心板材和载体并定位构件包组装机。构件包备齐后可定位核心装配精炼炉。Mac 正式窗口从本轮回仓的 8 件板材和 2 件载体中取 4 板、2 载体制成两包，支付后新增 1 台精炼炉构件。独立继续核对了混料待投产、烧结待投产、载体回仓及已装配四个保存点。[玩法范围](../features/factory-demo-integration-v1.md#foundation-reuse-guidance) · [同档窗口复核](../devlogs/2026-W48.md#foundation-reuse-guidance)
+schema 9 目标可从烧结炉切换到构件包组装机与核心装配。回仓材料制成两包并装配一台精炼炉，四个保存点均已独立继续。[玩法范围](../features/factory-demo-integration-v1.md#foundation-reuse-guidance) · [同档窗口复核](../devlogs/2026-W48.md#foundation-reuse-guidance)
 
 <a id="e-autosave-latency"></a>
 

@@ -234,6 +234,10 @@ func _refresh() -> void:
 		var guide := Guidance.integrated_location(model)
 		if ui.waypoint.goal_step != guide.get("goal_step") or ui.waypoint.point != guide.get("point"):
 			_clear_waypoint()
+		elif ui.waypoint.next != guide.next:
+			if hud.notice.text == ui.waypoint.next:
+				hud.announce(guide.next)
+			ui.waypoint = guide
 	discovery_panel.sync_session(ui.paused, focused)
 	if core_panel.visible:
 		core_panel.refresh(ui.paused)

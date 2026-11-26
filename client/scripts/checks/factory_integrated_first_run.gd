@@ -186,6 +186,7 @@ func _first_run() -> void:
 		"manual_transfer_commands": journey.carried, "continuous": continuous, "core_output_traffic": traffic, "saved": current,
 		"timing": "fixed-step simulation and collision-aware walks; not player elapsed time"})
 	print("First run continuous: " + JSON.stringify(continuous))
+	journey.check_split_furnace_ports()
 
 
 func _sample_live_production(world: Control, generator: int) -> bool:
