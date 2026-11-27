@@ -101,6 +101,26 @@ func run() -> void:
 	panel.refresh()
 	expect(panel.power_body.visible and not panel.material_rows.visible, "power page attached")
 	panel.queue_free()
+	check_pack_receipts()
 	await process_frame
 	print("Factory statistics: %d assertions, %d failures" % [assertions, failures.size()])
 	quit(0 if failures.is_empty() else 1)
+
+
+func check_pack_receipts() -> void:
+	var model := preload("res://scripts/factory/integrated_model.gd").new()
+	var panel := preload("res://scripts/factory/statistics_panel.gd").new()
+	root.add_child(panel)
+	panel.show_for(model, "construction_pack")
+	expect(panel.pack_receipts.visible and "暂无样本" in panel.pack_receipts.text, "pack receipts before first completed second")
+	model.advance(1.0)
+	panel.refresh()
+	expect(panel.pack_receipts.text.ends_with("：0 包"), "sampled window without deliveries shows zero")
+	model.statistics.event("produced", "construction_pack", 4)
+	model._record_delivery("construction_pack")
+	model._record_delivery("construction_pack")
+	panel.refresh()
+	expect(panel.pack_receipts.text.ends_with("：2 包"), "terminal receipts independent of production and inventory")
+	panel.select_material("metal_plate")
+	expect(not panel.pack_receipts.visible, "other material does not inherit pack receipts")
+	panel.queue_free()

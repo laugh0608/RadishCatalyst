@@ -227,6 +227,10 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 		var ready := _build("refinery", "把精炼炉放在供料线旁并接电。" + advice)
 		ready.mission = "精炼炉构件可放置\n建造库存 %d 台。%s" % [model.kits.refinery, advice]
 		return ready
+	var receiver := _expanded_pack_receiver(model)
+	if not receiver.is_empty():
+		return _production_location("review_pack_receipts", "定位构件包收货仓", "核对扩建后的构件包实收",
+			"比较相同时间内的入仓包数。沿线收货仓 #%d 现存 %d 包。" % [receiver.id, receiver.items.get("construction_pack", 0)], model.Grid.center(receiver))
 	if packs >= cost:
 		var advice := "核心现有 %d 个构件包。在「装配」页用 %d 包装配一台精炼炉。" % [packs, cost]
 		if model.owned_count() >= model.Progression.MAX_OWNED:
@@ -275,6 +279,44 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 	if stored > 0:
 		instruction += "收货仓现有 %d 包，还差 %d 包。" % [stored, needed - stored]
 	return _production_location("make_packs", "定位构件包组装机", "用板材和载体扩建", inventory + instruction, target)
+
+
+static func _expanded_pack_receiver(model: RefCounted) -> Dictionary:
+	if model.assembly_counts.refinery == 0 or model.statistics.totals.delivered.get("construction_pack", 0) < 2:
+		return {}
+	var furnaces := _entities(model, "refinery")
+	if not furnaces.any(func(e): return e.recipe_id == "mixed_refining") or not furnaces.any(func(e): return e.recipe_id == "slag_sintering"):
+		return {}
+	# Placement IDs are ordered. Only consider capacity added beyond the starter furnace.
+	for furnace in furnaces.slice(Rules.Integrated.SUPPLY.refinery):
+		if furnace.recipe_id != "direct_refining" or not furnace.enabled or furnace.power_node_id == 0:
+			continue
+		if furnace.invested.is_empty() and furnace.input.is_empty() and furnace.output.is_empty():
+			continue
+		if not Logistics.ports(model, furnace, "input").any(func(p): return Logistics.input_connection(model, furnace, p).ok):
+			continue
+		if not _production_power_issue(model, furnace).is_empty():
+			continue
+		for press in _entities(model, "assembler", "construction_assembly"):
+			if not _production_power_issue(model, press).is_empty():
+				continue
+			if _connected_receiver(model, furnace, "metal_plate", "assembler", "construction_assembly", press.id).is_empty():
+				continue
+			var terminal := _connected_receiver(model, press, "construction_pack", "storage")
+			if not terminal.is_empty() and _recent_pack_arrivals(model):
+				return terminal
+	return {}
+
+
+static func _recent_pack_arrivals(model: RefCounted) -> bool:
+	# The HUD only needs two receipts. Avoid aggregating every material and power field on refresh.
+	var buckets: Array = model.statistics.buckets
+	var received := 0
+	for offset in mini(300, buckets.size()):
+		received += int(buckets[-1 - offset].delivered.get("construction_pack", 0))
+		if received >= 2:
+			return true
+	return false
 
 
 static func _foundation_split_furnaces(model: RefCounted) -> Dictionary:
@@ -490,7 +532,7 @@ static func _refinery_status(model: RefCounted, furnace: Dictionary) -> Dictiona
 	return {"text": "精炼炉缺" + "、".join(missing) + "。", "needs_attention": true}
 
 
-static func _connected_receiver(model: RefCounted, source: Dictionary, item: String, receiver: String, recipe := "") -> Dictionary:
+static func _connected_receiver(model: RefCounted, source: Dictionary, item: String, receiver: String, recipe := "", receiver_id := -1) -> Dictionary:
 	var pending: Array[Dictionary] = [source]
 	var visited := {int(source.id): true}
 	var first_match := {}
@@ -508,7 +550,7 @@ static func _connected_receiver(model: RefCounted, source: Dictionary, item: Str
 			if visited.has(target.id):
 				continue
 			visited[target.id] = true
-			if target.type == receiver and (recipe.is_empty() or target.recipe_id == recipe):
+			if target.type == receiver and (recipe.is_empty() or target.recipe_id == recipe) and (receiver_id == -1 or target.id == receiver_id):
 				if receiver in [Rules.Integrated.CORE, "storage"] or (target.enabled and target.power_node_id != 0):
 					return target
 				if first_match.is_empty():

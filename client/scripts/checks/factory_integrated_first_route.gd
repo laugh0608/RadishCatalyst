@@ -357,6 +357,7 @@ func check_split_furnace_ports() -> void:
 	assert(goal.point == model.Grid.center(model.entity_at(Vector2i(-17, 28))) and "进料口" in goal.mission)
 	wait_for(func(): return devices.T.items.get("construction_pack", 0) >= model.assembly_costs.refinery,
 		150, "two more packs for a furnace after splitting recipes")
+	assert(Guidance._expanded_pack_receiver(model).is_empty(), "starter furnace and stored packs alone do not prove new plate supply")
 	_packs_to_core(model.assembly_costs.refinery)
 	_must(model.assemble("refinery"))
 	goal = Guidance.current(model)

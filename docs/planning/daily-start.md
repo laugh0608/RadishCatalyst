@@ -19,9 +19,9 @@
 
 <a id="e-foundation-refinery-yield"></a>
 
-### 补炭粉增供矿渣
+### 扩建后的构件包实收
 
-[载体分流](../devlogs/2026-W48.md#foundation-carrier-allocation)后调整炭粉。160 秒实收 6 → 8 包，最长间隔 32.15 秒。[续序号 79](../devlogs/2026-W48.md#foundation-slag-supply)
+序号 79 可从目标栏查实收、定位收货仓。同一截止步，原线 / 调整线最近 5 分钟收 11 / 14 包。[窗口复核](../devlogs/2026-W48.md#foundation-pack-receipts)
 
 <a id="e-foundation-rich-supply"></a>
 

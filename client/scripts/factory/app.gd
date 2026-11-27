@@ -414,11 +414,11 @@ func _action(name: String, value: Variant) -> void:
 					power_dialog.popup_centered(Vector2i(560, 200))
 				else:
 					hud.announce(result.reason, true)
-			"statistics":
+			"statistics", "pack_statistics":
 				_stop_pointer()
 				keys.clear()
 				actor.target = null
-				statistics_panel.show_for(model)
+				statistics_panel.show_for(model, "construction_pack" if name == "pack_statistics" else "")
 			"device": _open_device(ui.selected)
 			"discovery":
 				_stop_pointer()

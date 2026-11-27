@@ -168,6 +168,7 @@ func _build_world_panels() -> void:
 	quota_notice.offset_top = 22
 	quota_notice.locate.connect(func(id): action.emit("quota_gate", id))
 	_button(mission_stack, "guide_action", "开始首条产线")
+	_button(mission_stack, "pack_statistics", "查看构件包实收").hide()
 	_button(mission_stack, "mission", "收起目标")
 	_button(mission_stack, "discovery", "工艺、物料与矿道")
 	inspector = _panel(world_slot)
@@ -536,6 +537,7 @@ func refresh(model: RefCounted, actor: Dictionary, ui: Dictionary, _focused: boo
 				text = "升级核心 III\n在核心的等级页查看前置与材料。"
 		var location: Dictionary = ui.waypoint if ui.waypoint.get("mine", false) else Guidance.integrated_location(model)
 		text = location.get("mission", text)
+		buttons.pack_statistics.visible = ui.mission and location.get("goal_step") == "review_pack_receipts"
 		buttons.guide_action.visible = ui.mission and not location.is_empty()
 		if not location.is_empty():
 			buttons.guide_action.text = location.action_label

@@ -15,6 +15,8 @@ var filter := OptionButton.new()
 var sort_choice := OptionButton.new()
 var status := Label.new()
 var coverage := Label.new()
+var pack_receipts := Label.new()
+var scroll := ScrollContainer.new()
 var body := VBoxContainer.new()
 var material_legend := Label.new()
 var empty_label := Label.new()
@@ -79,7 +81,8 @@ func _ready() -> void:
 	sort_choice.item_selected.connect(func(_i): refresh())
 	stack.add_child(coverage)
 	coverage.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var scroll := ScrollContainer.new()
+	stack.add_child(pack_receipts)
+	pack_receipts.add_theme_font_size_override("font_size", 19)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stack.add_child(scroll)
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -125,12 +128,25 @@ func button(parent: Node, id: String, text: String, callback: Callable) -> Butto
 	return control
 
 
-func show_for(world: RefCounted) -> void:
+func show_for(world: RefCounted, item := "") -> void:
 	model = world
 	window_choice.select([60, 300, 600].find(int(model.statistics_ui.window_seconds)))
 	show()
-	refresh()
+	if item.is_empty():
+		refresh()
+	else:
+		page.select(0)
+		filter.select(0)
+		select_material(item)
 	buttons.close.grab_focus()
+
+
+func select_material(item: String) -> void:
+	selected_item = item
+	detail_ids = [-1]
+	refresh()
+	if pack_receipts.visible:
+		scroll.ensure_control_visible.call_deferred(detail_summary)
 
 
 func _process(delta: float) -> void:
@@ -161,6 +177,10 @@ func refresh() -> void:
 	material_rows.visible = page.selected == 0
 	detail.visible = page.selected == 0 and not selected_item.is_empty()
 	power_body.visible = page.selected == 1
+	pack_receipts.visible = page.selected == 0 and selected_item == "construction_pack" and model.supply_id == Rules.Integrated.SUPPLY_ID
+	if pack_receipts.visible:
+		var receipts := "%d 包" % window.delivered.get(selected_item, 0) if window.has_samples else "暂无样本"
+		pack_receipts.text = "最近 %d 分钟 · 全厂终端仓自动实收构件包：%s" % [seconds / 60, receipts]
 	filter.visible = page.selected == 0
 	sort_choice.visible = page.selected == 0
 	if page.selected == 0:
@@ -175,10 +195,7 @@ func create_row(item: String) -> Dictionary:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)
 	box.add_child(line)
-	var name_button := button(line, item, Items.NAMES[item], func():
-		selected_item = item
-		detail_ids = [-1]
-		refresh())
+	var name_button := button(line, item, Items.NAMES[item], select_material.bind(item))
 	name_button.custom_minimum_size.x = 130
 	var star := button(line, item + "_favorite", "☆", func():
 		var favorites: Array = model.statistics_ui.favorites
