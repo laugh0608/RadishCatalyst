@@ -19,9 +19,9 @@
 
 <a id="e-foundation-refinery-yield"></a>
 
-### 下一项建议 · 新精炼炉投产与构件包产能对照
+### 新炉补板 · 构件包产能已对照
 
-从序号 48 副本用新炉直炼补板，对照扩建前后构件包实收与等待原因。[依据](../devlogs/2026-W48.md#foundation-refinery-handoff)
+等长 160 秒两组各收 4 包。新炉补板后组装机等载体 120 秒。建议从序号 58 副本调整载体分流，再比较入仓间隔。[窗口对账](../devlogs/2026-W48.md#foundation-refinery-yield)
 
 <a id="e-foundation-rich-supply"></a>
 

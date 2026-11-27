@@ -219,8 +219,13 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 	var cost: int = model.assembly_costs.refinery
 	var packs: int = stock.get("construction_pack", 0)
 	if model.kits.refinery > 0:
-		var ready := _build("refinery", "把精炼炉放在供料线旁并接电，再选择需要的工艺。")
-		ready.mission = "精炼炉构件可放置\n建造库存 %d 台。可将混料冶炼和矿渣烧结分开运行。" % model.kits.refinery
+		var advice := "可将混料冶炼和矿渣烧结分开运行。"
+		var has_mixed: bool = model.entities.any(func(e): return e.get("recipe_id") == "mixed_refining")
+		var has_reuse: bool = model.entities.any(func(e): return e.get("recipe_id") == "slag_sintering")
+		if has_mixed and has_reuse:
+			advice = "组装机等板材时，可用新炉直炼铁矿补板。到收货仓比较构件包的入仓间隔。"
+		var ready := _build("refinery", "把精炼炉放在供料线旁并接电。" + advice)
+		ready.mission = "精炼炉构件可放置\n建造库存 %d 台。%s" % [model.kits.refinery, advice]
 		return ready
 	if packs >= cost:
 		var advice := "核心现有 %d 个构件包。在「装配」页用 %d 包装配一台精炼炉。" % [packs, cost]

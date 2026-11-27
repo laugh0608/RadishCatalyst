@@ -342,6 +342,7 @@ func check_split_furnace_ports() -> void:
 	advance_movement = false
 	_packs_to_core(model.assembly_costs.refinery)
 	_must(model.assemble("refinery"))
+	assert("分开运行" in Guidance.current(model).mission)
 	var mixed: Dictionary = _must(model.place("refinery", Vector2i(-21, 28))).entity
 	walk_near(mixed)
 	_must(model.change_recipe(mixed.id, "mixed_refining"))
@@ -354,6 +355,12 @@ func check_split_furnace_ports() -> void:
 	_must(model.place("belt", Vector2i(-19, 30), 0))
 	goal = Guidance._foundation_split_furnaces(model)
 	assert(goal.point == model.Grid.center(model.entity_at(Vector2i(-17, 28))) and "进料口" in goal.mission)
+	wait_for(func(): return devices.T.items.get("construction_pack", 0) >= model.assembly_costs.refinery,
+		150, "two more packs for a furnace after splitting recipes")
+	_packs_to_core(model.assembly_costs.refinery)
+	_must(model.assemble("refinery"))
+	goal = Guidance.current(model)
+	assert(goal.tool == "refinery" and "直炼铁矿补板" in goal.mission)
 
 
 ## Check guidance on the same batch before and after docking its return line.
