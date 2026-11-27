@@ -19,9 +19,9 @@
 
 <a id="e-foundation-refinery-yield"></a>
 
-### 新炉补板 · 构件包产能已对照
+### 新炉补板与载体分流
 
-等长 160 秒两组各收 4 包。新炉补板后组装机等载体 120 秒。建议从序号 58 副本调整载体分流，再比较入仓间隔。[窗口对账](../devlogs/2026-W48.md#foundation-refinery-yield)
+[补板](../devlogs/2026-W48.md#foundation-refinery-yield)后等载体。[分流](../devlogs/2026-W48.md#foundation-carrier-allocation)后 160 秒实收 4 → 6 包，核心收 2 载体。可续序号 68。
 
 <a id="e-foundation-rich-supply"></a>
 
