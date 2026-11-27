@@ -19,9 +19,9 @@
 
 <a id="e-foundation-refinery-yield"></a>
 
-### 新炉补板与载体分流
+### 补炭粉增供矿渣
 
-[补板](../devlogs/2026-W48.md#foundation-refinery-yield)后等载体。[分流](../devlogs/2026-W48.md#foundation-carrier-allocation)后 160 秒实收 4 → 6 包，核心收 2 载体。可续序号 68。
+[载体分流](../devlogs/2026-W48.md#foundation-carrier-allocation)后调整炭粉。160 秒实收 6 → 8 包，最长间隔 32.15 秒。[续序号 79](../devlogs/2026-W48.md#foundation-slag-supply)
 
 <a id="e-foundation-rich-supply"></a>
 
