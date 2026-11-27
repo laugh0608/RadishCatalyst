@@ -160,13 +160,18 @@ static func _mine_rich_return(model: RefCounted) -> Dictionary:
 	var batches: int = model.completed_by_recipe.rich_catalyst
 	if batches == 0:
 		return _mine_batch(model, "rich_catalyst", title)
+	var awaiting_transport := 0
 	for e in model.entities:
 		if e.get("recipe_id", "") == "rich_catalyst" and e.output.has("catalyst"):
-			return _mine_pickup(model, e, "catalyst", "富集产物待回仓")
+			if _connected_receiver(model, e, "catalyst", Rules.Integrated.CORE).is_empty():
+				return _mine_pickup(model, e, "catalyst", "富集产物待回仓")
+			awaiting_transport += int(e.output.catalyst)
 	var advice := "富集工艺累计 %d 批，核心现有催化剂 %d 件。" % [batches, model.core.items.get("catalyst", 0)]
+	if awaiting_transport > 0:
+		advice += "回仓线已接到核心，反应器出口还有 %d 件待输送。" % awaiting_transport
 	if model.bag.has("catalyst"):
 		advice += "背包有 %d 件催化剂，可在核心库存页存入。" % model.bag.catalyst
-	else:
+	elif awaiting_transport == 0:
 		advice += "可在核心库存页核对收货，沿反应器出口查看去向。"
 	return _production_location("mine_return", "定位基地核心", "核对催化剂回仓", advice, model.Grid.center(model.core))
 

@@ -351,6 +351,25 @@ func check_split_furnace_ports() -> void:
 	assert(goal.point == model.Grid.center(model.entity_at(Vector2i(-17, 28))) and "进料口" in goal.mission)
 
 
+## Check guidance on the same batch before and after docking its return line.
+func check_rich_return_outlet() -> void:
+	var mine: Dictionary = model.entity_at(Vector2i(10, -1))
+	var reactor: Dictionary = model.entity_at(Vector2i(-15, 28))
+	walk_near(mine)
+	wait_for(func(): return mine.buffer.has("rich_crystal"), 30, "rich ore for outlet check")
+	stock(mine, "rich_crystal", 1, false)
+	walk_near(reactor)
+	stock(reactor, "rich_crystal", 1, true)
+	wait_for(func(): return reactor.output.has("catalyst"), 30, "rich batch ready for pickup")
+	var goal := Guidance.foundation_mine_goal(model)
+	assert(goal.point == model.Grid.center(reactor) and "可取" in goal.mission)
+	var junction := Vector2i(-12, 26)
+	_must(model.place("merger", junction))
+	_must(model.place_path(belt_path([[-12, 30], [-12, 27]]), 3, junction))
+	goal = Guidance.foundation_mine_goal(model)
+	assert(goal.point == model.Grid.center(model.core) and "3 件待输送" in goal.mission)
+
+
 func walk_near(e: Dictionary) -> void:
 	if model.near_entity(e):
 		return

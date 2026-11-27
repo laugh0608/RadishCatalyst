@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-11-26
+更新时间：2026-11-27
 
 ## 启动读取
 
@@ -19,15 +19,21 @@
 
 <a id="e-foundation-rich-supply"></a>
 
-### 下一项建议 · 接通富集晶体的持续回流产线
+### 富集晶体持续回流 · 本轮已收口
 
-从 schema 9 序号 34 副本接通富集采集器、反应器与核心。正式窗口自然运行，按富集批次核对连续两批共 6 件催化剂自动回仓及原线补燃。在制或在途保存，独立读档核对续产与物料账。[接续档](../devlogs/2026-W48.md#foundation-mine-return)
+回仓、读档续产与补燃已复核，玩家独立体验暂缓。[逐批对账](../devlogs/2026-W48.md#foundation-rich-supply)
+
+<a id="e-foundation-pack-supply"></a>
+
+### 下一项建议 · 构件包连续生产与扩建
+
+序号 40 副本接通板材、载体供料，核对两包入仓、装配实扣与读档续产。[接续依据](../devlogs/2026-W48.md#foundation-pack-handoff)
 
 <a id="e-foundation-mine-return"></a>
 
 ### 矿壳试制、开路与富集晶体回流 · 本轮已收口
 
-两门实扣 4、8 件解壳剂，首批 3 件富集产物由背包送回核心。读档通行与补燃已复核，玩家独立体验暂缓。[现场引导](../features/factory-demo-integration-v1.md#foundation-mine-return) · [存读记录](../devlogs/2026-W48.md#foundation-mine-return)
+两门实扣 4、8 件解壳剂，首批 3 件催化剂经背包回仓。读档通行与补燃已复核，玩家独立体验暂缓。[存读记录](../devlogs/2026-W48.md#foundation-mine-return)
 
 <a id="e-foundation-split-production"></a>
 

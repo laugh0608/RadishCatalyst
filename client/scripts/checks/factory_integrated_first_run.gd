@@ -187,6 +187,7 @@ func _first_run() -> void:
 		"timing": "fixed-step simulation and collision-aware walks; not player elapsed time"})
 	print("First run continuous: " + JSON.stringify(continuous))
 	journey.check_split_furnace_ports()
+	journey.check_rich_return_outlet()
 
 
 func _sample_live_production(world: Control, generator: int) -> bool:
