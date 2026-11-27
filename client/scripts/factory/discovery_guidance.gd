@@ -238,13 +238,15 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 		return _production_location("setup_packs", "定位基地核心" if press.is_empty() else "定位组装机", "准备构件包组装",
 			inventory + "另设组装机或腾空现有设备，选择「构件包组装」。", point)
 	var target: Vector2 = model.Grid.center(press)
-	if press.output.get("construction_pack", 0) > 0:
+	var terminal := _connected_receiver(model, press, "construction_pack", "storage")
+	var stored: int = terminal.get("items", {}).get("construction_pack", 0)
+	var needed: int = cost - packs - model.bag.get("construction_pack", 0)
+	if stored >= needed:
+		return _production_location("collect_stored_packs", "定位构件包收货仓", "把构件包送回核心",
+			"收货仓现有 %d 包。取 %d 包存入核心，即可装配精炼炉。" % [stored, needed], model.Grid.center(terminal))
+	if press.output.get("construction_pack", 0) > 0 and terminal.is_empty():
 		return _production_location("collect_packs", "定位构件包组装机", "把新构件包送回核心",
 			"从组装机取包，或沿出料带到收货仓取包。核心装配一台精炼炉需要 %d 包。" % cost, target)
-	var terminal := _connected_receiver(model, press, "construction_pack", "storage")
-	if not terminal.is_empty() and terminal.items.get("construction_pack", 0) + packs + model.bag.get("construction_pack", 0) >= cost:
-		return _production_location("collect_stored_packs", "定位构件包收货仓", "把构件包送回核心",
-			"收货仓现有 %d 包。将核心库存补到 %d 包即可装配精炼炉。" % [terminal.items.construction_pack, cost], model.Grid.center(terminal))
 	if not press.processing and not press.input.has("porous_carrier") and not stock.has("porous_carrier") and not model.bag.has("porous_carrier"):
 		var split := _foundation_split_furnaces(model)
 		if not split.is_empty():
@@ -258,8 +260,15 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 	var instruction := "每包用 %d 板材和 %d 载体。取料或接带供料，将构件包送回核心。" % [recipe.metal_plate, recipe.porous_carrier]
 	if not power.is_empty():
 		instruction = "组装机：" + power + "。"
+	elif press.output.get("construction_pack", 0) > 0:
+		instruction = "构件包在组装机出口等待输送。可沿出料带检查到收货仓的线路。"
 	elif press.processing:
-		instruction = "组装机正在做包。取包或从收货仓取回，存入核心装配。"
+		instruction = "组装机正在做包。完成后可从组装机取包，存入核心装配。"
+		if not terminal.is_empty():
+			return _production_location("make_packs", "定位构件包收货仓", "等待构件包入仓",
+				"组装机正在做包。收货仓现有 %d 包，再到仓 %d 包即可备齐本次装配用料。" % [stored, needed - stored], model.Grid.center(terminal))
+	if stored > 0:
+		instruction += "收货仓现有 %d 包，还差 %d 包。" % [stored, needed - stored]
 	return _production_location("make_packs", "定位构件包组装机", "用板材和载体扩建", inventory + instruction, target)
 
 

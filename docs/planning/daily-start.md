@@ -17,6 +17,12 @@
 
 ## 当前接续事项
 
+<a id="e-foundation-refinery-yield"></a>
+
+### 下一项建议 · 新精炼炉投产与构件包产能对照
+
+从序号 48 副本用新炉直炼补板，对照扩建前后构件包实收与等待原因。[依据](../devlogs/2026-W48.md#foundation-refinery-handoff)
+
 <a id="e-foundation-rich-supply"></a>
 
 ### 富集晶体持续回流 · 本轮已收口
@@ -25,9 +31,9 @@
 
 <a id="e-foundation-pack-supply"></a>
 
-### 下一项建议 · 构件包连续生产与扩建
+### 构件包连续生产与扩建 · 本轮已收口
 
-序号 40 副本接通板材、载体供料，核对两包入仓、装配实扣与读档续产。[接续依据](../devlogs/2026-W48.md#foundation-pack-handoff)
+两包实扣装配精炼炉，第三包自动入仓，玩家独立体验暂缓。[逐批对账](../devlogs/2026-W48.md#foundation-pack-supply)
 
 <a id="e-foundation-mine-return"></a>
 
@@ -39,13 +45,13 @@
 
 ### 核心 II 分炉后的持续生产 · 本轮已收口
 
-schema 9 同档分炉后持续回仓和自动补燃已通过 Mac 正式窗口及独立读档复核，玩家独立体验暂缓。[接线约定](../features/factory-demo-integration-v1.md#核心-ii-分炉后的持续生产) · [逐档实收](../devlogs/2026-W48.md#foundation-split-production)
+双炉持续回仓、补燃及独立继续已复核，玩家独立体验暂缓。[逐档实收](../devlogs/2026-W48.md#foundation-split-production)
 
 <a id="e-foundation-reuse-guidance"></a>
 
 ### 核心 II 发电后的扩建引导 · 本轮已收口
 
-schema 9 目标可从烧结炉切换到构件包组装机与核心装配。回仓材料制成两包并装配一台精炼炉，四个保存点均已独立继续。[玩法范围](../features/factory-demo-integration-v1.md#foundation-reuse-guidance) · [同档窗口复核](../devlogs/2026-W48.md#foundation-reuse-guidance)
+目标随回仓、制包与装配切换，四个保存点均已独立继续。[同档窗口复核](../devlogs/2026-W48.md#foundation-reuse-guidance)
 
 <a id="e-autosave-latency"></a>
 

@@ -154,6 +154,11 @@ func prepare_core_upgrade() -> void:
 	for i in 2:
 		walk_near(devices.A)
 		stock(devices.A, "porous_carrier", 2, true)
+		if i == 0 and model.supply_id == Model.Integrated.SUPPLY_ID:
+			wait_for(func(): return devices.T.items.get("construction_pack", 0) == 1 and devices.A.processing,
+				150, "one pack stored while the second is in production")
+			var goal := Guidance._foundation_packs(model)
+			assert(goal.point == model.Grid.center(devices.T) and "再到仓 1 包" in goal.mission)
 		wait_for(func(): return devices.T.items.get("construction_pack", 0) >= (i + 1) * 2, 150, "construction packs enter terminal")
 	_packs_to_core(4)
 
