@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-成品档已审阅，本轮跳过从头亲测。建议验证富集催化剂接替普通线后，核心西口能否改送载体。[审阅与对照建议](../devlogs/2026-W48.md#foundation-candidate-owner-review)
+成品档已审阅，本轮跳过从头亲测。[西口改送载体](../devlogs/2026-W48.md#foundation-west-carrier)使实收翻倍，核心载体结余为零。下一步建议验证玩家能否用西口开关切换制包与留料，并从库存和实收看见结果。
 
 <a id="e-foundation-rich-supply"></a>
 
