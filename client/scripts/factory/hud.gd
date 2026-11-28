@@ -340,6 +340,7 @@ func sync_waypoint(model: RefCounted, actor: Dictionary, ui: Dictionary, camera_
 	waypoint_panel.visible = not waypoint.is_empty() and not inspector.visible and not ui.blocked
 	if not waypoint_panel.visible:
 		return
+	buttons.clear_waypoint.text = "返回工厂目标" if waypoint.get("mine", false) else "关闭定位"
 	waypoint_title.text = waypoint.action_label.trim_prefix("定位")
 	waypoint_distance.text = waypoint_map.sync(model, actor, waypoint.point, camera_yaw)
 

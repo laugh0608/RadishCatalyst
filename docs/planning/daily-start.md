@@ -1,6 +1,6 @@
 # Daily Start
 
-更新时间：2026-11-27
+更新时间：2026-11-28
 
 ## 启动读取
 
@@ -19,9 +19,9 @@
 
 <a id="e-foundation-refinery-yield"></a>
 
-### 扩建后的构件包实收
+### 正式基础整合 · 从开局到扩建实收
 
-序号 79 可从目标栏查实收、定位收货仓。同一截止步，原线 / 调整线最近 5 分钟收 11 / 14 包。[窗口复核](../devlogs/2026-W48.md#foundation-pack-receipts)
+在「工厂世界」继续「基础整合 · 从开局到扩建实收」，从收货仓旁查看最近 5 分钟实收。[启动命令与同档记录](../devlogs/2026-W48.md#foundation-continuous-candidate)
 
 <a id="e-foundation-rich-supply"></a>
 

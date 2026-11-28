@@ -272,6 +272,18 @@ func _read() -> void:
 	driver.expect(world.hud.mission.text.begins_with("富集矿道已开放") and "定位铁矿" not in world.hud.notice.text,
 		"restored guidance reflects the opened passage")
 	await driver.shot("07-restored-world")
+	var factory_mission: String = world.hud.mission.text
+	await _click(world.hud.buttons.discovery)
+	await _click(world.discovery_panel.buttons.mine_location)
+	driver.expect(world.ui.waypoint.get("mine", false) and world.hud.buttons.clear_waypoint.text == "返回工厂目标",
+		"mine tracking names the way back to the factory objective")
+	await _click(world.hud.buttons.clear_waypoint)
+	driver.expect(world.ui.waypoint.is_empty() and world.hud.mission.text == factory_mission,
+		"leaving mine tracking restores the current factory objective")
+	await _click(world.hud.buttons.guide_action)
+	driver.expect(world.hud.waypoint_panel.visible and world.hud.buttons.clear_waypoint.text == "关闭定位",
+		"ordinary factory waypoints keep their map action after mine tracking")
+	await _click(world.hud.buttons.clear_waypoint)
 	model.advance(30.0, 600)
 	var continued := _result(model, int(expected.generator))
 	var after := Codec.snapshot(model, expected.id, NAME, sequence)
