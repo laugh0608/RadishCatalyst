@@ -357,7 +357,7 @@ func check_split_furnace_ports() -> void:
 	assert(goal.point == model.Grid.center(model.entity_at(Vector2i(-17, 28))) and "进料口" in goal.mission)
 	wait_for(func(): return devices.T.items.get("construction_pack", 0) >= model.assembly_costs.refinery,
 		150, "two more packs for a furnace after splitting recipes")
-	assert(Guidance._expanded_pack_receiver(model).is_empty(), "starter furnace and stored packs alone do not prove new plate supply")
+	assert(Guidance._expanded_pack_goal(model).is_empty(), "starter furnace and stored packs alone do not prove new plate supply")
 	_packs_to_core(model.assembly_costs.refinery)
 	_must(model.assemble("refinery"))
 	goal = Guidance.current(model)
@@ -381,6 +381,27 @@ func check_rich_return_outlet() -> void:
 	_must(model.place_path(belt_path([[-12, 30], [-12, 27]]), 3, junction))
 	goal = Guidance.foundation_mine_goal(model)
 	assert(goal.point == model.Grid.center(model.core) and "3 件待输送" in goal.mission)
+
+
+## Stop the real carrier supply on the detached first-run world, then watch
+## the first new carrier travel to the press before the next batch can start.
+func check_pack_input_recovery() -> void:
+	var press: Dictionary = devices.A
+	var furnace: Dictionary = devices.F2
+	walk_near(furnace)
+	_must(model.set_device_enabled(furnace.id, false))
+	wait_for(func(): return Guidance._pack_fault_goal(model, press).get("goal_step") == "repair_pack_input",
+		180, "carrier supply and press buffers drain")
+	var goal := Guidance._pack_fault_goal(model, press)
+	assert("多孔载体" in goal.mission and goal.point == model.Grid.center(press))
+	_must(model.set_device_enabled(furnace.id, true))
+	var start: int = model.statistics.ticks
+	while not Guidance.PackLine.has_incoming(model, press, "porous_carrier") and model.statistics.ticks - start < 1200:
+		model.advance(STEP, 1)
+	assert(Guidance.PackLine.has_incoming(model, press, "porous_carrier") and not press.processing)
+	assert(Guidance._pack_fault_goal(model, press).is_empty(), "carrier already on its way clears the shortage warning")
+	var stored: int = devices.T.items.get("construction_pack", 0)
+	wait_for(func(): return devices.T.items.get("construction_pack", 0) > stored, 60, "reconnected supply makes a new pack")
 
 
 func walk_near(e: Dictionary) -> void:

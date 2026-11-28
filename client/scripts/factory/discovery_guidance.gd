@@ -3,6 +3,7 @@ extends RefCounted
 const Rules := preload("res://data/factory/discovery_rules.gd")
 const Frontier := Rules.Integrated.Frontier
 const Items := preload("res://scripts/factory/items.gd")
+const PackLine := preload("res://scripts/factory/pack_line_diagnostics.gd")
 const Logistics := preload("res://scripts/factory/logistics.gd")
 
 
@@ -227,13 +228,10 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 		var ready := _build("refinery", "把精炼炉放在供料线旁并接电。" + advice)
 		ready.mission = "精炼炉构件可放置\n建造库存 %d 台。%s" % [model.kits.refinery, advice]
 		return ready
-	var receiver := _expanded_pack_receiver(model)
-	if not receiver.is_empty():
-		var full: bool = model.input_room(receiver, "construction_pack") == 0
-		var title := "构件包收货仓已满" if full else "核对扩建后的构件包实收"
-		var advice := "靠近收货仓，取出物料腾出仓位。" if full else "比较相同时间内的入仓包数。"
-		var stock_text := "沿线收货仓 #%d 现存 %d 包。" % [receiver.id, receiver.items.get("construction_pack", 0)]
-		return _production_location("review_pack_receipts", "定位构件包收货仓", title, advice + stock_text, model.Grid.center(receiver))
+	var review := _expanded_pack_goal(model)
+	if not review.is_empty():
+		review.pack_statistics = true
+		return review
 	if packs >= cost:
 		var advice := "核心现有 %d 个构件包。在「装配」页用 %d 包装配一台精炼炉。" % [packs, cost]
 		if model.owned_count() >= model.Progression.MAX_OWNED:
@@ -284,31 +282,77 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 	return _production_location("make_packs", "定位构件包组装机", "用板材和载体扩建", inventory + instruction, target)
 
 
-static func _expanded_pack_receiver(model: RefCounted) -> Dictionary:
+static func _expanded_pack_goal(model: RefCounted) -> Dictionary:
 	if model.assembly_counts.refinery == 0 or model.statistics.totals.delivered.get("construction_pack", 0) < 2:
 		return {}
 	var furnaces := _entities(model, "refinery")
 	if not furnaces.any(func(e): return e.recipe_id == "mixed_refining") or not furnaces.any(func(e): return e.recipe_id == "slag_sintering"):
 		return {}
-	# Placement IDs are ordered. Only consider capacity added beyond the starter furnace.
-	for furnace in furnaces.slice(Rules.Integrated.SUPPLY.refinery):
-		if furnace.recipe_id != "direct_refining" or not furnace.enabled or furnace.power_node_id == 0:
+	# Placement IDs are ordered. Only consider capacity beyond the starter furnace.
+	var added := furnaces.slice(Rules.Integrated.SUPPLY.refinery).filter(func(e): return e.recipe_id == "direct_refining")
+	if added.is_empty():
+		return {}
+	var fault := {}
+	var review := {}
+	for press in _entities(model, "assembler", "construction_assembly"):
+		if not _production_power_issue(model, press).is_empty():
 			continue
-		if furnace.invested.is_empty() and furnace.input.is_empty() and furnace.output.is_empty():
+		var receiver := _connected_receiver(model, press, "construction_pack", "storage")
+		var stored: int = receiver.get("items", {}).get("construction_pack", 0)
+		var supplied := added.any(func(furnace): return _expanded_plate_supply(model, furnace, press))
+		# Cutting an input can erase the furnace route. Finished packs in this
+		# press's own receiver still identify an operating line during repair.
+		if not supplied and stored == 0:
 			continue
-		if not Logistics.ports(model, furnace, "input").any(func(p): return Logistics.input_connection(model, furnace, p).ok):
-			continue
-		if not _production_power_issue(model, furnace).is_empty():
-			continue
-		for press in _entities(model, "assembler", "construction_assembly"):
-			if not _production_power_issue(model, press).is_empty():
-				continue
-			if _connected_receiver(model, furnace, "metal_plate", "assembler", "construction_assembly", press.id).is_empty():
-				continue
-			var terminal := _connected_receiver(model, press, "construction_pack", "storage")
-			if not terminal.is_empty() and (model.input_room(terminal, "construction_pack") == 0 or _recent_pack_arrivals(model)):
-				return terminal
-	return {}
+		if not receiver.is_empty() and model.input_room(receiver, "construction_pack") == 0:
+			return _pack_receipt_goal(model, receiver, true)
+		if fault.is_empty():
+			fault = _pack_fault_goal(model, press)
+		if review.is_empty() and supplied and not receiver.is_empty():
+			if _recent_pack_arrivals(model):
+				review = _pack_receipt_goal(model, receiver, false)
+			elif stored > 0:
+				review = _production_location("await_pack_receipts", "定位构件包收货仓", "等待构件包入仓",
+					"沿线收货仓 #%d 现存 %d 包，查看下一包是否送达。" % [receiver.id, stored], model.Grid.center(receiver))
+	return review if fault.is_empty() else fault
+
+
+static func _expanded_plate_supply(model: RefCounted, furnace: Dictionary, press: Dictionary) -> bool:
+	if not furnace.enabled or furnace.power_node_id == 0 or (furnace.invested.is_empty() and furnace.input.is_empty() and furnace.output.is_empty()):
+		return false
+	if not Logistics.ports(model, furnace, "input").any(func(p): return Logistics.input_connection(model, furnace, p).ok):
+		return false
+	return _production_power_issue(model, furnace).is_empty() and not _connected_receiver(model, furnace, "metal_plate", "assembler", "construction_assembly", press.id).is_empty()
+
+
+static func _pack_receipt_goal(model: RefCounted, receiver: Dictionary, full: bool) -> Dictionary:
+	var title := "构件包收货仓已满" if full else "核对扩建后的构件包实收"
+	var advice := "靠近收货仓，取出物料腾出仓位。" if full else "比较相同时间内的入仓包数。"
+	advice += "沿线收货仓 #%d 现存 %d 包。" % [receiver.id, receiver.items.get("construction_pack", 0)]
+	return _production_location("review_pack_receipts", "定位构件包收货仓", title, advice, model.Grid.center(receiver))
+
+
+static func _pack_fault_goal(model: RefCounted, press: Dictionary) -> Dictionary:
+	if press.processing:
+		return {}
+	if not press.output.is_empty():
+		var block := PackLine.output_obstruction(model, press)
+		if block.is_empty():
+			return {}
+		var device: Dictionary = block.device
+		var name: String = Rules.CATALOG[device.type].name
+		var advice := "组装机 #%d 的成品待送出。检查%s #%d：%s。" % [press.id, name, device.id, block.reason]
+		return _production_location("repair_pack_output", "定位" + name, "构件包出料受阻", advice, model.Grid.center(device))
+	if not model.pack_cycle_overdue(press):
+		return {}
+	var missing := PackLine.missing_inputs(model, press)
+	for item in missing.keys():
+		if PackLine.has_incoming(model, press, item):
+			missing.erase(item)
+	if missing.is_empty():
+		return {}
+	var advice := "组装机 #%d 还需%s。检查进料带，或从背包补料。" % [press.id, Items.describe(missing)]
+	return _production_location("repair_pack_input", "定位构件包组装机", "构件包组装停产", advice, model.Grid.center(press))
 
 
 static func _recent_pack_arrivals(model: RefCounted) -> bool:

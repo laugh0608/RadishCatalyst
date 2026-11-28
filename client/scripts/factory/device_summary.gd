@@ -121,6 +121,8 @@ func refresh(model: RefCounted, e: Dictionary, world_asset: PackedScene = null) 
 						missing[item] = recipe.input[item] - int(e.input.get(item, 0))
 				if not missing.is_empty():
 					production.text = "还需：" + Items.describe(missing)
+			elif not e.output.is_empty() and model.supply_id == Rules.Integrated.SUPPLY_ID and e.recipe_id == "construction_assembly":
+				production.text = "成品可就地取走，或留给出料线。出口腾空后可开下一批。"
 			elif not e.output.is_empty():
 				production.text = "副口矿渣积压；主口可继续排出，全部清空后再开批。" if e.type == "refinery" and e.output.has("mineral_slag") else "输出尚未清空；取出或接带送走后才能开下一批。"
 		"collector":

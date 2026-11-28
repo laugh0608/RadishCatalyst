@@ -188,6 +188,7 @@ func _first_run() -> void:
 	print("First run continuous: " + JSON.stringify(continuous))
 	journey.check_split_furnace_ports()
 	journey.check_rich_return_outlet()
+	journey.check_pack_input_recovery()
 
 
 func _sample_live_production(world: Control, generator: int) -> bool:

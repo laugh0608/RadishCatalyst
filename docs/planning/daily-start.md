@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-成品档已审阅，本轮跳过从头亲测。[板材直送对照](../devlogs/2026-W48.md#foundation-plate-return)已收口，160 秒实收 16 包，核心板回流由 88 件降至零。首次独立理解和用时留待集中亲测。
+[供板对照](../devlogs/2026-W48.md#foundation-plate-return)已收口。[停产诊断](../devlogs/2026-W48.md#foundation-pack-diagnosis)已验三类停因，续产每 10 秒一包。成品档已审阅，从头亲测暂缓。
 
 <a id="e-foundation-rich-supply"></a>
 

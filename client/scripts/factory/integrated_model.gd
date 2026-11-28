@@ -3,7 +3,11 @@ extends "res://scripts/factory/expansion_model.gd"
 const Integrated := preload("res://data/factory/integrated_rules.gd")
 const Progression := preload("res://data/factory/integrated_progression.gd")
 const BurnStats := preload("res://scripts/factory/fixed_burn_statistics.gd")
+const PackLine := preload("res://scripts/factory/pack_line_diagnostics.gd")
 const Energy := preload("res://data/factory/energy_rules.gd")
+## Session-only observations for the expansion HUD. Save data contains factory-wide counts.
+var _pack_observation_start := -1
+var _last_pack_completion := {}
 var core: Dictionary
 var researched := {Progression.BASE: true}
 var research_nodes := Progression.NODES
@@ -77,6 +81,12 @@ func set_device_enabled(id: int, enabled: bool) -> Dictionary:
 	return success()
 
 
+func _step(dt: float) -> void:
+	if _pack_observation_start < 0 and supply_id == Integrated.SUPPLY_ID:
+		_pack_observation_start = statistics.ticks
+	super(dt)
+
+
 func _commit_power(allocation: Dictionary, dt: float) -> void:
 	assert(is_equal_approx(dt, STEP))
 	for id in allocation.generators:
@@ -91,12 +101,39 @@ func _commit_power(allocation: Dictionary, dt: float) -> void:
 		e.burn_remaining_ticks -= 1
 
 
+func _batch_completed(e: Dictionary) -> void:
+	super(e)
+	if supply_id == Integrated.SUPPLY_ID and e.recipe_id == "construction_assembly":
+		_last_pack_completion[e.id] = statistics.ticks
+
+
+func pack_cycle_overdue(press: Dictionary) -> bool:
+	var seconds := ceili(recipes.construction_assembly.seconds)
+	var ticks := ceili(seconds / STEP)
+	var since: int = _last_pack_completion.get(press.id, _pack_observation_start)
+	if since >= 0 and statistics.ticks - since >= ticks:
+		return true
+	if _last_pack_completion.has(press.id):
+		return false
+	# On continue, a quiet factory proves this press also missed a cycle.
+	# Other presses' production only matters before we have local observations.
+	if statistics.current.produced.has("construction_pack") or statistics.buckets.size() < seconds:
+		return false
+	for offset in seconds:
+		if statistics.buckets[-1 - offset].produced.has("construction_pack"):
+			return false
+	return true
+
+
 func salvage(id: int, confirmed := false) -> Dictionary:
 	if id == core.id:
 		return failure("基地核心不可回收")
 	var e := by_id(id)
 	if e.get("type", "") != Energy.GENERATOR:
-		return super.salvage(id, confirmed)
+		var result := super.salvage(id, confirmed)
+		if result.ok:
+			_last_pack_completion.erase(id)
+		return result
 	if not near_entity(e):
 		return failure("请走到发电机两格内回收")
 	if e.enabled:
@@ -135,6 +172,24 @@ func feedback(e: Dictionary) -> Dictionary:
 	if DiscoveryRules.POWER.has(e.type) and not e.enabled:
 		return {"kind": "ready", "label": "手动停机 · 保留进度，被动物流继续",
 			"production": "手动停机 · 保留进度，被动物流继续", "power": "已停机 · 0 kW"}
+	if supply_id == Integrated.SUPPLY_ID and e.get("recipe_id") == "construction_assembly" and not e.processing:
+		var detail := ""
+		if e.output.is_empty():
+			var missing := PackLine.missing_inputs(self, e)
+			if not missing.is_empty():
+				detail = "等料 · 还需" + Items.describe(missing)
+		else:
+			var block := PackLine.output_obstruction(self, e)
+			if block.is_empty():
+				detail = "等待构件包送出"
+				if result.kind == "blocked":
+					result.kind = "waiting"
+			else:
+				detail = "构件包出料受阻 · %s #%d %s" % [CATALOG[block.device.type].name, block.device.id, block.reason]
+		if not detail.is_empty():
+			if result.label == result.production:
+				result.label = detail
+			result.production = detail
 	return result
 
 
