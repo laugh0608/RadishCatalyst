@@ -190,6 +190,7 @@ func _first_run() -> void:
 	journey.check_rich_return_outlet()
 	journey.check_pack_input_recovery()
 	journey.check_pack_power_recovery()
+	journey.check_pack_brownout()
 
 
 func _sample_live_production(world: Control, generator: int) -> bool:

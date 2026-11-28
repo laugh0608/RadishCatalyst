@@ -2,10 +2,14 @@ extends RefCounted
 
 const Logistics := preload("res://scripts/factory/logistics.gd")
 
+enum PowerEffect { NONE, SLOWED, STOPPED }
 
-static func waiting_for_power(model: RefCounted, press: Dictionary) -> bool:
+
+static func power_effect(model: RefCounted, press: Dictionary) -> PowerEffect:
 	var device: Dictionary = model.power_state().devices[press.id]
-	return device.work > 0 and device.supplied_kw == 0
+	if device.work == 0 or device.fraction >= 1:
+		return PowerEffect.NONE
+	return PowerEffect.SLOWED if device.supplied_kw > 0 else PowerEffect.STOPPED
 
 
 static func missing_inputs(model: RefCounted, press: Dictionary) -> Dictionary:

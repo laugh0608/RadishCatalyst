@@ -427,6 +427,36 @@ func check_pack_power_recovery() -> void:
 	assert(press.active_batch == batch and press.progress > progress and Guidance._pack_fault_goal(model, press).is_empty())
 
 
+func check_pack_brownout() -> void:
+	var press: Dictionary = devices.A
+	var mine: Dictionary = model.entity_at(Vector2i(10, -1))
+	var reactor: Dictionary = model.entity_at(Vector2i(-15, 28))
+	walk_near(mine)
+	wait_for(func(): return mine.buffer.has("rich_crystal"), 30, "rich ore for a concurrent batch")
+	stock(mine, "rich_crystal", 1, false)
+	walk_near(devices.G)
+	_must(model.set_device_enabled(devices.G.id, false))
+	walk_near(reactor)
+	var added_kw: float = model.recipes[reactor.recipe_id].kw - Model.Energy.STANDBY_KW.reactor
+	wait_for(func(): return press.processing and press.progress < 9 and devices.F.processing \
+			and model.power_state().request_kw + added_kw > Model.Integrated.BASE_KW,
+		180, "one additional batch will exceed core capacity")
+	stock(reactor, "rich_crystal", 1, true)
+	var fraction: float = model.power_state().devices[press.id].fraction
+	assert(fraction > 0 and fraction < 1)
+	assert(Guidance._expanded_plate_supply(model, devices.F, press), "partly powered furnace still supplies the press")
+	var goal := Guidance._pack_receipt_goal(model, devices.T, press, false)
+	assert(goal.point == model.Grid.center(devices.T) and "降速" in goal.mission)
+	assert("降速" in model.feedback(press).production and Guidance._pack_fault_goal(model, press).is_empty())
+	var idle: Dictionary = model.entity_at(Vector2i(-21, 28))
+	var standby: Dictionary = model.power_state().devices[idle.id]
+	assert(standby.work == 0 and is_equal_approx(standby.fraction, fraction))
+	assert(Guidance.PackLine.power_effect(model, idle) == Guidance.PackLine.PowerEffect.NONE)
+	var progress: float = press.progress
+	model.advance(STEP, 1)
+	assert(is_equal_approx(press.progress - progress, STEP * fraction))
+
+
 func walk_near(e: Dictionary) -> void:
 	if model.near_entity(e):
 		return

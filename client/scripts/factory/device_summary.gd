@@ -153,9 +153,7 @@ func refresh(model: RefCounted, e: Dictionary, world_asset: PackedScene = null) 
 		if Rules.Integrated.matches_supply(model.supply_id) or (model.supply_id == Rules.Energy.SUPPLY_ID and model.standby_power):
 			power.text += "\n运行额定 %.0f / 待机额定 %.0f kW" % [device.running_kw, Rules.Energy.STANDBY_KW[e.type]]
 			var operation := "已停机 · 0 kW" if not e.enabled else "运行" if model.work_spec(e).ready else "待机"
-			if feedback.get("waiting_for_power", false):
-				operation = "等待供电"
-			production.text = operation + " · " + production.text
+			production.text = feedback.get("operation", operation) + " · " + production.text
 		if e.power_node_id != 0:
 			power.text += " · 节点 #%d" % e.power_node_id
 	elif e.type == "cell_generator":

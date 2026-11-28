@@ -175,9 +175,13 @@ func feedback(e: Dictionary) -> Dictionary:
 	if supply_id != Integrated.SUPPLY_ID or e.get("recipe_id") != "construction_assembly":
 		return result
 	var detail := ""
-	if PackLine.waiting_for_power(self, e):
-		result.waiting_for_power = true
+	var effect := PackLine.power_effect(self, e)
+	if effect == PackLine.PowerEffect.STOPPED:
+		result.operation = "等待供电"
 		detail = "在制暂停，等待供电" if e.processing else "原料齐全，等待供电"
+	elif effect == PackLine.PowerEffect.SLOWED:
+		result.operation = "降速加工"
+		detail = "在制批次降速加工" if e.processing else "原料齐全，降速开工"
 	elif not e.processing:
 		if e.output.is_empty():
 			var missing := PackLine.missing_inputs(self, e)
