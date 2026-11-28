@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-供板、物流与[停机恢复](../devlogs/2026-W48.md#foundation-pack-power)已验收。[同网欠供](../devlogs/2026-W48.md#foundation-pack-brownout)时连续入仓，满供后每 10 秒一包。成品档已审阅，从头亲测暂缓。
+扩建线停产恢复与欠供续产已验。当前进行[成品线局部体验](../devlogs/2026-W48.md#foundation-line-observation)，记录玩家选择及依据。成品档已审阅，从头亲测暂缓。
 
 <a id="e-foundation-rich-supply"></a>
 
