@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-扩建线停产恢复与欠供续产已验。当前进行[成品线局部体验](../devlogs/2026-W48.md#foundation-line-observation)，记录玩家选择及依据。成品档已审阅，从头亲测暂缓。
+扩建线停产与降速已验，[局部反馈](../devlogs/2026-W48.md#foundation-line-observation)暂无问题，从头亲测暂缓。下一包候选为用构件包建设富集矿区供电点，先比较核心拉电与配送电芯的收益、用料。
 
 <a id="e-foundation-rich-supply"></a>
 
