@@ -229,8 +229,11 @@ static func _foundation_packs(model: RefCounted) -> Dictionary:
 		return ready
 	var receiver := _expanded_pack_receiver(model)
 	if not receiver.is_empty():
-		return _production_location("review_pack_receipts", "定位构件包收货仓", "核对扩建后的构件包实收",
-			"比较相同时间内的入仓包数。沿线收货仓 #%d 现存 %d 包。" % [receiver.id, receiver.items.get("construction_pack", 0)], model.Grid.center(receiver))
+		var full: bool = model.input_room(receiver, "construction_pack") == 0
+		var title := "构件包收货仓已满" if full else "核对扩建后的构件包实收"
+		var advice := "靠近收货仓，取出物料腾出仓位。" if full else "比较相同时间内的入仓包数。"
+		var stock_text := "沿线收货仓 #%d 现存 %d 包。" % [receiver.id, receiver.items.get("construction_pack", 0)]
+		return _production_location("review_pack_receipts", "定位构件包收货仓", title, advice + stock_text, model.Grid.center(receiver))
 	if packs >= cost:
 		var advice := "核心现有 %d 个构件包。在「装配」页用 %d 包装配一台精炼炉。" % [packs, cost]
 		if model.owned_count() >= model.Progression.MAX_OWNED:
@@ -303,7 +306,7 @@ static func _expanded_pack_receiver(model: RefCounted) -> Dictionary:
 			if _connected_receiver(model, furnace, "metal_plate", "assembler", "construction_assembly", press.id).is_empty():
 				continue
 			var terminal := _connected_receiver(model, press, "construction_pack", "storage")
-			if not terminal.is_empty() and _recent_pack_arrivals(model):
+			if not terminal.is_empty() and (model.input_room(terminal, "construction_pack") == 0 or _recent_pack_arrivals(model)):
 				return terminal
 	return {}
 

@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-成品档已审阅，本轮跳过从头亲测。[西口留料与制包](../devlogs/2026-W48.md#foundation-west-switch)可在核心切换。「接口」页在出料状态旁显示已应用物料的[核心现存件数](../features/factory-base-core-v1.md#端口合同)。
+成品档已审阅，本轮跳过从头亲测。[旧炉补载体](../devlogs/2026-W48.md#foundation-direct-carrier)后，满仓前 160 秒实收由 8 增至 10 包。下一步从序号 56 派生两组，腾出等量仓位，对照从核心补板能否减少组装机等待。
 
 <a id="e-foundation-rich-supply"></a>
 
