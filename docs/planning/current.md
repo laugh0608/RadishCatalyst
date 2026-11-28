@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**统一 Demo 与第一轮成长：基础整合已开放正式新建。** 萝卜SAMA已确认[整合基线](demo-consolidation-proposal.md)：化工生产经营为主、角色现场探索反哺生产，沿 Godot 4.x / GDScript / 风格化工业科幻 3D，形成同一新档可连续游玩的核心、材料、能源、研究与开拓路线。
+**统一 Demo 与第一轮成长的核心开发已基本完成，当前处于 E 整段收口评估。** 正式基础整合（schema 9）已能从新档建线、研究、持续供燃、开路取料，再用回仓产物完成扩建。当前评审沿用 Mac 正式 Boot、独立续档和成品档审阅记录。[A–E 开发计划与原验收目标](demo-consolidation-proposal.md#整合批次与完成判据)
 
 **R1-B 已收口，萝卜SAMA认可 `outline-06` 四面端口与四角装饰。** R1-C / D 代表品质已获萝卜SAMA认可，可作为 R2 首件规范输入。活跃主线为[整合总合同](../features/factory-demo-integration-v1.md)，B1 / B2 / C 已共同通过首程验收。
 
@@ -12,14 +12,19 @@
 
 ## 当前顺位
 
-1. 基础整合沿 360 kW 核心和 120 kW × 60 秒固定燃烧通过联合首程及玩家亲测。正式菜单的新建与跨进程继续已实测，见[验收记录](../devlogs/2026-W45.md#foundation-acceptance)。
-2. [D1 开拓回报](../features/factory-research-and-progression-v1.md#d1-frontier-reward)已接入 schema 10 隔离档，X2 与外矿道已亲测。自动回归从空档覆盖高产回流、[持续生产与独立继续](../devlogs/2026-W47.md#d1-sustained-production)。萝卜SAMA[检查成品档](../devlogs/2026-W47.md#d1-completed-world-review)后反馈无问题，确认正式入口暂不开。首次理解、空档独立完成及实际用时仍按体验目标跟踪。D1 新建沿普通带单入口规则，已有档按原规则继续。
-3. [E 整段收口](../features/factory-demo-integration-v1.md#实施拆分)已完成 [D1 正式入口隔离预检](../devlogs/2026-W47.md#d1-entry-preflight)及[备份恢复修复](../devlogs/2026-W47.md#d1-recovery-identity-fix)。[R2 核心](../devlogs/2026-W47.md#r2-foundation-integration)与[基础反应器](../devlogs/2026-W47.md#e-r2-reactor-foundation)已接入正式基础整合，反应器在世界、建造预览和设备面板复用同一场景。现有 Mac 已复核接入前后 schema 9 档的独立继续。[备份轮换优化](../devlogs/2026-W47.md#e-autosave-rotation)已通过周期保存与 D1 恢复复测。[D1 成品线](../devlogs/2026-W48.md#d1-production-diagnostics)已在 Mac 正式 Boot 复核晶体及矿渣断供、载体出料受阻、发电机断燃后的恢复和独立继续。萝卜SAMA决定本轮跳过玩家独立诊断，首次独立诊断仍为未验证。[周期保存](../devlogs/2026-W48.md#e-autosave-latency)已验主备续产，剩余停顿保留跟踪。[核心 II 发电后的扩建引导](../devlogs/2026-W48.md#foundation-reuse-guidance)已随 `c34cb28d` 收口，回仓产物制包、核心装配和四个保存点的独立继续已在 Mac 复核。萝卜SAMA决定本轮跳过玩家独立体验。[分炉](../devlogs/2026-W48.md#foundation-split-production)已验回仓、补燃与续产，玩家独立体验暂缓。[矿壳试制](../devlogs/2026-W48.md#foundation-mine-return)已验两门扣料、回仓及续档通行与补燃，独立体验暂缓。[富集晶体持续回流](../devlogs/2026-W48.md#foundation-rich-supply)已接通，首两批各 3 件自动入仓，在制、在途读档续产与原线补燃已核对。萝卜SAMA确认本轮收口，玩家独立体验暂缓。[构件包连续生产与扩建](../devlogs/2026-W48.md#foundation-pack-supply)已接通。序号 40 副本在制续档后，收货仓两包经核心装配精炼炉，第三包入仓。富集回仓与补燃通过，萝卜SAMA确认收口并暂缓独立体验。[新精炼炉投产对照](../devlogs/2026-W48.md#foundation-refinery-yield)中，两组 160 秒各收 4 包，新炉补板后转为等载体，已核对续档物料账。[调整载体分流](../devlogs/2026-W48.md#foundation-carrier-allocation)后，160 秒由 4 增至 6 包，核心收 2 件载体，最长间隔 40 秒。[调整混料炉炭粉供给](../devlogs/2026-W48.md#foundation-slag-supply)后，160 秒由 6 增至 8 包，最长间隔 32.15 秒，已验烧结续档、载体回仓与补燃。[扩建后的构件包实收](../devlogs/2026-W48.md#foundation-pack-receipts)已接入目标栏与统计，序号 79 保留供渣对照。[基础整合连续首程候选](../devlogs/2026-W48.md#foundation-continuous-candidate)已接通矿道回流与实收。萝卜SAMA[审阅成品档](../devlogs/2026-W48.md#foundation-candidate-owner-review)无问题，从头亲测暂缓，理解与用时待验。[西口改送载体](../devlogs/2026-W48.md#foundation-west-carrier)后增产，[开关](../devlogs/2026-W48.md#foundation-west-switch)可切换留料与制包。[复用烧结炉](../devlogs/2026-W48.md#foundation-direct-carrier)提高满仓前实收。[核心补板](../devlogs/2026-W48.md#foundation-core-plate)后每 10 秒一包，[西口直送](../devlogs/2026-W48.md#foundation-plate-return)后 160 秒回流由 88 降至零，供板收口。序号 64 已验[物流停产](../devlogs/2026-W48.md#foundation-pack-diagnosis)、[失电与手动停机](../devlogs/2026-W48.md#foundation-pack-power)，恢复后 10 秒一包。[欠供](../devlogs/2026-W48.md#foundation-pack-brownout)时每 10.15～10.55 秒一包。
+<a id="demo-milestone-review"></a>
 
-   [富集矿区供电对照](../reference/factory-integrated-demo-layout-and-budget.md#mine-power-layout)已完成。序号 64 继续用核心拉电。第二台发电机可省四个节点，现有电芯线供不起双机连续燃烧，独网方案收口为布局实验。
-4. [D2 测控优化](../features/factory-grid-controls-d2.md)已完成核心 III、E2、C1、C2 和原 C3 的 schema 11–15 隔离实现。原 C3 开发机定向、正式 Boot 窗口与跨进程验证已完成。[长期对照](../features/factory-d2-production-comparison.md)中 v4 故障资格通过、收益未达标，Fd 排空错峰诊断通过。schema 16 联锁驱动已修正，[首周期与 Fd 重启两项短测](../devlogs/2026-W47.md#d2-v5-short-checks)均通过。待现有玩法显出调度动机和操作阻碍，再用 D2 独立档定位并继续 O5 / L5 预检。自然长测仍须按原门槛确认，目标平台待验。
+**等待萝卜SAMA决定是否以现有 Godot 工程进入正式游戏的内容开发。** 评审先看哪些生产选择和探索回报值得保留为正式玩法。若决定继续，再明确下一版的玩家起点、可用工厂产出完成的新行动以及完成标准。首个正式开发里程碑及其排期留待决定。
 
-本阶段日常迭代以匹配改动的自动检查推进，玩家可见改动补正式 Boot 窗口与相应证据。萝卜SAMA在整段候选等里程碑集中亲测，复核首次理解、节奏和继续经营的动机。
+| E 阶段评审项 | 已有结论与待验事项 |
+| --- | --- |
+| 正式基础整合 | B1 / B2 / C 通过联合首程和玩家亲测。扩建后的连续首程候选已在 Mac 从开局走到富集回仓、构件入仓并独立继续。萝卜SAMA已审阅成品档，从头亲测暂缓。[首程验收](../devlogs/2026-W45.md#foundation-acceptance) · [连续首程候选](../devlogs/2026-W48.md#foundation-continuous-candidate) · [成品反馈](../devlogs/2026-W48.md#foundation-candidate-owner-review) |
+| 扩建经营 | 供板调整后每 10 秒入仓一包，停产定位与恢复、同网欠供降速均已复核。矿区保留核心拉电，送芯独网作为布局实验收口。[供板](../devlogs/2026-W48.md#foundation-plate-return) · [停产](../devlogs/2026-W48.md#foundation-pack-diagnosis) · [失电与停机](../devlogs/2026-W48.md#foundation-pack-power) · [降速](../devlogs/2026-W48.md#foundation-pack-brownout) · [矿区对照](../reference/factory-integrated-demo-layout-and-budget.md#mine-power-layout) |
+| D1 开拓回报 | schema 10 隔离档已验证 X2 开路、高产矿持续回流和扩建，成品档审阅通过，正式入口暂不开。[持续生产](../devlogs/2026-W47.md#d1-sustained-production) · [成品档复核](../devlogs/2026-W47.md#d1-completed-world-review) |
+| D2 可选测控 | 核心 III、储能、节拍与负载组保留在隔离档。长期对照的收益门槛尚未达到。schema 16 联锁短测已通过，O5 / L5 预检仍等实际调度动机与操作阻碍，随后自然长测另行确认。[长期对照](../features/factory-d2-production-comparison.md) · [联锁短测](../devlogs/2026-W47.md#d2-v5-short-checks) |
+| 体验与平台 | 首次独立理解与诊断、实际首程用时、继续经营的动机仍待玩家验证。Windows / PowerShell 和目标硬件继续待验。[局部反馈](../devlogs/2026-W48.md#foundation-line-observation) · [保留项](#retained-d4) |
+
+R2 核心和反应器已接入正式基础整合。主档继续与备份恢复已复核，周期保存的剩余停顿保留跟踪。[代表资产](../devlogs/2026-W47.md#e-r2-reactor-foundation) · [存档与恢复](../devlogs/2026-W48.md#e-autosave-latency)
 
 11 月 1 日已完成真相源同步、四类合同首轮、S0 / S1 离线核算与[资产盘点](../reference/asset-inventory-and-transition-v1.md)。R1-A 已选 C2；R1-B 的旧候选及 96 项边缘失败保留在 [W44](../devlogs/2026-W44.md)；11 月 7 日收尾与窗口证据见 [W45](../devlogs/2026-W45.md)。B1 的 R2 场景继承原核心轮廓 GLB。并行构件布局与参数审阅继续保留，详见[预算剩余证据](../reference/factory-integrated-demo-layout-and-budget.md#remaining-evidence)。
 

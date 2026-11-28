@@ -2,7 +2,7 @@
 
 更新时间：2026-11-28
 
-状态：**基础整合通过玩家亲测和联合复核，正式 Boot 可新建及继续 schema 9 整合工厂。D1 开拓回报和 D2 核心 III、E2、C1、C2、C3 已接入各自隔离档。** [整合基线](../planning/demo-consolidation-proposal.md)规定产品 / 技术 / 视觉，[Current Plan](../planning/current.md)规定阶段；本篇统筹玩家路径、子合同与交付顺序。
+**统一 Demo 核心开发已基本完成，当前处于 E 阶段评审。** 正式 Boot 可新建及继续 schema 9 基础整合。D1 开拓回报与 D2 测控各有隔离存档。产品、技术和视觉沿用整合基线。下一里程碑由萝卜SAMA决定。[整合基线](../planning/demo-consolidation-proposal.md) · [当前评审](../planning/current.md#demo-milestone-review)
 
 ## 玩家结果
 

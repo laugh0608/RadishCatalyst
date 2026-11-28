@@ -8,20 +8,17 @@
 
 ## 当前交接
 
-- 萝卜SAMA已确认统一 Demo 设计整合、R1-A 镜头与 R1-B `outline-06` 四面轮廓。R1-C / D 代表品质已获认可。B1 / B2 / C 通过基础整合首程验收。
-- 核心每物品 99,999、等级解锁能力；初始电力按设备预算确定，固定燃烧与后续可选 PWM；Godot 3D / GDScript、生产经营主线与工业科幻方向已确认。
-- 主视角已选：[R1-A](../features/factory-camera-and-representative-scene-v1.md)亲测后，萝卜SAMA选 C2 透视正向、默认 21 格、跟随角色；滚轮调节距离 / 高度，保持俯角与 FOV。R1-B 保持此镜头，旧正式世界镜头尚未接入。
-- E1 / E2 / V8 及原 D3 / D4 工程能力继续复用，旧档和亲测进度按原身份保留。D1 开路后收益已完成隔离对照。
+统一 Demo 核心开发已基本完成，当前交接到 E 阶段评审。是否进入正式游戏内容开发、首个可玩里程碑做什么，由萝卜SAMA考虑。下次接续先查[当前规划的待决事项](current.md#demo-milestone-review)。
 
 <a id="next-day-tasks"></a>
 
-## 当前接续事项
+## 阶段评审参考
 
 <a id="e-foundation-refinery-yield"></a>
 
 ### 正式基础整合 · 从开局到扩建实收
 
-扩建线[局部反馈](../devlogs/2026-W48.md#foundation-line-observation)暂无问题，从头亲测暂缓。[矿区供电](../devlogs/2026-W48.md#foundation-mine-power)对照已完成，原线保留核心拉电。
+评审可从[连续首程候选与成品档反馈](../devlogs/2026-W48.md#foundation-continuous-candidate)回看已有交付。矿区供电对照已收口，原线保留核心拉电。从头亲测暂缓，D1、D2 的隔离入口供回查。[矿区供电对照](../devlogs/2026-W48.md#foundation-mine-power)
 
 <a id="e-foundation-rich-supply"></a>
 
