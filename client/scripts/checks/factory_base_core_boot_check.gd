@@ -117,8 +117,11 @@ func _review_path(model: RefCounted) -> void:
 			break
 	await driver.click(row.enabled)
 	driver.expect(not core.outputs.OUT_S0.enabled and core.outputs.OUT_S0.item.is_empty(), "editing draft leaves authoritative configuration untouched")
+	world.core_panel.refresh()
+	driver.expect(row.status.text == "已应用：无 · 未配置", "draft item has no applied inventory readout")
 	await driver.click(row.apply)
 	driver.expect(core.outputs.OUT_S0.enabled and core.outputs.OUT_S0.item == "iron_ore", "apply south output config through UI")
+	driver.expect(row.status.text.ends_with(" · 核心现存 %d 件" % core.items.get("iron_ore", 0)), "applied output shows the core's iron ore inventory")
 	driver.expect(world.view.models[core.id].output_icons.OUT_S0.visible, "applied item marker appears on the model")
 	await driver.shot("03-interfaces")
 	var ticks: int = model.statistics.ticks

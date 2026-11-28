@@ -391,7 +391,10 @@ func refresh(paused := false) -> void:
 	for id in outputs:
 		var row: Dictionary = outputs[id]
 		var config: Dictionary = model.core.outputs[id]
-		row.status.text = "已应用：%s · %s" % [Items.NAMES.get(config.item, "无"), Logistics.core_output_feedback(model, model.core, row.port)]
+		var status := Logistics.core_output_feedback(model, model.core, row.port)
+		if not config.item.is_empty():
+			status += " · 核心现存 %d 件" % model.core.items.get(config.item, 0)
+		row.status.text = "已应用：%s · %s" % [Items.NAMES.get(config.item, "无"), status]
 	for id in inputs:
 		var row: Dictionary = inputs[id]
 		var status := Logistics.input_connection(model, model.core, row.port)

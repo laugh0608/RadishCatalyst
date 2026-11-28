@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-成品档已审阅，本轮跳过从头亲测。[西口留料与制包](../devlogs/2026-W48.md#foundation-west-switch)可在核心切换。下一步建议在「接口」页的已应用物品旁显示核心现存数，便于决定何时重开出料。
+成品档已审阅，本轮跳过从头亲测。[西口留料与制包](../devlogs/2026-W48.md#foundation-west-switch)可在核心切换。「接口」页在出料状态旁显示已应用物料的[核心现存件数](../features/factory-base-core-v1.md#端口合同)。
 
 <a id="e-foundation-rich-supply"></a>
 

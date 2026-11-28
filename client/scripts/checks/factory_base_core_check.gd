@@ -42,7 +42,7 @@ func _contract() -> void:
 	expect(not model.place("reactor", Vector2i(-15, 19)).ok and not model.assemble("belt").ok, "locked stock and B2 commands")
 	expect(model.recipe_available("direct_refining") and model.recipe_available("direct_sintering") and not model.recipe_available("basic_catalyst"), "B0 recipes only")
 	expect(model.power_state().available_kw == 360.0 and model.power_state().request_kw == 0.0, "core is an always-on source, not a consumer")
-	expect(View._check_core_asset(load(rules.MODEL_PATH)).is_empty(), "all 16 runtime ports agree with imported anchors")
+	expect(View._check_core_asset(load(View.FOUNDATION_CORE_PATH), model.core_upgrades.size() + 1).is_empty(), "all 16 runtime ports agree with imported anchors")
 	expect(not Store.new().save(model).ok, "memory review model explicitly rejected by Store")
 	expect(not model.configure_output(core.id, "OUT_N0", "crust_sample", true).ok and not model.configure_output(core.id, "IN_N0", "iron_ore", true).ok, "non-transportable item and input configuration rejected")
 	expect(model.input_room(core, "crust_sample") == 0 and model.input_room(core, "crust_sample", true) == rules.ITEM_LIMIT, "samples permitted by hand only")
