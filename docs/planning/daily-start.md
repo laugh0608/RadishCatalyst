@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-在「工厂世界」继续「基础整合 · 从开局到扩建实收」，从收货仓旁查看最近 5 分钟实收。[启动命令与同档记录](../devlogs/2026-W48.md#foundation-continuous-candidate)
+成品档已审阅，本轮跳过从头亲测。建议验证富集催化剂接替普通线后，核心西口能否改送载体。[审阅与对照建议](../devlogs/2026-W48.md#foundation-candidate-owner-review)
 
 <a id="e-foundation-rich-supply"></a>
 
