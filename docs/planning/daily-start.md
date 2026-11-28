@@ -21,7 +21,7 @@
 
 ### 正式基础整合 · 从开局到扩建实收
 
-[供板对照](../devlogs/2026-W48.md#foundation-plate-return)已收口。[停产诊断](../devlogs/2026-W48.md#foundation-pack-diagnosis)已验三类停因，续产每 10 秒一包。成品档已审阅，从头亲测暂缓。
+供板、物流停产及[失电与手停恢复](../devlogs/2026-W48.md#foundation-pack-power)已验收。下一步用序号 64 对照同网供电不足时的加工进度与入仓间隔。成品档已审阅，从头亲测暂缓。
 
 <a id="e-foundation-rich-supply"></a>
 

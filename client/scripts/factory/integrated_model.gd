@@ -172,8 +172,13 @@ func feedback(e: Dictionary) -> Dictionary:
 	if DiscoveryRules.POWER.has(e.type) and not e.enabled:
 		return {"kind": "ready", "label": "手动停机 · 保留进度，被动物流继续",
 			"production": "手动停机 · 保留进度，被动物流继续", "power": "已停机 · 0 kW"}
-	if supply_id == Integrated.SUPPLY_ID and e.get("recipe_id") == "construction_assembly" and not e.processing:
-		var detail := ""
+	if supply_id != Integrated.SUPPLY_ID or e.get("recipe_id") != "construction_assembly":
+		return result
+	var detail := ""
+	if PackLine.waiting_for_power(self, e):
+		result.waiting_for_power = true
+		detail = "在制暂停，等待供电" if e.processing else "原料齐全，等待供电"
+	elif not e.processing:
 		if e.output.is_empty():
 			var missing := PackLine.missing_inputs(self, e)
 			if not missing.is_empty():
@@ -186,10 +191,10 @@ func feedback(e: Dictionary) -> Dictionary:
 					result.kind = "waiting"
 			else:
 				detail = "构件包出料受阻 · %s #%d %s" % [CATALOG[block.device.type].name, block.device.id, block.reason]
-		if not detail.is_empty():
-			if result.label == result.production:
-				result.label = detail
-			result.production = detail
+	if not detail.is_empty():
+		if result.label == result.production:
+			result.label = detail
+		result.production = detail
 	return result
 
 

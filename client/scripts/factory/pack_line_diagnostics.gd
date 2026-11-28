@@ -3,6 +3,11 @@ extends RefCounted
 const Logistics := preload("res://scripts/factory/logistics.gd")
 
 
+static func waiting_for_power(model: RefCounted, press: Dictionary) -> bool:
+	var device: Dictionary = model.power_state().devices[press.id]
+	return device.work > 0 and device.supplied_kw == 0
+
+
 static func missing_inputs(model: RefCounted, press: Dictionary) -> Dictionary:
 	var missing := {}
 	for item in model.recipes.construction_assembly.input:

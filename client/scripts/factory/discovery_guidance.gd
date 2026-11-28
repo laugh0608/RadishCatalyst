@@ -294,9 +294,8 @@ static func _expanded_pack_goal(model: RefCounted) -> Dictionary:
 		return {}
 	var fault := {}
 	var review := {}
+	var paused := {}
 	for press in _entities(model, "assembler", "construction_assembly"):
-		if not _production_power_issue(model, press).is_empty():
-			continue
 		var receiver := _connected_receiver(model, press, "construction_pack", "storage")
 		var stored: int = receiver.get("items", {}).get("construction_pack", 0)
 		var supplied := added.any(func(furnace): return _expanded_plate_supply(model, furnace, press))
@@ -304,7 +303,14 @@ static func _expanded_pack_goal(model: RefCounted) -> Dictionary:
 		# press's own receiver still identify an operating line during repair.
 		if not supplied and stored == 0:
 			continue
-		if not receiver.is_empty() and model.input_room(receiver, "construction_pack") == 0:
+		var full: bool = not receiver.is_empty() and model.input_room(receiver, "construction_pack") == 0
+		if not press.enabled:
+			if paused.is_empty() and not receiver.is_empty():
+				paused = _pack_receipt_goal(model, receiver, true) if full else _production_location(
+					"paused_pack_press", "定位构件包组装机", "构件包组装机已手动停机",
+					"如需续产，走近组装机 #%d，在设备面板启用。" % press.id, model.Grid.center(press))
+			continue
+		if full:
 			return _pack_receipt_goal(model, receiver, true)
 		if fault.is_empty():
 			fault = _pack_fault_goal(model, press)
@@ -314,7 +320,9 @@ static func _expanded_pack_goal(model: RefCounted) -> Dictionary:
 			elif stored > 0:
 				review = _production_location("await_pack_receipts", "定位构件包收货仓", "等待构件包入仓",
 					"沿线收货仓 #%d 现存 %d 包，查看下一包是否送达。" % [receiver.id, stored], model.Grid.center(receiver))
-	return review if fault.is_empty() else fault
+	if not fault.is_empty():
+		return fault
+	return paused if review.is_empty() else review
 
 
 static func _expanded_plate_supply(model: RefCounted, furnace: Dictionary, press: Dictionary) -> bool:
@@ -333,6 +341,11 @@ static func _pack_receipt_goal(model: RefCounted, receiver: Dictionary, full: bo
 
 
 static func _pack_fault_goal(model: RefCounted, press: Dictionary) -> Dictionary:
+	if PackLine.waiting_for_power(model, press):
+		var advice := "组装机 #%d 不在供电覆盖内。在设备中心 %.0f 格内接入连通电网的配电节点。" % [press.id, Rules.CONSUMER_RANGE]
+		if press.power_node_id != 0:
+			advice = "组装机 #%d 所在电网无供电。将节点 #%d 接回核心电网，或给同网发电机供燃并启用。" % [press.id, press.power_node_id]
+		return _production_location("restore_pack_power", "定位构件包组装机", "构件包组装等待供电", advice, model.Grid.center(press))
 	if press.processing:
 		return {}
 	if not press.output.is_empty():

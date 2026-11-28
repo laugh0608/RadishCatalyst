@@ -404,6 +404,29 @@ func check_pack_input_recovery() -> void:
 	wait_for(func(): return devices.T.items.get("construction_pack", 0) > stored, 60, "reconnected supply makes a new pack")
 
 
+func check_pack_power_recovery() -> void:
+	var press: Dictionary = devices.A
+	var relay: Dictionary = devices.J4
+	walk_near(relay)
+	wait_for(func(): return press.processing and press.progress < 8, 90, "active pack batch before power cut")
+	var batch: int = press.active_batch
+	var progress: float = press.progress
+	_must(model.salvage(relay.id, true))
+	assert(press.power_node_id == 0 and "供电覆盖" in Guidance._pack_fault_goal(model, press).mission)
+	# This cell covers the press but cannot reach an existing supply node.
+	var island := Vector2i(-8, 12)
+	_must(model.place("power_junction", island))
+	var node: Dictionary = model.entity_at(island)
+	assert(press.power_node_id == node.id and "节点 #%d" % node.id in Guidance._pack_fault_goal(model, press).mission)
+	model.advance(1.0)
+	assert(press.progress == progress and model.feedback(press).production == "在制暂停，等待供电")
+	walk_near(node)
+	_must(model.salvage(node.id, true))
+	_must(model.place("power_junction", Vector2i(relay.x, relay.z)))
+	model.advance(STEP)
+	assert(press.active_batch == batch and press.progress > progress and Guidance._pack_fault_goal(model, press).is_empty())
+
+
 func walk_near(e: Dictionary) -> void:
 	if model.near_entity(e):
 		return
